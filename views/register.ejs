@@ -1,0 +1,152 @@
+<%- include('header') %>
+<body style="background:#062863;">
+
+    <center>
+      <h1 class="text-light mb-4" style="margin-top: 40px; font-family:sans-serif; font-weight:bold">SM3</h1>
+    </center>
+    <div class="card" style="margin:0px auto; margin-top: 20px; width:35rem; border-top-left-radius:25px; border-bottom-right-radius:25px;">
+      <!-- <div class="card-header">
+    Login
+  </div> -->
+      <div class="card-body" style="padding:45px; ">
+        <h2 class="text-center mt-3" style="color:#083e9e; font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif; font-weight:100;">Create an account</h2>
+        <div id="response"></div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="name">Fullname</label>
+            <input type="text" name="name" id="name" class="form-control form-control-sm">
+            <small class="text-danger d-none" id="nameError"></small>
+          </div>
+          <div class="form-group mt-2">
+            <label for="email">Email</label>
+            <input type="email" name="email" id="email" class="form-control form-control-sm">
+            <small class="text-danger d-none" id="emailError"></small>
+          </div>
+          <div class="form-group mt-2">
+            <label for="phone">Phone Number</label>
+            <input type="phone" name="phone" id="phone" class="form-control form-control-sm">
+            <small class="text-danger d-none" id="phoneError"></small>
+          </div>
+          <div class="form-group mt-2">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" class="form-control form-control-sm">
+            <small class="text-danger d-none" id="passwordError"></small>
+          </div>
+          <div class="form-group mt-2 mb-2">
+            <label for="password">Confirm Password</label>
+            <input type="password" name="confirmpassword" id="confirmpassword" class="form-control form-control-sm">
+            <small class="text-danger d-none" id="confirmpasswordError"></small>
+          </div>
+          <div class="form-group mt-3 mb-4 d-md-block">
+            <button type="submit" class="btn btn-primary btn-block">Register</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+    <center>
+      <p class="text-light mt-4">I have an account? <a style="text-decoration: none; color:white" href="/login">Login</a> | <a style="text-decoration: none; color:white" href="/">Back to homepage</a></p>
+    </center>
+
+<%- include('footer') %>
+<script>
+  $(document).ready(function() {
+    $('#loginForm').on('submit', (event) => {
+      event.preventDefault(); // Prevent the default form submission behavior
+      $('#nameError').addClass('d-none');
+      $('#emailError').addClass('d-none');
+      $('#phoneError').addClass('d-none');
+      $('#passwordError').addClass('d-none');
+      $('#confirmpasswordError').addClass('d-none');
+      $('#name').removeClass('is-invalid');
+      $('#email').removeClass('is-invalid');
+      $('#phone').removeClass('is-invalid');
+      $('#password').removeClass('is-invalid');
+      $('#confirmpassword').removeClass('is-invalid');
+
+      const name = $('#name').val();
+      const email = $('#email').val();
+      const phone = $('#phone').val();
+      const password = $('#password').val();
+      const confirmpassword = $('#confirmpassword').val();
+
+      const formData = {
+        name,
+        email,
+        phone,
+        password,
+        confirmpassword
+      };
+
+      $.ajax({
+        url: '/auth/register',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        dataType: 'json',
+        success: (data) => {
+          // Process the response from the backend
+          console.log(data);
+          if(data.responseCode === 201){
+                toastr.success(data.responseMessage, '', {
+                timeOut: 3000,
+                progressBar: true
+            });
+
+            setTimeout(function() {
+                window.location = '/login';
+            }, 3000);
+          }
+        },
+        error: (xhr, status, error) => {
+          console.error('Error sending data:', error);
+
+          if (xhr.status === 400) {
+            var errors = xhr.responseJSON.responseMessage;
+            if (errors && errors.length > 0) {
+              $.each(errors, (index, err) => {
+      
+                if (err.path == 'name') {
+                  $('#name').addClass('is-invalid');
+                  $('#nameError').removeClass('d-none');
+                  $('#nameError').text(err.msg);
+                }
+                if (err.path == 'email') {
+                $('#email').addClass('is-invalid');
+                $('#emailError').removeClass('d-none');
+                $('#emailError').text(err.msg);
+                }
+                if (err.path == 'phone') {
+                  $('#phone').addClass('is-invalid');
+                  $('#phoneError').removeClass('d-none');
+                  $('#phoneError').text(err.msg);
+                }
+                if (err.path == 'password') {
+                $('#password').addClass('is-invalid');
+                $('#passwordError').removeClass('d-none');
+                $('#passwordError').text(err.msg);
+                }
+                if (err.path == 'confirmpassword') {
+                $('#confirmpassword').addClass('is-invalid');
+                $('#confirmpasswordError').removeClass('d-none');
+                $('#confirmpasswordError').text(err.msg);
+                }
+              });
+              return;
+            }
+          }else if(xhr.status == 401){
+            console.log(xhr);
+            toastr.error(xhr.responseJSON.responseMessage, '', {
+            timeOut: 3000,
+            progressBar: true
+            });
+          }
+        //   toastr.error('Failed to register user');
+        }
+      });
+    });
+  });
+</script>
+</body>
+
+</html>
