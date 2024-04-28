@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const cors = require('cors');
 require("./utils/db");
 
 const indexRouter = require('./routes/index');
@@ -10,7 +11,20 @@ const usersRouter = require('./routes/users');
 const authRouter = require('./routes/auth');
 const roleRouter = require('./routes/role');
 
+
 const app = express();
+
+//CORS option for specifically port 3001, 
+//To use this CORS option pass it into the  app.use(cors()) like so app.use(cors(corsOptionns))
+
+const corsOptions = {
+  origin: 'http://localhost:3001', 
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+};
+
+//Enabiling cors for all routes
+app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
