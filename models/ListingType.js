@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const RoleSchema = new mongoose.Schema({
+const ListingTypeSchema = new mongoose.Schema({
   slug: {
     type: String,
     required: true,
     lowercase: true,
-    unique: true,
+    // unique: true
   },
-  roleName: {
+  listingType: {
     type: String,
     required: true,
   },
@@ -19,4 +19,4 @@ const RoleSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Role", RoleSchema);
+module.exports = mongoose.model("ListingType", ListingTypeSchema);

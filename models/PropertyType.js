@@ -1,15 +1,15 @@
 const mongoose = require("mongoose");
 
-const RoleSchema = new mongoose.Schema({
+const PropertyTypeSchema = new mongoose.Schema({
   slug: {
     type: String,
     required: true,
     lowercase: true,
-    unique: true,
   },
-  roleName: {
+  propertyType: {
     type: String,
     required: true,
+    unique: true,
   },
 
   createdAt: {
@@ -19,4 +19,4 @@ const RoleSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Role", RoleSchema);
+module.exports = mongoose.model("PropertyType", PropertyTypeSchema);

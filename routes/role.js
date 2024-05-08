@@ -4,10 +4,11 @@ const {
   createRole,
   editRole,
   updateRole,
-  deleteRole
+  deleteRole,
+  fetchRole
 } = require("../controllers/roleController");
 const { body } = require("express-validator");
-const { requireAuth, checkUser } = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 router.post(
   "/createRole",
@@ -41,5 +42,7 @@ router.post(
   ],
   deleteRole
 );
+
+router.get("/getRoles", requireAuth, fetchRole);
 
 module.exports = router;

@@ -1,7 +1,7 @@
-const Role = require("../models/role");
+const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
 const { formatRoleId } = require("../utils/helpers");
-// const { ObjectId } = require("mongodb");
+const { ObjectId } = require("mongodb");
 
 const createRole = async (req, res, next) => {
   const errors = validationResult(req);
@@ -21,14 +21,11 @@ const createRole = async (req, res, next) => {
         responseMessage: "Role with the same name already exists",
       });
     }
-    const lastRole = await Role.findOne({}, { roleId: 1 }).sort({
-      roleId: -1,
-    });
-    let roleId = lastRole ? parseInt(lastRole.roleId) + 1 : 1;
-    roleId = formatRoleId(roleId);
+
+    const slug = roleName.toLowerCase().replace(/\s+/g, "-");
 
     const newRole = await Role.create({
-      roleId,
+      slug,
       roleName,
     });
     if (newRole) {
@@ -36,7 +33,8 @@ const createRole = async (req, res, next) => {
         responseMessage: "Role created successfully",
         responseCode: 201,
         data: {
-          roleId: newRole.roleId,
+          id: newRole._id,
+          slug: newRole.slug,
           roleName: newRole.roleName,
         },
       });
@@ -62,7 +60,7 @@ const editRole = async (req, res) => {
         .json({ responseCode: 400, responseMessage: errors.array() });
     }
     const { roleId } = req.body;
-    const roledb = await Role.findOne({ roleId });
+    const roledb = await Role.findOne({ _id:roleId });
     if (!roledb) {
       return res.status(404).json({
         responseMessage: "Record not found",
@@ -96,7 +94,7 @@ const updateRole = async (req, res) => {
     // console.log(req.body);
 
     const roleData = { roleName };
-    const updatedrole = await Role.findOneAndUpdate({ roleId }, roleData, {
+    const updatedrole = await Role.findOneAndUpdate({ _id:roleId }, roleData, {
       new: true,
     });
     if (!updatedrole) {
@@ -147,7 +145,8 @@ const deleteRole = async (req, res) => {
     }
 
     const { roleId } = req.body;
-    const role = await Role.findOne({ roleId });
+    const id = new ObjectId(roleId);
+    const role = await Role.findById({ _id:id });
     if (!role) {
       return res
         .status(404)
@@ -156,7 +155,7 @@ const deleteRole = async (req, res) => {
 
     // Delete the user
     // await User.findByIdAndDelete({ roleId });
-    await Role.findOneAndDelete({ roleId });
+    await Role.findByIdAndDelete({ _id:id });
 
     // Respond with a success message
     return res.status(200).json({
@@ -167,9 +166,20 @@ const deleteRole = async (req, res) => {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
 };
+
+const fetchRole = async (req, res) => { 
+  try {
+    // const users = await User.find();
+    const roles = await Role.find().select("slug roleName createdAt");
+    res.json(roles);
+  } catch (error) {
+    res.status(500).json({ responseMessage: error.message });
+  }
+}
 module.exports = {
   createRole,
   editRole,
   updateRole,
-  deleteRole
+  deleteRole,
+  fetchRole
 };
