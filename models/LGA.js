@@ -1,27 +1,25 @@
 const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({
-  name: {
+const LGASchema = new mongoose.Schema({
+
+  stateId: {
     type: String,
     required: true,
-  },
-  phone: {
+    lowercase: true,
+    unique: true,
+    },
+    
+  slug: {
     type: String,
     required: true,
+    lowercase: true,
+    unique: true,
   },
-  email: {
+
+  lga: {
     type: String,
     required: true,
     unique: true,
-    lowercase: true,
-  },
-  role: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
   },
 
   createdAt: {
@@ -31,4 +29,4 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model("LGA", LGASchema);

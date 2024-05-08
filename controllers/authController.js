@@ -1,7 +1,7 @@
 const { validationResult } = require("express-validator");
 const { hashPassword, comparePassword } = require("../utils/helpers");
 const User = require("../models/user");
-const Role = require("../models/role");
+const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
 
 
@@ -20,11 +20,11 @@ const registerUser = async (req, res, next) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { name, phone, email, password, roleId } = req.body;
+  const { name, phone, email, password, role } = req.body;
   const hashedPassword = hashPassword(password);
   try {
-
-     const roledb = await Role.findOne({ roleId });
+    const slug = role.toLowerCase().replace(/\s+/g, "-");
+     const roledb = await Role.findOne({ slug });
      if (!roledb) {
        return res.status(404).json({
          responseMessage: "Role doesnt exist",
@@ -36,7 +36,7 @@ const registerUser = async (req, res, next) => {
       name,
       phone,
       email,
-      roleId,
+      role:slug,
       password: hashedPassword,
     });
     const token = createToken(newUser._id);
