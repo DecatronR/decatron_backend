@@ -23,6 +23,14 @@ const registerUser = async (req, res, next) => {
   const { name, phone, email, password, role } = req.body;
   const hashedPassword = hashPassword(password);
   try {
+    const existing = await User.findOne({ email });
+
+    if (existing) {
+      return res.status(409).json({
+        responseCode: 409,
+        responseMessage: "Email already exists. kindly provide a different email",
+      });
+    }
     const slug = role.toLowerCase().replace(/\s+/g, "-");
      const roledb = await Role.findOne({ slug });
      if (!roledb) {
