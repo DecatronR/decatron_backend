@@ -18,7 +18,7 @@ router.post(
   [
     body("name").notEmpty().withMessage("Name field is required"),
     body("email").isEmail().withMessage("Invalid email address"),
-    body("roleId").notEmpty().withMessage("roleId field is required"),
+    body("role").notEmpty().withMessage("role field is required"),
     body("phone").isMobilePhone().withMessage("Invalid phone number"),
     body("password")
       .isLength({ min: 6 })
