@@ -14,17 +14,18 @@ const roleRouter = require('./routes/role');
 
 const app = express();
 
-//CORS option for specifically port 3001, 
+//CORS option for specifically port 3000, 
 //To use this CORS option pass it into the  app.use(cors()) like so app.use(cors(corsOptionns))
 
 const corsOptions = {
-  origin: 'http://localhost:3001', 
+  origin: 'http://localhost:3000', 
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
+  credentials: true,
 };
 
 //Enabiling cors for all routes
-app.use(cors());
+app.use(cors(corsOptions));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
