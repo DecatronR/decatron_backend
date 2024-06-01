@@ -5,7 +5,7 @@ const { ObjectId } = require("mongodb");
 const getUsers = async (req, res) => {
   try {
     // const users = await User.find();
-    const users = await User.find().select("name email phone createdAt");
+    const users = await User.find().select("name role email phone createdAt");
     res.json(users);
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
@@ -34,6 +34,7 @@ const editUsers = async (req, res) => {
         responseCode: 200,
         data: {
           name: userdb.name,
+          role: userdb.role,
           email: userdb.email,
           phone: userdb.phone,
           id: id,
