@@ -5,7 +5,7 @@ const ListingTypeSchema = new mongoose.Schema({
     type: String,
     required: true,
     lowercase: true,
-    // unique: true
+    unique: true
   },
   listingType: {
     type: String,

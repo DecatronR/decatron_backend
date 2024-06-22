@@ -1,4 +1,5 @@
 const User = require("../models/user");
+const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 
@@ -55,10 +56,18 @@ const updateUsers = async (req, res) => {
   }
 
   try {
-    const { name, phone, email, id } = req.body;
+    const { name, phone, email, id, role } = req.body;
     // console.log(req.body);
 
-    const userData = { name, phone, email };
+    const userData = { name, phone, email, role };
+    const slug = role.toLowerCase().replace(/\s+/g, "-");
+    const roledb = await Role.findOne({ slug });
+    if (!roledb) {
+      return res.status(404).json({
+        responseMessage: "Role doesnt exist",
+        responseCode: 404,
+      });
+   }
     const updatedUser = await User.findByIdAndUpdate(id, userData, {
       new: true,
     }).select("-password");
