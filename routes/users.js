@@ -31,6 +31,7 @@ router.post(
     body("email").isEmail().withMessage("Invalid email address"),
     body("phone").isMobilePhone().withMessage("Invalid phone number"),
     body("id").notEmpty().withMessage("Id is required"),
+    body("role").notEmpty().withMessage("Role is required")
   ],
   updateUsers
 );
