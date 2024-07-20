@@ -92,8 +92,9 @@ const updateRole = async (req, res) => {
   try {
     const { roleId, roleName } = req.body;
     // console.log(req.body);
+    const slug = roleName.toLowerCase().replace(/\s+/g, "-");
 
-    const roleData = { roleName };
+    const roleData = { roleName, slug };
     const updatedrole = await Role.findOneAndUpdate({ _id:roleId }, roleData, {
       new: true,
     });
