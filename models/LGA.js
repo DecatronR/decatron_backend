@@ -4,11 +4,8 @@ const LGASchema = new mongoose.Schema({
 
   stateId: {
     type: String,
-    required: true,
-    lowercase: true,
-    unique: true,
-    },
-    
+    required: true
+  },    
   slug: {
     type: String,
     required: true,
