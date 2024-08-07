@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -23,12 +22,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   createdAt: {
     type: Date,
     required: true,
     default: new Date(),
-  },
+  }
 });
-
 module.exports = mongoose.model("User", UserSchema);
