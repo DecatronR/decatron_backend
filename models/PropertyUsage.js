@@ -7,7 +7,7 @@ const PropertyUsage = new mongoose.Schema({
     lowercase: true,
     unique: true,
   },
-  propertyusage: {
+  propertyUsage: {
     type: String,
     required: true,
     unique: true,

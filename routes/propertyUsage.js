@@ -14,7 +14,7 @@ router.post(
   "/createPropertyUsage",
   requireAuth,
   [
-    body("propertyusage")
+    body("propertyUsage")
       .notEmpty()
       .withMessage("Property Usage Name field is required"),
   ],
@@ -33,7 +33,7 @@ router.post(
   requireAuth,
   [
     body("id").notEmpty().withMessage("Property Usage field is required"),
-    body("propertyusage")
+    body("propertyUsage")
       .notEmpty()
       .withMessage("Property Usage field is required"),
   ],

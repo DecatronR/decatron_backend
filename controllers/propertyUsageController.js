@@ -10,10 +10,10 @@ const createPropertyUsage = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { propertyusage } = req.body;
+  const { propertyUsage } = req.body;
 
   try {
-    const slug = propertyusage.toLowerCase().replace(/\s+/g, "-");
+    const slug = propertyUsage.toLowerCase().replace(/\s+/g, "-");
     const existing = await PropertyUsage.findOne({ slug });
 
     if (existing) {
@@ -25,7 +25,7 @@ const createPropertyUsage = async (req, res) => {
 
     const createNew = await PropertyUsage.create({
       slug,
-      propertyusage,
+      propertyUsage,
     });
     // return res.send(propertyType);
     if (createNew) {
@@ -35,7 +35,7 @@ const createPropertyUsage = async (req, res) => {
         data: {
           id: createNew._id,
           slug: createNew.slug,
-          propertyusage: createNew.propertyusage,
+          propertyUsage: createNew.propertyUsage,
         },
       });
     } else {
@@ -74,7 +74,7 @@ const editPropertyUsage = async (req, res) => {
         data: {
           id: checkDb._id,
           slug: checkDb.slug,
-          propertyusage: checkDb.propertyusage,
+          propertyUsage: checkDb.propertyUsage,
         },
       });
     }
@@ -92,10 +92,10 @@ const updatePropertyUsage = async (req, res) => {
   }
 
   try {
-    const { id, propertyusage } = req.body;
-    const slug = propertyusage.toLowerCase().replace(/\s+/g, "-");
+    const { id, propertyUsage } = req.body;
+    const slug = propertyUsage.toLowerCase().replace(/\s+/g, "-");
 
-    const Data = { propertyusage, slug };
+    const Data = { propertyUsage, slug };
     const updated = await PropertyUsage.findOneAndUpdate({ _id: id }, Data, {
       new: true,
     });
@@ -113,7 +113,7 @@ const updatePropertyUsage = async (req, res) => {
       role: {
         id: updated.id,
         state: updated.state,
-        propertyusage: updated.propertyusage
+        propertyUsage: updated.propertyUsage
       },
     });
   } catch (error) {
@@ -128,7 +128,7 @@ const fetchPropertyUsage = async (req, res) => {
   try {
     // const users = await User.find();
     const fetchRcords = await PropertyUsage.find().select(
-      "slug propertyusage createdAt"
+      "slug propertyUsage createdAt"
     );
     res.json(fetchRcords);
   } catch (error) {
