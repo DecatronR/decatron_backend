@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const PropertyUsage = new mongoose.Schema({
+const PropertyCondition = new mongoose.Schema({
   slug: {
     type: String,
     required: true,
     lowercase: true,
     unique: true,
   },
-  propertyUsage: {
+  propertyCondition: {
     type: String,
     required: true,
     unique: true,
@@ -20,4 +20,4 @@ const PropertyUsage = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("PropertyUsage", PropertyUsage);
+module.exports = mongoose.model("PropertyCondition", PropertyCondition);
