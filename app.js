@@ -14,6 +14,7 @@ const propertyListingRouter = require('./routes/propertyListing');
 const listingTypeRouter = require('./routes/listingType');
 const propertyTypeRouter = require('./routes/propertyType');
 const propertyUsageRouter = require('./routes/propertyUsage');
+const propertyConditionRouter = require('./routes/propertyCondition');
 const stateRouter = require('./routes/state');
 const lgaRouter = require('./routes/lga');
 
@@ -53,6 +54,7 @@ app.use("/propertyType", propertyTypeRouter);
 app.use("/state", stateRouter);
 app.use("/lga", lgaRouter);
 app.use("/propertyUsage", propertyUsageRouter);
+app.use("/propertyCondition", propertyConditionRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

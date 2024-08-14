@@ -1,51 +1,51 @@
 const express = require("express");
 const router = express.Router();
 const {
-  createPropertyUsage,
-  editPropertyUsage,
-  updatePropertyUsage,
-  fetchPropertyUsage,
-  deletePropertyUsage,
-} = require("../controllers/propertyUsageController");
+  createPropertyCondition,
+  editPropertyCondition,
+  updatePropertyCondition,
+  fetchPropertyCondition,
+  deletePropertyCondition,
+} = require("../controllers/propertyConditionController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 
 router.post(
-  "/createPropertyUsage",
+  "/createPropertyCondition",
   requireAuth,
   [
-    body("propertyUsage")
+    body("propertyCondition")
       .notEmpty()
       .withMessage("Property Usage Name field is required"),
   ],
-  createPropertyUsage
+  createPropertyCondition
 );
 
 router.post(
-  "/editPropertyUsage",
+  "/editPropertyCondition",
   requireAuth,
   [body("id").notEmpty().withMessage("Property Usage field is required")],
-  editPropertyUsage
+  editPropertyCondition
 );
 
 router.post(
-  "/updatePropertyUsage",
+  "/updatePropertyCondition",
   requireAuth,
   [
     body("id").notEmpty().withMessage("Property Usage field is required"),
-    body("propertyUsage")
+    body("propertyCondition")
       .notEmpty()
       .withMessage("Property Usage field is required"),
   ],
-  updatePropertyUsage
+  updatePropertyCondition
 );
 
-router.get("/fetchPropertyUsage", requireAuth, fetchPropertyUsage);
+router.get("/fetchPropertyCondition", requireAuth, fetchPropertyCondition);
 router.post(
-  "/deletePropertyUsage",
+  "/deletePropertyCondition",
   requireAuth,
   [body("id").notEmpty().withMessage("Property Usage ID field is required")],
-  deletePropertyUsage
+  deletePropertyCondition
 );
 
 module.exports = router;
