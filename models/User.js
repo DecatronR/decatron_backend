@@ -18,6 +18,26 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  passport: {
+    type: String,
+    required: false,
+  },
+  identificationDocument: {
+    type: String,
+    required: false,
+  },
+  identificationNo: {
+    type: String,
+    required: false,
+  },
+  otp: {
+    type: String,
+    required: false,
+  },
+  email_verified_at: {
+    type: String,
+    required: false,
+  },
   password: {
     type: String,
     required: true,

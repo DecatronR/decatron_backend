@@ -94,7 +94,7 @@ const updateState = async (req, res) => {
   try {
     const { id, state } = req.body;
     const slug = state.toLowerCase().replace(/\s+/g, "-");
-
+    
     const Data = { state, slug };
     const updated = await State.findOneAndUpdate({ _id: id }, Data, {
       new: true,
