@@ -56,10 +56,9 @@ const updateUsers = async (req, res) => {
   }
 
   try {
-    const { name, phone, email, id, role } = req.body;
-    // console.log(req.body);
+    const { name, phone, email, id, role, identificationDocument, identificationNo } = req.body;
 
-    const userData = { name, phone, email, role };
+    const userData = { name, phone, email, role, identificationDocument, identificationNo };
     const slug = role.toLowerCase().replace(/\s+/g, "-");
     const roledb = await Role.findOne({ slug });
     if (!roledb) {

@@ -1,6 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { registerUser, loginUser, logoutUser } = require("../controllers/authController");
+const { registerUser, loginUser, logoutUser,confirmOTP, resendOTP } = require("../controllers/authController");
 const router = express.Router();
 
 /* GET home page. */
@@ -11,6 +11,21 @@ router.post(
     body("password").isLength({ min: 6 }).withMessage("Password must be at least 6 characters"),
   ],
   loginUser
+);
+router.post(
+  "/confirmOTP",
+  [
+    body("email").isEmail().withMessage("Invalid email address"),
+    body("otp").notEmpty().withMessage("OTP field is required"),
+  ],
+  confirmOTP
+);
+router.post(
+  "/resendOTP",
+  [
+    body("email").isEmail().withMessage("Invalid email address")
+  ],
+  resendOTP
 );
 
 router.post(

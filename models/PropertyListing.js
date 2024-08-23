@@ -75,6 +75,11 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  isSoldOut: {
+    type: String,
+    required: false,
+    default: '0'
+  },
   createdAt: {
     type: Date,
     required: true,
