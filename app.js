@@ -18,6 +18,7 @@ const propertyConditionRouter = require('./routes/propertyCondition');
 const stateRouter = require('./routes/state');
 const lgaRouter = require('./routes/lga');
 const favoriteRouter = require('./routes/favorite');
+const myScheduleRouter = require('./routes/mySchedule');
 
 
 const app = express();
@@ -57,6 +58,7 @@ app.use("/lga", lgaRouter);
 app.use("/propertyUsage", propertyUsageRouter);
 app.use("/propertyCondition", propertyConditionRouter);
 app.use("/favorite", favoriteRouter);
+app.use("/mySchedule", myScheduleRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
