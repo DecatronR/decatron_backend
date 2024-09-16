@@ -14,6 +14,7 @@ router.post(
   "/createPropertyListing",
   requireAuth,
   [
+    body("userID").notEmpty().withMessage("user ID field is required"),
     body("title").notEmpty().withMessage("Title field is required"),
     body("listingType").notEmpty().withMessage("listingType field is required"),
     body("usageType").notEmpty().withMessage("usageType field is required"),

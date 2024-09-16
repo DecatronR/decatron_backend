@@ -12,6 +12,7 @@ const createPropertyListing = async (req, res) => {
   }
 
   const {
+    userID,
     title,
     listingType,
     usageType,
@@ -37,6 +38,7 @@ const createPropertyListing = async (req, res) => {
     const slug = title.toLowerCase().replace(/\s+/g, "-");
 
     const createNew = await PropertyListing.create({
+      userID,
       title,
       slug,
       listingType,
