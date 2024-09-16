@@ -14,7 +14,7 @@ const upload = require("../middleware/uploadMiddleware");
 router.post(
   "/createPropertyListing",
   requireAuth,
-  upload.array("photo", 10), // Adjust '10' to the maximum number of photos you expect
+  upload.array("photo", 10), //max no of photos is 10
   [
     body("title").notEmpty().withMessage("Title field is required"),
     body("listingType").notEmpty().withMessage("listingType field is required"),
@@ -66,7 +66,7 @@ router.post(
 router.post(
   "/updatePropertyListing",
   requireAuth,
-  upload.array("photo", 10), // Adjust '10' to the maximum number of photos you expect
+  upload.array("photo", 10), //max no of photos is 10
   [
     body("id").notEmpty().withMessage("Property Listing ID field is required"),
     body("title").notEmpty().withMessage("Title field is required"),
