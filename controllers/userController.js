@@ -56,9 +56,24 @@ const updateUsers = async (req, res) => {
   }
 
   try {
-    const { name, phone, email, id, role, identificationDocument, identificationNo } = req.body;
+    const {
+      name,
+      phone,
+      email,
+      id,
+      role,
+      identificationDocument,
+      identificationNo,
+    } = req.body;
 
-    const userData = { name, phone, email, role, identificationDocument, identificationNo };
+    const userData = {
+      name,
+      phone,
+      email,
+      role,
+      identificationDocument,
+      identificationNo,
+    };
     const slug = role.toLowerCase().replace(/\s+/g, "-");
     const roledb = await Role.findOne({ slug });
     if (!roledb) {
@@ -66,7 +81,7 @@ const updateUsers = async (req, res) => {
         responseMessage: "Role doesnt exist",
         responseCode: 404,
       });
-   }
+    }
     const updatedUser = await User.findByIdAndUpdate(id, userData, {
       new: true,
     }).select("-password");
@@ -84,12 +99,10 @@ const updateUsers = async (req, res) => {
     // Handle any errors that occur during the update process
     console.error("Error updating user:", error);
     if (error.name === "MongoError" && error.code === 11000) {
-      return res
-        .status(400)
-        .json({
-          responseCode: 400,
-          responseMessage: "Duplicate email address",
-        });
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Duplicate email address",
+      });
     }
 
     if (error.name === "CastError" && error.kind === "ObjectId") {
@@ -100,12 +113,10 @@ const updateUsers = async (req, res) => {
 
     // Handle database connection errors
     console.error("Database connection error:", error);
-    return res
-      .status(500)
-      .json({
-        responseCode: 500,
-        responseMessage: "Database connection error",
-      });
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: "Database connection error",
+    });
   }
 };
 
@@ -140,9 +151,72 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const rateUser = async (req, res) => {
+  const { rating, reviewerID, comment, userID } = req.body; // Get rating details from the request body
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ responseCode: 400,  responseMessage: "Rating must be between 1 and 5." });
+  }
+
+  try {
+    const objectId = new ObjectId(userID);
+    const user = await User.findOne({ _id: objectId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    // Add new rating
+    const newRating = {
+      rating,
+      reviewerID,
+      comment,
+      createdAt: new Date(),
+    };
+
+    user.ratings.push(newRating);
+
+    await user.save();
+
+    res.json({ message: "Rating added successfully", ratings: user.ratings });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const fetchUserRating = async (req, res) => {
+  const { userID } = req.body; // Get userID from the request parameters
+
+  try {
+    const objectId = new ObjectId(userID);
+    const user = await User.findOne({ _id: objectId }, 'ratings'); // Only select the 'ratings' field
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.json({
+      message: "Ratings fetched successfully",
+      ratings: user.ratings
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 module.exports = {
   getUsers,
   editUsers,
   updateUsers,
   deleteUser,
+  rateUser,
+  fetchUserRating
 };
