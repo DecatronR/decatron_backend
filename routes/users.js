@@ -4,7 +4,9 @@ const {
   getUsers,
   editUsers,
   updateUsers,
-  deleteUser
+  deleteUser,
+  rateUser,
+  fetchUserRating
 } = require("../controllers/userController");
 const { body } = require("express-validator");
 const { requireAuth, checkUser } = require("../middleware/authMiddleware");
@@ -40,6 +42,23 @@ router.post(
   requireAuth,
   [body("id").notEmpty().withMessage("Id is required")],
   deleteUser
+);
+
+router.post(
+  "/fetchUserRating",
+  requireAuth,
+  [body("userID").notEmpty().withMessage("User Id field is required")],
+  fetchUserRating
+);
+
+router.post(
+  "/rateUser",
+  requireAuth,
+  [body("userID").notEmpty().withMessage("user ID is required")],
+  [body("rating").notEmpty().withMessage("rating is required")],
+  [body("reviewerID").notEmpty().withMessage("reviewer ID is required")],
+  [body("comment").notEmpty().withMessage("comment is required")],
+  rateUser
 );
 
 module.exports = router;

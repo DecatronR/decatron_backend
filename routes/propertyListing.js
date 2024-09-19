@@ -6,6 +6,7 @@ const {
   updatePropertyListing,
   fetchPropertyListing,
   deletePropertyListing,
+  myProperty
 } = require("../controllers/propertyListingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -55,6 +56,13 @@ router.post(
   requireAuth,
   [body("id").notEmpty().withMessage("Property Listing ID field is required")],
   editPropertyListing
+);
+
+router.post(
+  "/myProperty",
+  requireAuth,
+  [body("userID").notEmpty().withMessage("User ID field is required")],
+  myProperty
 );
 
 router.post(

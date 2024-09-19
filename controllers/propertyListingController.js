@@ -317,10 +317,70 @@ const deletePropertyListing = async (req, res) => {
   }
 };
 
+const myProperty = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+    const { userID } = req.body;
+    const fetchRecords = await PropertyListing.aggregate([
+      {
+        $match: {
+          userID: userID // Filter records where userID matches the provided userID
+        }
+      },
+      {
+        $addFields: {
+          _idString: { $toString: "$_id" }
+        }
+      },
+      {
+        $lookup: {
+          from: 'photos', // The name of the photos collection
+          localField: '_idString', // The field from PropertyListing as string
+          foreignField: 'propertyListingId', // The field from the photos collection that matches
+          as: 'photos' // The name of the array field to be added to each document
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          slug: 1,
+          listingType: 1,
+          usageType: 1,
+          propertyType: 1,
+          propertySubType: 1,
+          propertyCondition: 1,
+          state: 1,
+          neighbourhood: 1,
+          size: 1,
+          propertyDetails: 1,
+          NoOfLivingRooms: 1,
+          NoOfBedRooms: 1,
+          NoOfKitchens: 1,
+          NoOfParkingSpace: 1,
+          Price: 1,
+          virtualTour: 1,
+          video: 1,
+          photos: 1, // Include the photos array
+          createdAt: 1
+        }
+      }
+    ]);
+    res.json(fetchRecords);
+  }catch (error) {
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+  }
+}
+
 module.exports = {
   createPropertyListing,
   editPropertyListing,
   updatePropertyListing,
   fetchPropertyListing,
-  deletePropertyListing
+  deletePropertyListing,
+  myProperty
 };
