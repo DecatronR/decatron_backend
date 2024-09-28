@@ -168,7 +168,7 @@ const rateUser = async (req, res) => {
     const user = await User.findOne({ _id: objectId });
 
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ responseCode: 404, responseMessage: "User not found." });
     }
 
     // Add new rating
@@ -183,10 +183,10 @@ const rateUser = async (req, res) => {
 
     await user.save();
 
-    res.json({ message: "Rating added successfully", ratings: user.ratings });
+    res.status(404).json({ responseCode: 200, responseMessage: "Rating added successfully", ratings: user.ratings });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
 };
 
@@ -198,16 +198,24 @@ const fetchUserRating = async (req, res) => {
     const user = await User.findOne({ _id: objectId }, 'ratings'); // Only select the 'ratings' field
 
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ responseCode: 404, responseMessage: "User not found." });
     }
 
-    res.json({
-      message: "Ratings fetched successfully",
+    // Calculate the average rating
+    const ratings = user.ratings;
+    const totalRatings = ratings.length;
+    const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
+    const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+
+    res.status(200).json({
+      responseMessage: "Ratings fetched successfully",
+      responseCode: 200,
+      averageRating: parseFloat(averageRating), // Return the average rating
       ratings: user.ratings
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
 };
 
