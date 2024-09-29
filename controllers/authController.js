@@ -143,6 +143,7 @@ const loginUser = async (req, res) => {
         responseMessage: "Login Successful",
         responseCode: 200,
         user: userdb._id,
+        token
       });
     //   res.sendStatus(200);
   } else {
