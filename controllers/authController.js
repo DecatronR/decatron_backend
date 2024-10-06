@@ -1,17 +1,20 @@
 const { validationResult } = require("express-validator");
-const { hashPassword, comparePassword, generateOTP, sendOTPEmail } = require("../utils/helpers");
-const User = require("../models/user");
+const {
+  hashPassword,
+  comparePassword,
+  generateOTP,
+  sendOTPEmail,
+} = require("../utils/helpers");
+const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
-
-
 
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
   return jwt.sign({ id }, "h8BHWDXuW1IPcUHNcCNdsDKucaqHgLzN6ZZT4DMm0LM", {
-    expiresIn: maxAge
+    expiresIn: maxAge,
   });
-}
+};
 
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -29,40 +32,41 @@ const registerUser = async (req, res, next) => {
     if (existing) {
       return res.status(409).json({
         responseCode: 409,
-        responseMessage: "Email already exists. kindly provide a different email",
+        responseMessage:
+          "Email already exists. kindly provide a different email",
       });
     }
     const slug = role.toLowerCase().replace(/\s+/g, "-");
-     const roledb = await Role.findOne({ slug });
-     if (!roledb) {
-       return res.status(404).json({
-         responseMessage: "Role doesnt exist",
-         responseCode: 404,
-       });
+    const roledb = await Role.findOne({ slug });
+    if (!roledb) {
+      return res.status(404).json({
+        responseMessage: "Role doesnt exist",
+        responseCode: 404,
+      });
     }
 
     const otp = generateOTP();
-    
+
     const newUser = await User.create({
       name,
       phone,
       email,
       role: slug,
       otp,
-      email_verified_at: null, 
+      email_verified_at: null,
       password: hashedPassword,
     });
 
-    await sendOTPEmail(email, otp); 
+    await sendOTPEmail(email, otp);
 
     const token = createToken(newUser._id);
-    res.cookie('auth_jwt', token, { maxAge: maxAge * 1000, httpOnly: true });
-    return res
-      .status(201).json({
-        responseMessage: "User created successfully. OTP has been sent to your email for verification.",
-        responseCode: 201,
-        user: newUser._id,
-      });
+    res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+    return res.status(201).json({
+      responseMessage:
+        "User created successfully. OTP has been sent to your email for verification.",
+      responseCode: 201,
+      user: newUser._id,
+    });
   } catch (error) {
     console.error(error);
     return res.status(401).json({
@@ -70,13 +74,14 @@ const registerUser = async (req, res, next) => {
       responseCode: 401,
     });
   }
-
 };
 
 const resendOTP = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ responseCode: 400, responseMessage: errors.array() });
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
   }
   try {
     const { email } = req.body;
@@ -89,9 +94,13 @@ const resendOTP = async (req, res) => {
     }
     const otp = generateOTP();
     const updateData = { otp };
-    const updatedUser = await User.findOneAndUpdate({ email: email }, updateData, {
-      new: true,
-    }).select("-password");
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      updateData,
+      {
+        new: true,
+      }
+    ).select("-password");
     await sendOTPEmail(email, otp);
     if (updatedUser) {
       return res.status(200).json({
@@ -100,16 +109,14 @@ const resendOTP = async (req, res) => {
         data: updatedUser,
       });
     }
-    
-
-  }catch (error) {
+  } catch (error) {
     console.error(error);
     return res.status(401).json({
       responseMessage: "oops an error occurred",
       responseCode: 401,
     });
   }
-}
+};
 
 const loginUser = async (req, res) => {
   const errors = validationResult(req);
@@ -120,7 +127,7 @@ const loginUser = async (req, res) => {
   }
   const { email, password } = req.body;
   const userdb = await User.findOne({ email });
-  
+
   if (!userdb)
     return res.status(401).send({
       responseMessage: "Email not registered",
@@ -137,14 +144,12 @@ const loginUser = async (req, res) => {
   const isValid = comparePassword(password, userdb.password);
   if (isValid) {
     // req.session.user = userdb;
-    return res
-      .status(200)
-      .json({
-        responseMessage: "Login Successful",
-        responseCode: 200,
-        user: userdb._id,
-        token
-      });
+    return res.status(200).json({
+      responseMessage: "Login Successful",
+      responseCode: 200,
+      user: userdb._id,
+      token,
+    });
     //   res.sendStatus(200);
   } else {
     // res.sendStatus(401);
@@ -153,12 +158,12 @@ const loginUser = async (req, res) => {
       responseCode: 401,
     });
   }
-}
+};
 
-const logoutUser = (req, res) => { 
-  res.cookie('auth_jwt', '', { maxAge: 1 });
-  res.redirect('/register');
-}
+const logoutUser = (req, res) => {
+  res.cookie("auth_jwt", "", { maxAge: 1 });
+  res.redirect("/register");
+};
 
 const confirmOTP = async (req, res) => {
   const errors = validationResult(req);
@@ -170,8 +175,7 @@ const confirmOTP = async (req, res) => {
 
   const { email, otp } = req.body;
   const existing = await User.findOne({ email });
-  
-  
+
   if (!existing) {
     return res.status(404).json({
       responseMessage: "User not found",
@@ -182,14 +186,19 @@ const confirmOTP = async (req, res) => {
   if (otpExisting) {
     const newotp = null;
     const email_verified_at = new Date();
-    const updateData = { otp:newotp, email_verified_at };
-    const updatedUser = await User.findOneAndUpdate({ email: email }, updateData, {
-      new: true,
-    }).select("-password");
+    const updateData = { otp: newotp, email_verified_at };
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      updateData,
+      {
+        new: true,
+      }
+    ).select("-password");
     if (!updatedUser) {
-      return res
-        .status(401)
-        .json({ responseCode: 401, responseMessage: "An error ocurred confirming OTP" });
+      return res.status(401).json({
+        responseCode: 401,
+        responseMessage: "An error ocurred confirming OTP",
+      });
     }
     return res.status(200).json({
       responseCode: 200,
@@ -202,15 +211,12 @@ const confirmOTP = async (req, res) => {
       responseCode: 401,
     });
   }
-
-}
-
-
+};
 
 module.exports = {
   registerUser,
   loginUser,
   logoutUser,
   confirmOTP,
-  resendOTP
+  resendOTP,
 };
