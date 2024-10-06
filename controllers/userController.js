@@ -1,7 +1,8 @@
-const User = require("../models/user");
+const User = require("../models/User");
 const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
+
 
 const getUsers = async (req, res) => {
   try {
@@ -56,48 +57,52 @@ const updateUsers = async (req, res) => {
   }
 
   try {
-    const {
-      name,
-      phone,
-      email,
-      id,
-      role,
-      identificationDocument,
-      identificationNo,
-    } = req.body;
+    const { id } = req.body; // id is required
+    const userData = {};
 
-    const userData = {
-      name,
-      phone,
-      email,
-      role,
-      identificationDocument,
-      identificationNo,
-    };
-    const slug = role.toLowerCase().replace(/\s+/g, "-");
-    const roledb = await Role.findOne({ slug });
-    if (!roledb) {
-      return res.status(404).json({
-        responseMessage: "Role doesnt exist",
-        responseCode: 404,
-      });
+    // Only add fields to userData if they are present in req.body
+    if (req.body.name) userData.name = req.body.name;
+    if (req.body.phone) userData.phone = req.body.phone;
+    if (req.body.email) userData.email = req.body.email;
+    if (req.body.role) userData.role = req.body.role;
+    if (req.body.identificationDocument) userData.identificationDocument = req.body.identificationDocument;
+    if (req.body.identificationNo) userData.identificationNo = req.body.identificationNo;
+
+    // If a passport file is uploaded, add it to the userData
+    if (req.file) {
+      userData.passport = req.file.path; // Assuming passport field stores the file path
     }
-    const updatedUser = await User.findByIdAndUpdate(id, userData, {
-      new: true,
-    }).select("-password");
+
+    // Check if the role exists in the database if the role is passed
+    if (req.body.role) {
+      const slug = req.body.role.toLowerCase().replace(/\s+/g, "-");
+      const roledb = await Role.findOne({ slug });
+      if (!roledb) {
+        return res.status(404).json({
+          responseMessage: "Role doesn't exist",
+          responseCode: 404,
+        });
+      }
+      userData.role = req.body.role;
+    }
+
+    // Find and update the user by ID
+    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true }).select("-password");
+
     if (!updatedUser) {
       return res
         .status(404)
         .json({ responseCode: 404, responseMessage: "User not found" });
     }
+
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "User updated successfully",
       user: updatedUser,
     });
   } catch (error) {
-    // Handle any errors that occur during the update process
     console.error("Error updating user:", error);
+
     if (error.name === "MongoError" && error.code === 11000) {
       return res.status(400).json({
         responseCode: 400,
@@ -111,14 +116,13 @@ const updateUsers = async (req, res) => {
         .json({ responseCode: 400, responseMessage: "Invalid user ID" });
     }
 
-    // Handle database connection errors
-    console.error("Database connection error:", error);
     return res.status(500).json({
       responseCode: 500,
       responseMessage: "Database connection error",
     });
   }
 };
+
 
 const deleteUser = async (req, res) => {
   try {

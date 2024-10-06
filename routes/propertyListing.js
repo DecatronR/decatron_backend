@@ -105,7 +105,7 @@ router.post(
   updatePropertyListing
 );
 
-router.get("/fetchPropertyListing", requireAuth, fetchPropertyListing);
+router.get("/fetchPropertyListing", fetchPropertyListing);
 router.post(
   "/deletePropertyListing",
   requireAuth,

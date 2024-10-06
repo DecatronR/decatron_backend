@@ -1,6 +1,6 @@
 const { validationResult } = require("express-validator");
 const { hashPassword, comparePassword, generateOTP, sendOTPEmail } = require("../utils/helpers");
-const User = require("../models/user");
+const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
 
