@@ -1,5 +1,5 @@
 {
-  "name": "my-express-app",
+  "name": "decatron_backend",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,6 +8,9 @@
     "start:dev": "nodemon ./bin/www"
   },
   "dependencies": {
+    "@aws-sdk/credential-providers": "^3.665.0",
+    "@mongodb-js/zstd": "^1.2.2",
+    "aws4": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "~1.4.4",
@@ -17,15 +20,25 @@
     "ejs": "^3.1.9",
     "express": "~4.16.1",
     "express-validator": "^7.0.1",
+    "gcp-metadata": "^5.3.0",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.2",
+    "kerberos": "^2.2.0",
     "mongoose": "^8.2.2",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.14"
+    "nodemailer": "^6.9.14",
+    "snappy": "^7.2.2",
+    "socks": "^2.8.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "@babel/preset-env": "^7.25.7",
+    "babel-loader": "^9.2.1",
+    "nodemon": "^3.1.0",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-middleware": "^7.4.2",
+    "webpack-hot-middleware": "^2.26.1"
   }
 }
