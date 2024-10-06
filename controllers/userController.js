@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const User = require("../models/User");
 const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
@@ -160,7 +160,10 @@ const rateUser = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
   if (!rating || rating < 1 || rating > 5) {
-    return res.status(400).json({ responseCode: 400,  responseMessage: "Rating must be between 1 and 5." });
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: "Rating must be between 1 and 5.",
+    });
   }
 
   try {
@@ -168,7 +171,9 @@ const rateUser = async (req, res) => {
     const user = await User.findOne({ _id: objectId });
 
     if (!user) {
-      return res.status(404).json({ responseCode: 404, responseMessage: "User not found." });
+      return res
+        .status(404)
+        .json({ responseCode: 404, responseMessage: "User not found." });
     }
 
     // Add new rating
@@ -183,7 +188,11 @@ const rateUser = async (req, res) => {
 
     await user.save();
 
-    res.status(404).json({ responseCode: 200, responseMessage: "Rating added successfully", ratings: user.ratings });
+    res.status(404).json({
+      responseCode: 200,
+      responseMessage: "Rating added successfully",
+      ratings: user.ratings,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
@@ -195,23 +204,26 @@ const fetchUserRating = async (req, res) => {
 
   try {
     const objectId = new ObjectId(userID);
-    const user = await User.findOne({ _id: objectId }, 'ratings'); // Only select the 'ratings' field
+    const user = await User.findOne({ _id: objectId }, "ratings"); // Only select the 'ratings' field
 
     if (!user) {
-      return res.status(404).json({ responseCode: 404, responseMessage: "User not found." });
+      return res
+        .status(404)
+        .json({ responseCode: 404, responseMessage: "User not found." });
     }
 
     // Calculate the average rating
     const ratings = user.ratings;
     const totalRatings = ratings.length;
     const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
-    const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+    const averageRating =
+      totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
 
     res.status(200).json({
       responseMessage: "Ratings fetched successfully",
       responseCode: 200,
       averageRating: parseFloat(averageRating), // Return the average rating
-      ratings: user.ratings
+      ratings: user.ratings,
     });
   } catch (error) {
     console.error(error);
@@ -219,12 +231,11 @@ const fetchUserRating = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getUsers,
   editUsers,
   updateUsers,
   deleteUser,
   rateUser,
-  fetchUserRating
+  fetchUserRating,
 };
