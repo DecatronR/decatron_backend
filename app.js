@@ -20,6 +20,7 @@ const lgaRouter = require('./routes/lga');
 const favoriteRouter = require('./routes/favorite');
 const myScheduleRouter = require('./routes/mySchedule');
 const reviewRouter = require('./routes/review');
+const bookingRouter = require('./routes/booking');
 
 
 const app = express();
@@ -61,9 +62,11 @@ app.use("/propertyCondition", propertyConditionRouter);
 app.use("/favorite", favoriteRouter);
 app.use("/mySchedule", myScheduleRouter);
 app.use("/review", reviewRouter);
+app.use("/booking", bookingRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+  // next(createError(404));
+  next(res.status(404).json({ responseCode: 404, responseMessage: 'endpoint does not exist' }));
 });
 
 // error handler
