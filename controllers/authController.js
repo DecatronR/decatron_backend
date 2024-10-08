@@ -18,7 +18,7 @@ const registerUser = async (req, res, next) => {
       .status(400)
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
-
+ 
   const { name, phone, email, password, role } = req.body;
   const hashedPassword = hashPassword(password);
   try {
