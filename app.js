@@ -28,7 +28,16 @@ const app = express();
 //To use this CORS option pass it into the  app.use(cors()) like so app.use(cors(corsOptionns))
 
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://decatron-backend.onrender.com"],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://decatron-dashboard.vercel.app",
+    ];
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST"],
   allowedHeaders: ["Content-Type"],
   credentials: true,
