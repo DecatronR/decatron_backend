@@ -5,7 +5,7 @@ const secretKey = process.env.JWT_SECURITY_KEY;
 
 const requireAuth = (req, res, next) => {
   // Get the Authorization header
-  console.log("...........running.........");
+  console.log("...........running.........: ", req.headers.authorization);
   const authHeader = req.headers.authorization;
 
   if (authHeader && authHeader.startsWith("Bearer ")) {
