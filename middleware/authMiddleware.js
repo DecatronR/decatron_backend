@@ -5,12 +5,13 @@ const secretKey = process.env.JWT_SECURITY_KEY;
 
 const requireAuth = (req, res, next) => {
   // Get the Authorization header
+  console.log("...........running.........");
   const authHeader = req.headers.authorization;
 
   if (authHeader && authHeader.startsWith("Bearer ")) {
     // Extract the token from the header
     const token = authHeader.split(" ")[1];
-
+    console.log("token: ", token);
     jwt.verify(token, secretKey, (err, decodedToken) => {
       if (err) {
         console.log(err.message);
