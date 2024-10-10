@@ -1,5 +1,10 @@
 const { validationResult } = require("express-validator");
-const { hashPassword, comparePassword, generateOTP, sendOTPEmail } = require("../utils/helpers");
+const {
+  hashPassword,
+  comparePassword,
+  generateOTP,
+  sendOTPEmail,
+} = require("../utils/helpers");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
@@ -18,7 +23,7 @@ const registerUser = async (req, res, next) => {
       .status(400)
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
- 
+
   const { name, phone, email, password, role } = req.body;
   const hashedPassword = hashPassword(password);
   try {
@@ -135,7 +140,13 @@ const loginUser = async (req, res) => {
     });
   }
   const token = createToken(userdb._id);
-  res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+  // res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+  res.cookie("auth_jwt", token, {
+    maxAge: maxAge * 1000,
+    sameSite: "none",
+    secure: true,
+    httpOnly: false,
+  });
   const isValid = comparePassword(password, userdb.password);
   if (isValid) {
     // req.session.user = userdb;
