@@ -1,14 +1,15 @@
 const mongoose = require("mongoose");
+
 const BookingSchema = new mongoose.Schema({
   userID: {
     type: String,
     required: true,
   },
-  propertyID: {
+  agentID: {
     type: String,
     required: true,
   },
-  agentID: {
+  propertyID: {
     type: String,
     required: true,
   },
@@ -22,4 +23,5 @@ const BookingSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
+
 module.exports = mongoose.model("Booking", BookingSchema);
