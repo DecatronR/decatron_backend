@@ -12,41 +12,48 @@ const create = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { userID, agentID, propertyID } = req.body;
+  const { userID, agentID, propertyID, bookingDateTime } = req.body;
 
   try {
+    if (!bookingDateTime || isNaN(new Date(bookingDateTime).getTime())) {
+      return res.status(400).json({
+        responseMessage: "Invalid or missing booking date and time",
+        responseCode: 400,
+      });
+    }
     const existingUser = await User.findOne({ _id: userID });
     if (!existingUser) {
-        return res.status(404).json({
-            responseMessage: "User doesnt exist",
-            responseCode: 404,
-        });
+      return res.status(404).json({
+        responseMessage: "User doesnt exist",
+        responseCode: 404,
+      });
     }
     const existingAgent = await User.findOne({ _id: agentID });
     if (!existingAgent) {
-        return res.status(404).json({
-            responseMessage: "Agent doesnt exist",
-            responseCode: 404,
-        });
+      return res.status(404).json({
+        responseMessage: "Agent doesnt exist",
+        responseCode: 404,
+      });
     }
     const existingProperty = await PropertyListing.findOne({ _id: propertyID });
     if (!existingProperty) {
-        return res.status(404).json({
-            responseMessage: "Property doesnt exist",
-            responseCode: 404,
-        });
+      return res.status(404).json({
+        responseMessage: "Property doesnt exist",
+        responseCode: 404,
+      });
     }
     const createNew = await Booking.create({
-        userID,
-        agentID,
-        propertyID
+      userID,
+      agentID,
+      propertyID,
+      bookingDateTime,
     });
     // return res.send(propertyType);
     if (createNew) {
       return res.status(201).json({
-        responseMessage: "Booking Successfully",
+        responseMessage: "Successfully booked an inspection",
         responseCode: 201,
-        data: createNew
+        data: createNew,
       });
     } else {
       return res.status(400).send({
@@ -88,7 +95,6 @@ const create = async (req, res) => {
 //   }
 // };
 
-
 const deleteData = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -124,5 +130,5 @@ const deleteData = async (req, res) => {
 
 module.exports = {
   create,
-  deleteData
+  deleteData,
 };
