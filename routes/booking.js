@@ -24,13 +24,19 @@ router.post(
 );
 
 // Route to get a booking by ID
-router.get("/booking/:id", requireAuth, getBooking);
+router.post(
+  "/booking",
+  requireAuth,
+  [body("id").notEmpty().withMessage("ID field is required")],
+  getBooking
+);
 
 // Route to update a booking by ID
 router.post(
-  "/booking/:id",
+  "/updateBooking",
   requireAuth,
   [
+    body("id").notEmpty().withMessage("ID field is required"),
     body("userID").optional(),
     body("agentID").optional(),
     body("propertyID").optional(),
@@ -43,9 +49,11 @@ router.post(
 );
 
 // Route to get all bookings for a specific user
-router.get(
-  "/userBookings/:userID", // Expecting user ID as a URL parameter
+
+router.post(
+  "/userBookings",
   requireAuth,
+  [body("userID").notEmpty().withMessage("User ID field is required")],
   getUserBookings
 );
 

@@ -71,36 +71,9 @@ const createBooking = async (req, res) => {
   }
 };
 
-// const getReview = async (req, res) => {
-//   try {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res
-//         .status(400)
-//         .json({ responseCode: 400, responseMessage: errors.array() });
-//     }
-//     const { propertyID } = req.body;
-//     const checkDb = await Review.find({ propertyID: propertyID });
-//     if (!checkDb) {
-//       return res.status(404).json({
-//         responseMessage: "Record not found",
-//         responseCode: 404,
-//       });
-//     } else {
-//       return res.status(200).json({
-//         responseMessage: "Record Found",
-//         responseCode: 200,
-//         data: checkDb
-//       });
-//     }
-//   } catch (error) {
-//     res.status(400).json({ responseCode: 400, responseMessage: error.message });
-//   }
-// };
-
 // Get booking by ID
 const getBooking = async (req, res) => {
-  const { id } = req.params; // Expecting ID to be in the URL parameters
+  const { id } = req.params;
   try {
     const booking = await Booking.findById(id);
 
@@ -134,7 +107,7 @@ const updateBooking = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { id } = req.params; // Expecting ID to be in the URL parameters
+  const { id } = req.params;
   const { userID, agentID, propertyID, bookingDateTime } = req.body;
 
   try {
@@ -153,7 +126,7 @@ const updateBooking = async (req, res) => {
     booking.propertyID = propertyID || booking.propertyID;
     booking.bookingDateTime = bookingDateTime || booking.bookingDateTime;
 
-    const updatedBooking = await booking.save(); // Save changes
+    const updatedBooking = await booking.save();
 
     return res.status(200).json({
       responseCode: 200,
@@ -172,11 +145,11 @@ const updateBooking = async (req, res) => {
 };
 
 const getUserBookings = async (req, res) => {
-  const { userID } = req.params; // Expecting user ID to be in the URL parameters
+  const { userID } = req.body;
   try {
     const bookings = await Booking.find({ userID: userID }).populate(
       "propertyID agentID"
-    ); // Optional: populate with property and agent data
+    );
 
     if (bookings.length === 0) {
       return res.status(404).json({
