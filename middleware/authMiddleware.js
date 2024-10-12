@@ -7,30 +7,29 @@ const requireAuth = (req, res, next) => {
   if (token) {
     jwt.verify(
       token,
-      "h8BHWDXuW1IPcUHNcCNdsDKucaqHgLzN6ZZT4DMm0LM",
+      "h8BHWDXuW1IPcUHNcCNdsDKucaqHgLzN6ZZT4DMm0LM", // Your secret key
       (err, decodedToken) => {
         if (err) {
           console.log(err.message);
-          // res.redirect('/login');
           return res.status(403).json({
             responseMessage:
-              "Kindly Login to access this application facillities",
+              "Kindly Login to access this application's facilities",
             responseCode: 403,
           });
         } else {
           console.log(decodedToken);
-          next();
+          next(); // Proceed to the next middleware or route handler
         }
       }
     );
   } else {
-    // res.redirect('/login');
     return res.status(403).json({
-      responseMessage: "Kindly Login to access this application facilities",
+      responseMessage: "Kindly Login to access this application's facilities",
       responseCode: 403,
     });
   }
 };
+
 
 const checkUser = (req, res, next) => {
   const token = req.cookies.auth_jwt;

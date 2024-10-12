@@ -59,35 +59,39 @@ const createPropertyListing = async (req, res) => {
       virtualTour,
       video
     });
-    // return res.send(propertyType);
+
     if (createNew) {
-      //INSERT PHOTO WITH RECORD ID
       console.log(createNew);
-      var counter = 0;
-      for (const photoEntry of photo) {
-        await Photos.create({ 
-          propertyListingId: createNew._id,
-          path: photoEntry.path 
-        });
-        counter++;
+      let counter = 0;
+
+      if (req.files && req.files.length > 0) {
+        const filePaths = req.files.map(file => file.path); 
+
+        // Loop through each uploaded file and save its path to the Photos model
+        for (const file of req.files) {
+          await Photos.create({
+            propertyListingId: createNew._id, // Use the created property listing ID
+            path: file.path, // Store the file path
+          });
+          counter++;
+        }
       }
-      if(counter > 0){
+
+      if (counter > 0) {
         return res.status(201).json({
           responseMessage: "Property Listed successfully",
           responseCode: 201,
           data: {
-            id: createNew._id
+            id: createNew._id,
           },
         });
-      }else{
+      } else {
         return res.status(204).json({
           responseMessage: "Oops - Something went wrong",
           responseCode: 204,
-         
         });
       }
 
-    
     } else {
       return res.status(400).send({
         responseMessage: "Property Listing creation failed.",
@@ -100,6 +104,7 @@ const createPropertyListing = async (req, res) => {
       .json({ responseCode: 500, responseMessage: `${error.message}` });
   }
 };
+
 
 const editPropertyListing = async (req, res) => {
   try {

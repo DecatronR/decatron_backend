@@ -135,7 +135,7 @@ const loginUser = async (req, res) => {
     });
   }
   const token = createToken(userdb._id);
-  res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+  res.cookie("auth_jwt", token, { maxAge: maxAge * 1000 });
   const isValid = comparePassword(password, userdb.password);
   if (isValid) {
     // req.session.user = userdb;

@@ -38,6 +38,8 @@ const corsOptions = {
 //Enabiling cors for all routes
 app.use(cors(corsOptions));
 
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
