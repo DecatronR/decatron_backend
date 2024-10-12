@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
+
 const BookingSchema = new mongoose.Schema({
   userID: {
+    type: String,
+    required: true,
+  },
+  agentID: {
     type: String,
     required: true,
   },
@@ -8,8 +13,8 @@ const BookingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  agentID: {
-    type: String,
+  bookingDateTime: {
+    type: Date,
     required: true,
   },
   createdAt: {
@@ -18,4 +23,5 @@ const BookingSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
+
 module.exports = mongoose.model("Booking", BookingSchema);
