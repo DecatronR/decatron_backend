@@ -75,7 +75,9 @@ const createBooking = async (req, res) => {
 const getBooking = async (req, res) => {
   const { id } = req.params;
   try {
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id)
+      .populate("propertyID")
+      .populate("agentID");
 
     if (!booking) {
       return res.status(404).json({
@@ -88,11 +90,46 @@ const getBooking = async (req, res) => {
       responseCode: 200,
       responseMessage: "Booking retrieved successfully",
       data: {
+        bookingId: booking._id,
         userID: booking.userID,
         agentID: booking.agentID,
         propertyID: booking.propertyID,
         bookingDateTime: booking.bookingDateTime,
+        propertyDetails: booking.propertyID, // Property details will be available here
+        agentDetails: booking.agentID, // Agent details will be available here
       },
+    });
+  } catch (error) {
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+  }
+};
+
+const getUserBookings = async (req, res) => {
+  const { userID } = req.body;
+  try {
+    const bookings = await Booking.find({ userID: userID })
+      .populate("propertyID")
+      .populate("agentID");
+
+    if (bookings.length === 0) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "No bookings found for this user",
+      });
+    }
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Bookings retrieved successfully",
+      data: bookings.map((booking) => ({
+        bookingId: booking._id,
+        userID: booking.userID,
+        agentID: booking.agentID,
+        propertyID: booking.propertyID,
+        bookingDateTime: booking.bookingDateTime,
+        propertyDetails: booking.propertyID,
+        agentDetails: booking.agentID,
+      })),
     });
   } catch (error) {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
@@ -138,30 +175,6 @@ const updateBooking = async (req, res) => {
         propertyID: updatedBooking.propertyID,
         bookingDateTime: updatedBooking.bookingDateTime,
       },
-    });
-  } catch (error) {
-    res.status(500).json({ responseCode: 500, responseMessage: error.message });
-  }
-};
-
-const getUserBookings = async (req, res) => {
-  const { userID } = req.body;
-  try {
-    const bookings = await Booking.find({ userID: userID }).populate(
-      "propertyID agentID"
-    );
-
-    if (bookings.length === 0) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "No bookings found for this user",
-      });
-    }
-
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Bookings retrieved successfully",
-      data: bookings,
     });
   } catch (error) {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
