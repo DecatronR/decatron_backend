@@ -33,7 +33,7 @@ const corsOptions = {
       "http://localhost:3000",
       "https://decatron-dashboard.vercel.app",
     ];
-    if (allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
@@ -47,7 +47,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -90,8 +90,9 @@ app.use(function (err, req, res, next) {
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  // res.status(err.status || 500);
+  res.status(500).json({ responseCode: 500, responseMessage: err.message });
+  // res.render("error");
 });
 
 module.exports = app;
