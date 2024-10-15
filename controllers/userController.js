@@ -6,8 +6,8 @@ const { ObjectId } = require("mongodb");
 
 const getUsers = async (req, res) => {
   try {
-    // const users = await User.find();
-    const users = await User.find().select("name role email phone createdAt");
+    const users = await User.find();
+    // const users = await User.find().select("name role email phone passport createdAt");
     res.json(users);
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });

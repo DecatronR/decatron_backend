@@ -24,16 +24,15 @@ const bookingRouter = require("./routes/booking");
 
 const app = express();
 
-//CORS option for specifically port 3000,
-//To use this CORS option pass it into the  app.use(cors()) like so app.use(cors(corsOptionns))
-
+// CORS options
 const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = [
       "http://localhost:3000",
       "https://decatron-dashboard.vercel.app",
     ];
-    if (allowedOrigins.includes(origin)) {
+    // Allow requests from Postman (without an origin)
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("Not allowed by CORS"));
@@ -43,12 +42,13 @@ const corsOptions = {
   credentials: true,
 };
 
-//Enabiling cors for all routes
+// Enable CORS for all routes
 app.use(cors(corsOptions));
 
 // Serve static files from the uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-// view engine setup
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// View engine setup
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
@@ -57,6 +57,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
@@ -73,25 +75,34 @@ app.use("/favorite", favoriteRouter);
 app.use("/mySchedule", myScheduleRouter);
 app.use("/review", reviewRouter);
 app.use("/booking", bookingRouter);
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  // next(createError(404));
-  next(
-    res
-      .status(404)
-      .json({ responseCode: 404, responseMessage: "endpoint does not exist" })
-  );
+
+// catch 404 and send response directly (Option 1)
+
+
+app.use((req, res, next) => {
+  console.log(`${req.method} request for '${req.url}'`);
+  next();
+});
+
+
+app.use(function (req, res) {
+  res.status(404).json({
+    responseCode: 404,
+    responseMessage: "Endpoint does not exist",
+  });
 });
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
+  // Set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  // Send the error response
+  res.status(err.status || 500).json({
+    responseCode: err.status || 500,
+    responseMessage: err.message || "Unknown error occurred",
+  });
 });
 
 module.exports = app;
