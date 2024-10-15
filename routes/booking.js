@@ -18,14 +18,14 @@ router.post(
     body("userID").notEmpty().withMessage("User ID field is required"),
     body("agentID").notEmpty().withMessage("Agent ID field is required"),
     body("propertyID").notEmpty().withMessage("Property ID field is required"),
-    body("bookingDateTime").isISO8601().withMessage("Invalid date format"), // Ensure the date is in ISO 8601 format
+    body("bookingDateTime").notEmpty().withMessage("Invalid date format"), // Ensure the date is in ISO 8601 format
   ],
   createBooking
 );
 
 // Route to get a booking by ID
 router.post(
-  "/booking",
+  "/getMyBooking",
   requireAuth,
   [body("id").notEmpty().withMessage("ID field is required")],
   getBooking

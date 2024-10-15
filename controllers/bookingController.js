@@ -73,7 +73,7 @@ const createBooking = async (req, res) => {
 
 // Get booking by ID
 const getBooking = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.body;
   try {
     const booking = await Booking.findById(id)
       .populate("propertyID")
@@ -144,7 +144,7 @@ const updateBooking = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { id } = req.params;
+  const { id } = req.body;
   const { userID, agentID, propertyID, bookingDateTime } = req.body;
 
   try {
