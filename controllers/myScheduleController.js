@@ -1,52 +1,72 @@
 const MySchedule = require("../models/MySchedule");
+const User = require("../models/User");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 
 const create = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res
-      .status(400)
-      .json({ responseCode: 400, responseMessage: errors.array() });
+    return res.status(400).json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { userId, date, time } = req.body;
+  const { userId, availability } = req.body;
 
   try {
-    
-    const existing = await MySchedule.findOne({ userId, date, time });
+    const objectId = new ObjectId(userId);
+    const user = await User.findById(objectId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ responseCode: 404, responseMessage: "User not found" });
+    }
+    let createdRecords = [];
 
-    if (existing) {
-      return res.status(409).json({
-        responseCode: 409,
-        responseMessage: "Record with this details already exists",
-      });
+    // Loop through each availability entry
+    for (const item of availability) {
+      const { date, time } = item;
+
+      // Loop through each time slot in the time array for that specific date
+      for (const timeSlot of time) {
+        // Check if a record with this userId, date, and time already exists
+        const existing = await MySchedule.findOne({ userId, date, time: timeSlot });
+
+        if (existing) {
+          // Skip this time slot if a record already exists to avoid duplicate entries
+          continue;
+        }
+
+        // Create a new record for the current date and time slot
+        const newRecord = await MySchedule.create({
+          userId,
+          date,
+          time: timeSlot // Create separate records for each time slot
+        });
+
+        // Keep track of the successfully created records
+        if (newRecord) {
+          createdRecords.push(newRecord);
+        }
+      }
     }
 
-    const createNew = await MySchedule.create({
-      userId,
-      date,
-      time
-    });
-    // return res.send(propertyType);
-    if (createNew) {
+    // If new records were created, return success
+    if (createdRecords.length > 0) {
       return res.status(201).json({
-        responseMessage: "Record created successfully",
+        responseMessage: "Records created successfully",
         responseCode: 201,
-        data: createNew,
+        data: createdRecords, // Return all created records
       });
     } else {
-      return res.status(400).send({
-        responseMessage: "Record creation failed.",
-        responseCode: 400,
+      return res.status(409).json({
+        responseMessage: "No new records were created, all records already exist.",
+        responseCode: 409,
       });
     }
   } catch (error) {
-    res
-      .status(500)
-      .json({ responseCode: 500, responseMessage: `${error.message}` });
+    res.status(500).json({ responseCode: 500, responseMessage: `${error.message}` });
   }
 };
+
 
 const edit = async (req, res) => {
   try {

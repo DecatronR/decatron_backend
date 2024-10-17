@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const {
   createBooking,
-  getBooking,
-  getUserBookings,
+  getUserBooking,
+  getAgentBooking,
   updateBooking,
   deleteBooking,
+  getBooking
 } = require("../controllers/bookingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -26,6 +27,20 @@ router.post(
 // Route to get a booking by ID
 router.post(
   "/getMyBooking",
+  requireAuth,
+  [body("userID").notEmpty().withMessage("ID field is required")],
+  getUserBooking
+);
+
+router.post(
+  "/getAgentBooking",
+  requireAuth,
+  [body("agentID").notEmpty().withMessage("Agent ID field is required")],
+  getAgentBooking
+);
+
+router.post(
+  "/getBooking",
   requireAuth,
   [body("id").notEmpty().withMessage("ID field is required")],
   getBooking
@@ -50,12 +65,12 @@ router.post(
 
 // Route to get all bookings for a specific user
 
-router.post(
-  "/userBookings",
-  requireAuth,
-  [body("userID").notEmpty().withMessage("User ID field is required")],
-  getUserBookings
-);
+// router.post(
+//   "/userBookings",
+//   requireAuth,
+//   [body("userID").notEmpty().withMessage("User ID field is required")],
+//   getUserBookings
+// );
 
 // Route to delete a booking
 router.post(
