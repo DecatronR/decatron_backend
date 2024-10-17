@@ -3,7 +3,6 @@ const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 
-
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -65,8 +64,10 @@ const updateUsers = async (req, res) => {
     if (req.body.phone) userData.phone = req.body.phone;
     if (req.body.email) userData.email = req.body.email;
     if (req.body.role) userData.role = req.body.role;
-    if (req.body.identificationDocument) userData.identificationDocument = req.body.identificationDocument;
-    if (req.body.identificationNo) userData.identificationNo = req.body.identificationNo;
+    if (req.body.identificationDocument)
+      userData.identificationDocument = req.body.identificationDocument;
+    if (req.body.identificationNo)
+      userData.identificationNo = req.body.identificationNo;
 
     // If a passport file is uploaded, add it to the userData
     if (req.file) {
@@ -87,7 +88,10 @@ const updateUsers = async (req, res) => {
     }
 
     // Find and update the user by ID
-    const updatedUser = await User.findByIdAndUpdate(id, userData, { new: true }).select("-password");
+    const updatedUser = await User.findByIdAndUpdate(id, userData, {
+      new: true,
+    }).select("passport -password");
+    console.log("Updated User:", updatedUser);
 
     if (!updatedUser) {
       return res
@@ -122,7 +126,6 @@ const updateUsers = async (req, res) => {
     });
   }
 };
-
 
 const deleteUser = async (req, res) => {
   try {
