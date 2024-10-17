@@ -1,6 +1,7 @@
 const Booking = require("../models/Booking");
 const PropertyListing = require("../models/PropertyListing");
 const User = require("../models/User");
+const Photos = require("../models/Photos");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 
@@ -72,67 +73,121 @@ const createBooking = async (req, res) => {
 };
 
 // Get booking by ID
-const getBooking = async (req, res) => {
-  const { id } = req.body;
+const getUserBooking = async (req, res) => {
   try {
-    const booking = await Booking.findById(id)
-      .populate("propertyID")
-      .populate("agentID");
+    const { userID } = req.body;
 
-    if (!booking) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "Booking not found",
-      });
+    // Step 1: Fetch all booking records using userID
+    const bookings = await Booking.find({ userID: userID });
+    if (!bookings || bookings.length === 0) {
+      return res
+      .status(404)
+      .json({ responseCode: 404, responseMessage: "No bookings found" });
     }
 
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Booking retrieved successfully",
-      data: {
-        bookingId: booking._id,
-        userID: booking.userID,
-        agentID: booking.agentID,
-        propertyID: booking.propertyID,
-        bookingDateTime: booking.bookingDateTime,
-        propertyDetails: booking.propertyID, // Property details will be available here
-        agentDetails: booking.agentID, // Agent details will be available here
-      },
-    });
+    // Step 2: Loop through each booking and fetch property details and photos
+    const results = await Promise.all(
+      bookings.map(async (booking) => {
+        const propertyID = booking.propertyID;
+
+        // Fetch property details using propertyID
+        const propertyDetails = await PropertyListing.findById(propertyID);
+        if (!propertyDetails) {
+          return { booking, propertyDetails: null, photos: [] }; // Return empty data for missing property
+        }
+
+        // Fetch photos using propertyID
+        const propertyPhotos = await Photos.find({ propertyListingId: propertyID });
+
+        // Combine booking, property details, and photos
+        return {
+          booking,
+          propertyDetails,
+          photos: propertyPhotos,
+        };
+        // return res.status(200).json({ responseCode: 200, responseMessage: "No bookings found" });
+      })
+    );
+
+    // Return the combined result for all bookings
+    res.status(200).json({ responseCode: 200, responseMessage: "Success", data: results });
   } catch (error) {
-    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+    console.error("Error fetching booking details:", error);
+    return res
+      .status(500)
+      .json({ responseCode: 500, responseMessage: error.message });
   }
 };
 
-const getUserBookings = async (req, res) => {
-  const { userID } = req.body;
+const getAgentBooking = async (req, res) => {
   try {
-    const bookings = await Booking.find({ userID: userID })
-      .populate("propertyID")
-      .populate("agentID");
+    const { agentID } = req.body;
 
-    if (bookings.length === 0) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "No bookings found for this user",
-      });
+    // Step 1: Fetch all booking records using userID
+    const bookings = await Booking.find({ agentID: agentID });
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ responseCode: 404, responseMessage: "No bookings found" });
     }
 
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Bookings retrieved successfully",
-      data: bookings.map((booking) => ({
-        bookingId: booking._id,
-        userID: booking.userID,
-        agentID: booking.agentID,
-        propertyID: booking.propertyID,
-        bookingDateTime: booking.bookingDateTime,
-        propertyDetails: booking.propertyID,
-        agentDetails: booking.agentID,
-      })),
-    });
+    // Step 2: Loop through each booking and fetch property details and photos
+    const results = await Promise.all(
+      bookings.map(async (booking) => {
+        const propertyID = booking.propertyID;
+
+        // Fetch property details using propertyID
+        const propertyDetails = await PropertyListing.findById(propertyID);
+        if (!propertyDetails) {
+          return { booking, propertyDetails: null, photos: [] }; // Return empty data for missing property
+        }
+
+        // Fetch photos using propertyID
+        const propertyPhotos = await Photos.find({ propertyListingId: propertyID });
+
+        // Combine booking, property details, and photos
+        return {
+          booking,
+          propertyDetails,
+          photos: propertyPhotos,
+        };
+      })
+    );
+
+    // Return the combined result for all bookings
+    res.status(200).json({ responseCode: 200, responseMessage: "Success", data: results });
   } catch (error) {
-    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+    console.error("Error fetching booking details:", error);
+    return res
+    .status(500)
+    .json({ responseCode: 500, responseMessage: error.message });
+  }
+};
+
+const getBooking = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+    const { id } = req.body;
+    const objectId = new ObjectId(id);
+    console.log(objectId);
+    const checkDb = await Booking.findOne({ _id: objectId });
+    if (!checkDb) {
+      return res.status(404).json({
+        responseMessage: "Record not found",
+        responseCode: 404,
+      });
+    } else {
+      return res.status(200).json({
+        responseMessage: "Record Found",
+        responseCode: 200,
+        data: checkDb
+      });
+    }
+  } catch (error) {
+    res.status(400).json({ responseCode: 400, responseMessage: error.message });
   }
 };
 
@@ -215,8 +270,9 @@ const deleteBooking = async (req, res) => {
 
 module.exports = {
   createBooking,
-  getBooking,
-  getUserBookings,
+  getUserBooking,
+  getAgentBooking,
   updateBooking,
   deleteBooking,
+  getBooking
 };

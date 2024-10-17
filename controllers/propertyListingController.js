@@ -31,7 +31,7 @@ const createPropertyListing = async (req, res) => {
     Price,
     virtualTour,
     video,
-    photo
+    photo,
   } = req.body;
 
   try {
@@ -57,7 +57,7 @@ const createPropertyListing = async (req, res) => {
       NoOfParkingSpace,
       Price,
       virtualTour,
-      video
+      video,
     });
 
     if (createNew) {
@@ -65,7 +65,7 @@ const createPropertyListing = async (req, res) => {
       let counter = 0;
 
       if (req.files && req.files.length > 0) {
-        const filePaths = req.files.map(file => file.path); 
+        const filePaths = req.files.map((file) => file.path);
 
         // Loop through each uploaded file and save its path to the Photos model
         for (const file of req.files) {
@@ -91,7 +91,6 @@ const createPropertyListing = async (req, res) => {
           responseCode: 204,
         });
       }
-
     } else {
       return res.status(400).send({
         responseMessage: "Property Listing creation failed.",
@@ -104,7 +103,6 @@ const createPropertyListing = async (req, res) => {
       .json({ responseCode: 500, responseMessage: `${error.message}` });
   }
 };
-
 
 const editPropertyListing = async (req, res) => {
   try {
@@ -129,7 +127,7 @@ const editPropertyListing = async (req, res) => {
         responseMessage: "Record Found",
         responseCode: 200,
         data: checkDb,
-        photos:checkPhoto
+        photos: checkPhoto,
       });
     }
   } catch (error) {
@@ -146,7 +144,6 @@ const updatePropertyListing = async (req, res) => {
   }
 
   try {
-    // const { id, propertyType } = req.body;
     const {
       id,
       title,
@@ -167,13 +164,12 @@ const updatePropertyListing = async (req, res) => {
       Price,
       virtualTour,
       video,
-      photo
     } = req.body;
-    const slug = title.toLowerCase().replace(/\s+/g, "-");
 
-    const Data = { 
+    const photos = req.files; // Access uploaded files
+
+    const Data = {
       title,
-      slug,
       listingType,
       usageType,
       propertyType,
@@ -191,39 +187,37 @@ const updatePropertyListing = async (req, res) => {
       Price,
       virtualTour,
       video,
-      photo
     };
+
     const objectId = new ObjectId(id);
-    const updated = await PropertyListing.findOneAndUpdate({ _id: objectId }, Data, {
-      new: true,
-    });
-    var counter = 0;
-    for (const photoEntry of photo) {
-      counter++;
-    }
-    if(counter > 0){
-      await Photos.deleteMany({ propertyListingId: objectId });
-      for (const photoEntry of photo) {
-        await Photos.create({ 
-          propertyListingId: id,
-          path: photoEntry.path 
-        });
+    const updated = await PropertyListing.findOneAndUpdate(
+      { _id: objectId },
+      Data,
+      {
+        new: true,
       }
+    );
+
+    // Process uploaded photos
+    if (photos.length > 0) {
+      await Photos.deleteMany({ propertyListingId: objectId });
+      photos.forEach((photo) => {
+        Photos.create({ propertyListingId: id, path: photo.path });
+      });
     }
-    
+
     if (!updated) {
-      return res
-        .status(404)
-        .json({
-          responseCode: 404,
-          responseMessage: "Could not update property",
-        });
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Could not update property",
+      });
     }
+
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "Property updated successfully",
       data: {
-        data: updated
+        data: updated,
       },
     });
   } catch (error) {
@@ -243,16 +237,16 @@ const fetchPropertyListing = async (req, res) => {
     const fetchRecords = await PropertyListing.aggregate([
       {
         $addFields: {
-          _idString: { $toString: "$_id" }
-        }
+          _idString: { $toString: "$_id" },
+        },
       },
       {
         $lookup: {
-          from: 'photos', // The name of the photos collection
-          localField: '_idString', // The field from PropertyListing as string
-          foreignField: 'propertyListingId', // The field from the photos collection that matches
-          as: 'photos' // The name of the array field to be added to each document
-        }
+          from: "photos", // The name of the photos collection
+          localField: "_idString", // The field from PropertyListing as string
+          foreignField: "propertyListingId", // The field from the photos collection that matches
+          as: "photos", // The name of the array field to be added to each document
+        },
       },
       {
         $project: {
@@ -275,11 +269,11 @@ const fetchPropertyListing = async (req, res) => {
           virtualTour: 1,
           video: 1,
           photos: 1, // Include the photos array
-          createdAt: 1
-        }
-      }
+          createdAt: 1,
+        },
+      },
     ]);
-    
+
     res.json(fetchRecords);
   } catch (error) {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
@@ -299,12 +293,10 @@ const deletePropertyListing = async (req, res) => {
     const objectId = new ObjectId(id);
     const check = await PropertyListing.findById({ _id: objectId });
     if (!check) {
-      return res
-        .status(404)
-        .json({
-          responseCode: 404,
-          responseMessage: "Property Listing not found",
-        });
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Property Listing not found",
+      });
     }
 
     // Delete the user
@@ -334,21 +326,21 @@ const myProperty = async (req, res) => {
     const fetchRecords = await PropertyListing.aggregate([
       {
         $match: {
-          userID: userID // Filter records where userID matches the provided userID
-        }
+          userID: userID, // Filter records where userID matches the provided userID
+        },
       },
       {
         $addFields: {
-          _idString: { $toString: "$_id" }
-        }
+          _idString: { $toString: "$_id" },
+        },
       },
       {
         $lookup: {
-          from: 'photos', // The name of the photos collection
-          localField: '_idString', // The field from PropertyListing as string
-          foreignField: 'propertyListingId', // The field from the photos collection that matches
-          as: 'photos' // The name of the array field to be added to each document
-        }
+          from: "photos", // The name of the photos collection
+          localField: "_idString", // The field from PropertyListing as string
+          foreignField: "propertyListingId", // The field from the photos collection that matches
+          as: "photos", // The name of the array field to be added to each document
+        },
       },
       {
         $project: {
@@ -371,15 +363,15 @@ const myProperty = async (req, res) => {
           virtualTour: 1,
           video: 1,
           photos: 1, // Include the photos array
-          createdAt: 1
-        }
-      }
+          createdAt: 1,
+        },
+      },
     ]);
     res.json(fetchRecords);
-  }catch (error) {
+  } catch (error) {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
-}
+};
 
 module.exports = {
   createPropertyListing,
@@ -387,5 +379,5 @@ module.exports = {
   updatePropertyListing,
   fetchPropertyListing,
   deletePropertyListing,
-  myProperty
+  myProperty,
 };
