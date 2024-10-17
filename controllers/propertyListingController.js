@@ -269,7 +269,7 @@ const fetchPropertyListing = async (req, res) => {
           Price: 1,
           virtualTour: 1,
           video: 1,
-          photos: 1, // Include the photos array
+          photos: 1,
           createdAt: 1,
         },
       },
