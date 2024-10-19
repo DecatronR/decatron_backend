@@ -4,6 +4,9 @@ const User = require("../models/User");
 const Photos = require("../models/Photos");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
+const {
+  inspectionScheduledEmail,
+} = require("../utils/emails/inspectionScheduled");
 
 const createBooking = async (req, res) => {
   const errors = validationResult(req);
@@ -52,16 +55,27 @@ const createBooking = async (req, res) => {
     });
 
     if (createNew) {
-      await inspectionScheduledEmail({
-        email: existingUser.email,
-        name: existingUser.name,
-        agentName: existingAgent.name,
-        agentContact: existingAgent.phoneNumber || existingAgent.email,
-        propertyTitle: existingProperty.title,
-        propertyDescription: existingProperty.description,
-        location: existingProperty.location,
-        bookingDateTime: bookingDateTime,
-      });
+      console.log(
+        "Existing user: ",
+        existingUser,
+        existingAgent,
+        existingProperty,
+        bookingDateTime
+      );
+      const location = `${existingProperty.neighbourhood} ${" "} ${
+        existingProperty.lga
+      } ${" "} ${existingProperty.state}`;
+
+      await inspectionScheduledEmail(
+        existingUser.email,
+        existingUser.name,
+        existingAgent.name,
+        existingAgent.phone,
+        existingProperty.title,
+        existingProperty.propertyDetails,
+        location,
+        bookingDateTime
+      );
 
       return res.status(201).json({
         responseMessage: "Successfully booked an inspection",
