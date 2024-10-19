@@ -62,7 +62,12 @@ const registerUser = async (req, res, next) => {
     await sendOTPEmail(email, otp);
 
     const token = createToken(newUser._id);
-    res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+    res.cookie("auth_jwt", token, {
+      maxAge: maxAge * 1000,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
     return res.status(201).json({
       responseMessage:
         "User created successfully. OTP has been sent to your email for verification.",
