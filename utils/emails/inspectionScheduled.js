@@ -8,8 +8,10 @@ const inspectionScheduledEmail = async (
   propertyTitle,
   propertyDescription,
   propertyLocation,
-  bookingDateTime
+  bookingDateTime,
+  bookingId
 ) => {
+  const frontendUrl = process.env.FRONTEND_URL;
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -85,7 +87,7 @@ const inspectionScheduledEmail = async (
             </table>
   
             <div style="text-align: center; margin-top: 30px;">
-              <a href="https://yourwebsite.com/tracking" 
+              <a href="${frontendUrl}/inspection/tracking/${bookingId}" 
                  style="background-color: #5a47fb; color: white; text-decoration: none; 
                  padding: 12px 30px; border-radius: 5px; font-size: 16px; font-weight: bold;">
                  Start Tracking

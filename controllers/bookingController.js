@@ -74,7 +74,8 @@ const createBooking = async (req, res) => {
         existingProperty.title,
         existingProperty.propertyDetails,
         location,
-        bookingDateTime
+        bookingDateTime,
+        createNew._id //bookingId
       );
 
       return res.status(201).json({
