@@ -60,7 +60,7 @@ const inspectionScheduledEmail = async (
   });
 
   const mailOptions = {
-    from: "DECATRON <no-reply@decatron.com>",
+    from: "DECATRON <no-reply@decatron.com.ng>",
     to: email,
     subject: "Inspection Successfully Scheduled",
     html: `
