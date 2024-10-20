@@ -9,9 +9,11 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
 
+const secretKey = process.env.JWT_SECURITY_KEY;
+
 const maxAge = 3 * 24 * 60 * 60;
 const createToken = (id) => {
-  return jwt.sign({ id }, "h8BHWDXuW1IPcUHNcCNdsDKucaqHgLzN6ZZT4DMm0LM", {
+  return jwt.sign({ id }, secretKey, {
     expiresIn: maxAge,
   });
 };
@@ -60,7 +62,12 @@ const registerUser = async (req, res, next) => {
     await sendOTPEmail(email, otp);
 
     const token = createToken(newUser._id);
-    res.cookie("auth_jwt", token, { maxAge: maxAge * 1000, httpOnly: true });
+    res.cookie("auth_jwt", token, {
+      maxAge: maxAge * 1000,
+      httpOnly: true,
+      sameSite: "none",
+      secure: true,
+    });
     return res.status(201).json({
       responseMessage:
         "User created successfully. OTP has been sent to your email for verification.",
@@ -197,7 +204,7 @@ const confirmOTP = async (req, res) => {
     if (!updatedUser) {
       return res.status(401).json({
         responseCode: 401,
-        responseMessage: "An error ocurred confirming OTP",
+        responseMessage: "An error occurred confirming OTP",
       });
     }
     return res.status(200).json({
