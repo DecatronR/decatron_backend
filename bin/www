@@ -3,10 +3,10 @@
 /**
  * Module dependencies.
  */
-
-var app = require('../app');
-var debug = require('debug')('my-express-app:server');
-var http = require('http');
+var app = require("../app");
+var debug = require("debug")("my-express-app:server");
+var http = require("http");
+const { Server } = require("socket.io");
 
 /**
  * Get port from environment and store in Express.
@@ -18,21 +18,59 @@ app.set('port', port);
 /**
  * Create HTTP server.
  */
-
 var server = http.createServer(app);
+
+/**
+ * Integrate Socket.io with the server.
+ */
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Allow all origins, adjust in production
+    methods: ["GET", "POST"],
+  },
+});
+
+let agentLocation = null;
+let buyerLocation = null;
+
+// Handle WebSocket connections
+io.on("connection", (socket) => {
+  console.log("New client connected:", socket.id);
+
+  // Handle agent location updates
+  socket.on("agentLocation", (location) => {
+    agentLocation = location;
+    console.log("Agent location updated:", location);
+
+    // Emit the agent's location to all connected clients
+    io.emit("agentLocationUpdate", agentLocation);
+  });
+
+  // Handle buyer location updates
+  socket.on("buyerLocation", (location) => {
+    buyerLocation = location;
+    console.log("Buyer location updated:", location);
+
+    // Emit the buyer's location to all connected clients
+    io.emit("buyerLocationUpdate", buyerLocation);
+  });
+
+  // Handle disconnection
+  socket.on("disconnect", () => {
+    console.log("Client disconnected:", socket.id);
+  });
+});
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-
 server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+server.on("error", onError);
+server.on("listening", onListening);
 
 /**
  * Normalize a port into a number, string, or false.
  */
-
 function normalizePort(val) {
   var port = parseInt(val, 10);
 
@@ -52,24 +90,21 @@ function normalizePort(val) {
 /**
  * Event listener for HTTP server "error" event.
  */
-
 function onError(error) {
-  if (error.syscall !== 'listen') {
+  if (error.syscall !== "listen") {
     throw error;
   }
 
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
       process.exit(1);
       break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
       process.exit(1);
       break;
     default:
@@ -80,11 +115,9 @@ function onError(error) {
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
   var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  debug("Listening on " + bind);
+  console.log(`Server is listening on ${bind}`);
 }
