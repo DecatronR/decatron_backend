@@ -1,8 +1,7 @@
-require('dotenv').config();
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
-const nodemailer = require('nodemailer');
-const crypto = require('crypto');
-
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 function hashPassword(password) {
   const salt = bcrypt.genSaltSync();
@@ -26,7 +25,7 @@ const sendOTPEmail = async (email, otp) => {
   // console.log(process.env.EMAIL_PASS);
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail', // or any other email service you're using
+    service: "gmail", // or any other email service you're using
     auth: {
       user: process.env.EMAIL_USER, // your email
       pass: process.env.EMAIL_PASS, // your email password or app password
@@ -34,9 +33,9 @@ const sendOTPEmail = async (email, otp) => {
   });
 
   const mailOptions = {
-    from: 'DECATRON',
+    from: "Decatron",
     to: email,
-    subject: 'Your OTP for Email Verification',
+    subject: "Your OTP for Email Verification",
     text: `Your OTP for email verification is ${otp}`,
   };
 
@@ -48,5 +47,5 @@ module.exports = {
   comparePassword,
   formatRoleId,
   generateOTP,
-  sendOTPEmail
+  sendOTPEmail,
 };
