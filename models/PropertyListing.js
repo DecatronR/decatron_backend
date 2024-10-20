@@ -39,6 +39,10 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  lga: {
+    type: String,
+    required: true
+  },
   neighbourhood: {
     type: String,
     required: true
