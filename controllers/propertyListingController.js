@@ -260,6 +260,7 @@ const fetchPropertyListing = async (req, res) => {
           state: 1,
           neighbourhood: 1,
           size: 1,
+          lga:1,
           propertyDetails: 1,
           NoOfLivingRooms: 1,
           NoOfBedRooms: 1,
