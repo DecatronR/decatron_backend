@@ -84,6 +84,9 @@ router.post(
     body("NoOfParkingSpace")
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
+    body("lga")
+      .notEmpty()
+      .withMessage("LGA field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
     body("virtualTour").notEmpty().withMessage("virtualTour field is required"),
     body("video").notEmpty().withMessage("video field is required"),
