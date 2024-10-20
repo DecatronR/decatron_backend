@@ -62,9 +62,9 @@ const createBooking = async (req, res) => {
         existingProperty,
         bookingDateTime
       );
-      const location = `${existingProperty.neighbourhood} ${" "} ${
+      const location = `${existingProperty.neighbourhood}, ${" "} ${
         existingProperty.lga
-      } ${" "} ${existingProperty.state}`;
+      }, ${" "} ${existingProperty.state}`;
 
       await inspectionScheduledEmail(
         existingUser.email,
