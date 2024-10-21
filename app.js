@@ -30,6 +30,7 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:3000",
       "https://decatron-dashboard.vercel.app",
+      "https://www.decatron.com.ng/",
     ];
     // Allow requests from Postman (without an origin)
     if (!origin || allowedOrigins.includes(origin)) {
@@ -58,8 +59,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
-
-
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
@@ -78,12 +77,10 @@ app.use("/booking", bookingRouter);
 
 // catch 404 and send response directly (Option 1)
 
-
 app.use((req, res, next) => {
   console.log(`${req.method} request for '${req.url}'`);
   next();
 });
-
 
 app.use(function (req, res) {
   res.status(404).json({
