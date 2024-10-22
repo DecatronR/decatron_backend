@@ -4,7 +4,9 @@ const User = require("../models/User");
 const secretKey = process.env.JWT_SECURITY_KEY;
 
 const requireAuth = (req, res, next) => {
-  const token = req.cookies.auth_jwt;
+  // const token = req.cookies.auth_jwt;
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
   console.log(token);
   if (token) {
     jwt.verify(token, secretKey, (err, decodedToken) => {
