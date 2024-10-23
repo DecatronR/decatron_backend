@@ -40,7 +40,7 @@ router.post(
   updatePropertyType
 );
 
-router.get("/fetchPropertyType", requireAuth, fetchPropertyType);
+router.get("/fetchPropertyType", fetchPropertyType);
 router.post(
   "/deletePropertyType",
   requireAuth,
