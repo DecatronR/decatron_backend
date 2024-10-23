@@ -30,8 +30,8 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:3000",
       "https://decatron-dashboard.vercel.app",
-      "https://decatron360.vercel.app/",
-      "https://www.decatron.com.ng/",
+      "https://decatron360.vercel.app",
+      "https://www.decatron.com.ng",
     ];
     // Allow requests from Postman (without an origin)
     if (!origin || allowedOrigins.includes(origin)) {
