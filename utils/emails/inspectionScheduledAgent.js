@@ -1,10 +1,10 @@
 const nodemailer = require("nodemailer");
 
-const inspectionScheduledEmail = async (
+const inspectionScheduledAgent = async (
   email,
   name,
-  agentName,
-  agentContact,
+  clientName,
+  clientContact,
   propertyTitle,
   propertyDescription,
   propertyLocation,
@@ -40,29 +40,29 @@ const inspectionScheduledEmail = async (
   const mailOptions = {
     from: "Decatron <no-reply@decatron.com.ng>",
     to: email,
-    subject: "Inspection Successfully Scheduled",
+    subject: "You Got Booked For an Inspection",
     html: `
         <div style="font-family: Arial, sans-serif; color: #333;">
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
           <div style="text-align: center; margin-bottom: 20px;">
             <img src="cid:logo" alt="Decatron Logo" style="max-width: 150px;" />
         </div>
-            <h2 style="color: #5a47fb; text-align: center;">Inspection Scheduled Successfully</h2>
+            <h2 style="color: #5a47fb; text-align: center;">You Got an Inspection Coming Up!</h2>
             <p style="font-size: 16px;">
               Hi <strong>${name}</strong>, <br /><br />
-              We are pleased to inform you that your inspection has been successfully scheduled.
+              We are pleased to inform you that a client booked you for an inspection.
               <br /><br />
-              <strong>Here are your inspection details:</strong>
+              <strong>Here are the inspection details:</strong>
             </p>
             
             <table style="width: 100%; font-size: 14px; margin-top: 10px; border-collapse: collapse;">
               <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;"><strong>Agent Name:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;">${agentName}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;"><strong>Client Name:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;">${clientName}</td>
               </tr>
               <tr>
-                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;"><strong>Agent Contact:</strong></td>
-                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;">${agentContact}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;"><strong>Client Contact:</strong></td>
+                <td style="padding: 8px; border-bottom: 1px solid #eaeaea;">${clientContact}</td>
               </tr>
               <tr>
                 <td style="padding: 8px; border-bottom: 1px solid #eaeaea;"><strong>Property Title:</strong></td>
@@ -110,5 +110,5 @@ const inspectionScheduledEmail = async (
 };
 
 module.exports = {
-  inspectionScheduledEmail,
+  inspectionScheduledAgent,
 };
