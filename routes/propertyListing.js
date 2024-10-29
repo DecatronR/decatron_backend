@@ -18,8 +18,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 400 * 1024 }, // Limit file size to 150KB
-}).array("photo", 5);
+  limits: { fileSize: 1 * 1024 * 1024 },
+}).array("photo", 10);
 
 const {
   createPropertyListing,
