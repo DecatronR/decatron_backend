@@ -47,7 +47,7 @@ const inspectionScheduledAgent = async (
           <div style="text-align: center; margin-bottom: 20px;">
             <img src="cid:logo" alt="Decatron Logo" style="max-width: 150px;" />
         </div>
-            <h2 style="color: #5a47fb; text-align: center;">Inspection Scheduled Successfully</h2>
+            <h2 style="color: #5a47fb; text-align: center;">You Got an Inspection Coming Up!</h2>
             <p style="font-size: 16px;">
               Hi <strong>${name}</strong>, <br /><br />
               We are pleased to inform you that a client booked you for an inspection.
