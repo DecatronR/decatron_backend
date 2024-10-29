@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-const inspectionScheduledEmail = async (
+const inspectionScheduledClient = async (
   email,
   name,
   agentName,
@@ -110,5 +110,5 @@ const inspectionScheduledEmail = async (
 };
 
 module.exports = {
-  inspectionScheduledEmail,
+  inspectionScheduledClient,
 };
