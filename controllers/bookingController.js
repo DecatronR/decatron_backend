@@ -5,8 +5,11 @@ const Photos = require("../models/Photos");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 const {
-  inspectionScheduledEmail,
-} = require("../utils/emails/inspectionScheduled");
+  inspectionScheduledClient,
+} = require("../utils/emails/inspectionScheduledClient");
+const {
+  inspectionScheduledAgent,
+} = require("../utils/emails/inspectionScheduledAgent");
 
 const createBooking = async (req, res) => {
   const errors = validationResult(req);
@@ -66,11 +69,25 @@ const createBooking = async (req, res) => {
         existingProperty.lga
       }, ${" "} ${existingProperty.state}`;
 
-      await inspectionScheduledEmail(
+      //send client inspection scheduled email
+      await inspectionScheduledClient(
         existingUser.email,
         existingUser.name,
         existingAgent.name,
         existingAgent.phone,
+        existingProperty.title,
+        existingProperty.propertyDetails,
+        location,
+        bookingDateTime,
+        createNew._id //bookingId
+      );
+
+      //send agent inspection schheduled email
+      await inspectionScheduledAgent(
+        existingAgent.email,
+        existingAgent.name,
+        existingUser.name,
+        existingUser.phone,
         existingProperty.title,
         existingProperty.propertyDetails,
         location,
