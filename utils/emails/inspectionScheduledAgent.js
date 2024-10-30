@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const path = require("path");
 
 const inspectionScheduledAgent = async (
   email,
@@ -36,6 +37,14 @@ const inspectionScheduledAgent = async (
     minute: "2-digit",
     hour12: true,
   });
+
+  const logoPath = path.join(
+    process.cwd(),
+    "public",
+    "assets",
+    "images",
+    "logo.png"
+  );
 
   const mailOptions = {
     from: "Decatron <no-reply@decatron.com.ng>",
@@ -104,6 +113,13 @@ const inspectionScheduledAgent = async (
           </div>
         </div>
       `,
+    attachments: [
+      {
+        filename: "logo.png",
+        path: logoPath,
+        cid: "logo",
+      },
+    ],
   };
 
   await transporter.sendMail(mailOptions);
