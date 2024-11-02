@@ -27,4 +27,6 @@ Thumbs.db
 /dist/
 /logs/
 
+/uploads/
+
 # Ignore any other files or directories specific to your project
