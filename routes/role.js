@@ -5,7 +5,7 @@ const {
   editRole,
   updateRole,
   deleteRole,
-  fetchRole
+  fetchRole,
 } = require("../controllers/roleController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -29,7 +29,7 @@ router.post(
   requireAuth,
   [
     body("roleId").notEmpty().withMessage("Role ID field is required"),
-    body("roleName").notEmpty().withMessage("Role Name field is required")
+    body("roleName").notEmpty().withMessage("Role Name field is required"),
   ],
   updateRole
 );
@@ -37,12 +37,10 @@ router.post(
 router.post(
   "/deleteRole",
   requireAuth,
-  [
-    body("roleId").notEmpty().withMessage("Role ID field is required")
-  ],
+  [body("roleId").notEmpty().withMessage("Role ID field is required")],
   deleteRole
 );
 
-router.get("/getRoles", requireAuth, fetchRole);
+router.get("/getRoles", fetchRole);
 
 module.exports = router;
