@@ -25,68 +25,68 @@ const PropertyListingSchema = new mongoose.Schema({
   },
   propertyType: {
     type: String,
-    required: true
+    required: true,
   },
   propertySubType: {
     type: String,
-    required: true
+    required: true,
   },
   propertyCondition: {
     type: String,
-    required: true
+    required: true,
   },
   state: {
     type: String,
-    required: true
+    required: true,
   },
   lga: {
     type: String,
-    required: true
+    required: true,
   },
   neighbourhood: {
     type: String,
-    required: true
+    required: true,
   },
   size: {
     type: String,
-    required: true
+    required: true,
   },
   propertyDetails: {
     type: String,
-    required: true
+    required: true,
   },
   NoOfLivingRooms: {
     type: String,
-    required: true
+    required: true,
   },
   NoOfBedRooms: {
     type: String,
-    required: true
+    required: true,
   },
   NoOfKitchens: {
     type: String,
-    required: true
+    required: true,
   },
   NoOfParkingSpace: {
     type: String,
-    required: true
+    required: true,
   },
   Price: {
     type: String,
-    required: true
+    required: true,
   },
   virtualTour: {
     type: String,
-    required: true
+    required: false,
   },
   video: {
     type: String,
-    required: true
+    required: false,
   },
   isSoldOut: {
     type: String,
     required: false,
-    default: '0'
+    default: "0",
   },
   createdAt: {
     type: Date,
