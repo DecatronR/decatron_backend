@@ -86,8 +86,8 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("lga").notEmpty().withMessage("LGA field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
-    body("virtualTour").notEmpty().withMessage("virtualTour field is required"),
-    body("video").notEmpty().withMessage("video field is required"),
+    body("virtualTour").optional(),
+    body("video").optional(),
     // body("photo").isArray().withMessage("Photos must be an array").custom((photos) => {
     //   if (photos.length === 0) {
     //     throw new Error("Photos array cannot be empty");
@@ -170,8 +170,8 @@ router.post(
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
-    body("virtualTour").notEmpty().withMessage("virtualTour field is required"),
-    body("video").notEmpty().withMessage("video field is required"),
+    body("virtualTour").optional(),
+    body("video").optional(),
   ],
   updatePropertyListing
 );
