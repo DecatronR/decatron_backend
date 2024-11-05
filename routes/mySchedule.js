@@ -10,13 +10,12 @@ const {
 const { body, validationResult } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 
-
 router.post(
   "/create",
   requireAuth, // Ensure authentication middleware is still used
   [
     body("userId").notEmpty().withMessage("User ID field is required"),
-    
+
     // Validate that availability is an array and not empty
     body("availability")
       .isArray({ min: 1 })
@@ -36,7 +35,6 @@ router.post(
   create
 );
 
-
 router.post(
   "/edit",
   requireAuth,
@@ -55,7 +53,7 @@ router.post(
   update
 );
 
-router.get("/fetch", requireAuth, fetch);
+router.get("/fetch", fetch);
 router.post(
   "/deleteRecord",
   requireAuth,
