@@ -111,7 +111,6 @@ router.post(
 
 router.post(
   "/myProperty",
-  requireAuth,
   [body("userID").notEmpty().withMessage("User ID field is required")],
   myProperty
 );
