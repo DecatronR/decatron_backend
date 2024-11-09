@@ -90,7 +90,7 @@ router.post(
     body("neighbourhood")
       .notEmpty()
       .withMessage("neighbourhood field is required"),
-    body("size").notEmpty().withMessage("size field is required"),
+    body("size").optional(),
     body("lga").notEmpty().withMessage("LGA field is required"),
     body("propertyDetails")
       .notEmpty()
@@ -174,7 +174,7 @@ router.post(
     body("neighbourhood")
       .notEmpty()
       .withMessage("neighbourhood field is required"),
-    body("size").notEmpty().withMessage("size field is required"),
+    body("size").optional(),
     body("lga").notEmpty().withMessage("LGA field is required"),
     body("propertyDetails")
       .notEmpty()
