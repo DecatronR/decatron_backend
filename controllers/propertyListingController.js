@@ -2,6 +2,14 @@ const PropertyListing = require("../models/PropertyListing");
 const Photos = require("../models/Photos");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
+const cloudinary = require('cloudinary').v2;
+const fs = require('fs');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const createPropertyListing = async (req, res) => {
   const errors = validationResult(req);
@@ -65,14 +73,21 @@ const createPropertyListing = async (req, res) => {
       let counter = 0;
 
       if (req.files && req.files.length > 0) {
-        const filePaths = req.files.map((file) => file.path);
-
-        // Loop through each uploaded file and save its path to the Photos model
         for (const file of req.files) {
-          await Photos.create({
-            propertyListingId: createNew._id, // Use the created property listing ID
-            path: file.path, // Store the file path
+          // Upload to Cloudinary
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'properties', // Optional: specify a folder in Cloudinary
           });
+
+          // Save the Cloudinary URL to the Photos model
+          await Photos.create({
+            propertyListingId: createNew._id,
+            path: result.secure_url, // Cloudinary URL
+          });
+
+          // Optionally, delete the local file after uploading to Cloudinary
+          // fs.unlinkSync(file.path);
+
           counter++;
         }
       }
