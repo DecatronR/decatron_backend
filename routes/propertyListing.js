@@ -1,25 +1,48 @@
 const express = require("express");
 const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const fs = require("fs");
 const router = express.Router();
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = "uploads/properties/";
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     const uploadDir = "uploads/properties/";
+//     if (!fs.existsSync(uploadDir)) {
+//       fs.mkdirSync(uploadDir, { recursive: true });
+//     }
+//     cb(null, uploadDir);
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   },
+// });
+
+// const upload = multer({
+//   storage,
+//   limits: { fileSize: 1 * 1024 * 1024 },
+// }).array("photo", 10);
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "properties",
+    format: async (req, file) => "jpg", // supports "jpg", "png", etc.
+    public_id: (req, file) => `${Date.now()}-${file.originalname}`, // Unique identifier
   },
 });
 
 const upload = multer({
   storage,
-  limits: { fileSize: 1 * 1024 * 1024 },
-}).array("photo", 10);
+  limits: { fileSize: 1 * 1024 * 1024 }, // Limit file size to 1MB
+}).array("photo", 10); // Allow up to 10 files
+
 
 const {
   createPropertyListing,
@@ -40,7 +63,7 @@ router.post(
     if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
       return res
         .status(400)
-        .json({ message: "File size exceeds the 150KB limit" });
+        .json({ message: "File size exceeds the 1MB limit" });
     }
     if (!req.files || req.files.length === 0) {
       return res
