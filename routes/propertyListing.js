@@ -43,7 +43,6 @@ const upload = multer({
   limits: { fileSize: 1 * 1024 * 1024 }, // Limit file size to 1MB
 }).array("photo", 10); // Allow up to 10 files
 
-
 const {
   createPropertyListing,
   editPropertyListing,
