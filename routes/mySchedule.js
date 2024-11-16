@@ -6,7 +6,7 @@ const {
   update,
   fetch,
   deleteRecord,
-  scheduleBooked
+  scheduleBooked,
 } = require("../controllers/myScheduleController");
 const { body, validationResult } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -44,7 +44,6 @@ router.post(
 );
 router.post(
   "/scheduleBooked",
-  requireAuth,
   [body("id").notEmpty().withMessage("ID field is required")],
   scheduleBooked
 );
@@ -69,17 +68,16 @@ router.post(
       .withMessage("Time array is required for each availability"),
     body("availability.*.time.*")
       .notEmpty()
-      .withMessage("Each time slot must not be empty")
+      .withMessage("Each time slot must not be empty"),
   ],
   update
 );
 
 router.post(
-  "/fetch", 
-  [
-    body("userId").notEmpty().withMessage("User ID field is required"),
-  ],
-  fetch);
+  "/fetch",
+  [body("userId").notEmpty().withMessage("User ID field is required")],
+  fetch
+);
 router.post(
   "/deleteRecord",
   requireAuth,
