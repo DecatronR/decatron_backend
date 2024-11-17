@@ -104,43 +104,85 @@ const update = async (req, res) => {
       .status(400)
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
-
+  const { userId, availability } = req.body;
   try {
-    const { id, date, time } = req.body;
+    const objectId = new ObjectId(userId);
+    const user = await User.findById(objectId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ responseCode: 404, responseMessage: "User not found" });
+    }
 
-    const Data = { date, time };
-    const updated = await MySchedule.findOneAndUpdate({ _id: id }, Data, {
-      new: true,
-    });
-    if (!updated) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "Record not found",
+    // await MySchedule.findByIdAndDelete({ userId: objectId });
+    await MySchedule.deleteMany({ userId: objectId, isAvailable: 0 });
+
+    let createdRecords = [];
+
+    // Loop through each availability entry
+    for (const item of availability) {
+      const { date, time } = item;
+
+      // Loop through each time slot in the time array for that specific date
+      for (const timeSlot of time) {
+        // Check if a record with this userId, date, and time already exists
+        const existing = await MySchedule.findOne({ userId, date, time: timeSlot });
+
+        if (existing) {
+          // Skip this time slot if a record already exists to avoid duplicate entries
+          continue;
+        }
+
+        // Create a new record for the current date and time slot
+        const newRecord = await MySchedule.create({
+          userId,
+          date,
+          time: timeSlot // Create separate records for each time slot
+        });
+
+        // Keep track of the successfully created records
+        if (newRecord) {
+          createdRecords.push(newRecord);
+        }
+      }
+    }
+
+    // If new records were created, return success
+    if (createdRecords.length > 0) {
+      return res.status(201).json({
+        responseMessage: "Records Updated successfully",
+        responseCode: 201,
+        // data: createdRecords, // Return all created records
+      });
+    } else {
+      return res.status(409).json({
+        responseMessage: "No new records were created, all records already exist.",
+        responseCode: 409,
       });
     }
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Record updated successfully",
-      data: {
-        id: updated.id,
-        date: updated.date,
-        time: updated.time,
-        userId: updated.userId
-      },
-    });
   } catch (error) {
-    return res.status(500).json({
-      responseCode: 500,
-      responseMessage: error.message,
-    });
+    res.status(500).json({ responseCode: 500, responseMessage: `${error.message}` });
   }
 };
 
 const fetch = async (req, res) => {
   try {
     // const users = await User.find();
-    const fetchRcords = await MySchedule.find().select("userId date time isAvailable");
-    res.json(fetchRcords);
+    // const fetchRcords = await MySchedule.find().select("userId date time isAvailable");
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+    const { userId } = req.body;
+    const fetchRcords = await MySchedule.find({ userId });
+    // res.json(fetchRcords);
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Success",
+      data: fetchRcords
+    });
   } catch (error) {
     res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
@@ -179,10 +221,47 @@ const deleteRecord = async (req, res) => {
   }
 };
 
+const scheduleBooked = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+
+  try {
+    const { id } = req.body;
+
+    const Data = { 
+      isAvailable: 1
+     };
+    const updated = await MySchedule.findOneAndUpdate({ _id: id }, Data, {
+      new: true,
+    });
+    if (!updated) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Record not found",
+      });
+    }
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Record flagged successfully",
+      data: updated
+    });
+  } catch (error) {
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   create,
   edit,
   update,
   fetch,
-  deleteRecord
+  deleteRecord,
+  scheduleBooked
 };
