@@ -1,7 +1,15 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
-const { ObjectId } = require("mongodb");
+const { ObjectId } = require("mongodb"); 
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
 
 const getUsers = async (req, res) => {
   try {
@@ -56,10 +64,10 @@ const updateUsers = async (req, res) => {
   }
 
   try {
-    const { id } = req.body; // id is required
+    const { id } = req.body; // User ID is required
     const userData = {};
 
-    // Only add fields to userData if they are present in req.body
+    // Populate `userData` with fields from `req.body` if they exist
     if (req.body.name) userData.name = req.body.name;
     if (req.body.phone) userData.phone = req.body.phone;
     if (req.body.email) userData.email = req.body.email;
@@ -69,12 +77,15 @@ const updateUsers = async (req, res) => {
     if (req.body.identificationNo)
       userData.identificationNo = req.body.identificationNo;
 
-    // If a passport file is uploaded, add it to the userData
+    // Handle file upload if `req.file` exists
     if (req.file) {
-      userData.passport = req.file.path; // Assuming passport field stores the file path
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "passport", // Optional: specify a folder in Cloudinary
+      });
+      userData.passport = result.secure_url; // Save the Cloudinary file URL
     }
 
-    // Check if the role exists in the database if the role is passed
+    // Validate and check the role if provided
     if (req.body.role) {
       const slug = req.body.role.toLowerCase().replace(/\s+/g, "-");
       const roledb = await Role.findOne({ slug });
@@ -87,11 +98,11 @@ const updateUsers = async (req, res) => {
       userData.role = req.body.role;
     }
 
-    // Find and update the user by ID
+    // Update the user by ID
     const updatedUser = await User.findByIdAndUpdate(id, userData, {
       new: true,
-    }).select("passport -password");
-    console.log("Updated User:", updatedUser);
+      projection: { password: 0 }, // Exclude password field explicitly
+    });
 
     if (!updatedUser) {
       return res
@@ -122,10 +133,13 @@ const updateUsers = async (req, res) => {
 
     return res.status(500).json({
       responseCode: 500,
-      responseMessage: "Database connection error",
+      responseMessage: "Internal server error",
     });
   }
 };
+
+module.exports = { updateUsers };
+
 
 const deleteUser = async (req, res) => {
   try {

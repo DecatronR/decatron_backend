@@ -2,6 +2,30 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const { body } = require("express-validator");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage1 = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "passport",
+    format: async (req, file) => "jpg", // supports "jpg", "png", etc.
+    public_id: (req, file) => `${Date.now()}-${file.originalname}`, // Unique identifier
+  },
+});
+
+const upload1 = multer({
+  storage1,
+  limits: { fileSize: 1 * 1024 * 1024 }, // Limit file size to 1MB
+}); // Allow up to 10 files
+
 const {
   getUsers,
   editUsers,
