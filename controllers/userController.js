@@ -1,15 +1,14 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
 const { validationResult } = require("express-validator");
-const { ObjectId } = require("mongodb"); 
-const cloudinary = require('cloudinary').v2;
+const { ObjectId } = require("mongodb");
+const cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
 
 const getUsers = async (req, res) => {
   try {
@@ -46,6 +45,7 @@ const editUsers = async (req, res) => {
           role: userdb.role,
           email: userdb.email,
           phone: userdb.phone,
+          passport: userdb.passport || null,
           id: id,
         },
       });
@@ -139,7 +139,6 @@ const updateUsers = async (req, res) => {
 };
 
 module.exports = { updateUsers };
-
 
 const deleteUser = async (req, res) => {
   try {
