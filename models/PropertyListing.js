@@ -75,6 +75,10 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  inspectionFee: {
+    type: String,
+    required: true,
+  },
   virtualTour: {
     type: String,
     required: false,
