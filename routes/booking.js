@@ -6,7 +6,8 @@ const {
   getAgentBooking,
   updateBooking,
   deleteBooking,
-  getBooking
+  getBooking,
+  fetchBooking
 } = require("../controllers/bookingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -80,4 +81,5 @@ router.post(
   deleteBooking
 );
 
+router.get("/fetchBooking", requireAuth, fetchBooking);
 module.exports = router;

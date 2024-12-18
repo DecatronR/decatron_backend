@@ -321,6 +321,55 @@ const deleteBooking = async (req, res) => {
   }
 };
 
+const fetchBooking = async (req, res) => {
+  try {
+    // const { agentID } = req.body;
+
+    // Step 1: Fetch all booking records using userID
+    const bookings = await Booking.find();
+    if (!bookings || bookings.length === 0) {
+      return res
+        .status(404)
+        .json({ responseCode: 404, responseMessage: "No bookings found" });
+    }
+
+    // Step 2: Loop through each booking and fetch property details and photos
+    const results = await Promise.all(
+      bookings.map(async (booking) => {
+        const propertyID = booking.propertyID;
+
+        // Fetch property details using propertyID
+        const propertyDetails = await PropertyListing.findById(propertyID);
+        if (!propertyDetails) {
+          return { booking, propertyDetails: null, photos: [] }; // Return empty data for missing property
+        }
+
+        // Fetch photos using propertyID
+        const propertyPhotos = await Photos.find({
+          propertyListingId: propertyID,
+        });
+
+        // Combine booking, property details, and photos
+        return {
+          booking,
+          propertyDetails,
+          photos: propertyPhotos,
+        };
+      })
+    );
+
+    // Return the combined result for all bookings
+    res
+      .status(200)
+      .json({ responseCode: 200, responseMessage: "Success", data: results });
+  } catch (error) {
+    console.error("Error fetching booking details:", error);
+    return res
+      .status(500)
+      .json({ responseCode: 500, responseMessage: error.message });
+  }
+};
+
 module.exports = {
   createBooking,
   getUserBooking,
@@ -328,4 +377,5 @@ module.exports = {
   updateBooking,
   deleteBooking,
   getBooking,
+  fetchBooking
 };
