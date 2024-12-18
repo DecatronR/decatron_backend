@@ -50,6 +50,7 @@ const {
   fetchPropertyListing,
   deletePropertyListing,
   myProperty,
+  isSoldOut,
 } = require("../controllers/propertyListingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -108,6 +109,7 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("lga").notEmpty().withMessage("LGA field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
+    body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
     // body("photo").isArray().withMessage("Photos must be an array").custom((photos) => {
@@ -191,6 +193,7 @@ router.post(
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
+    body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
   ],
@@ -203,6 +206,12 @@ router.post(
   requireAuth,
   [body("id").notEmpty().withMessage("Property Listing ID field is required")],
   deletePropertyListing
+);
+router.post(
+  "/isSoldOut",
+  requireAuth,
+  [body("id").notEmpty().withMessage("Property Listing ID field is required")],
+  isSoldOut
 );
 
 module.exports = router;
