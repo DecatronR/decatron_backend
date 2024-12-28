@@ -103,7 +103,6 @@ router.post(
     body("parkingSpace")
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
-    body("lga").notEmpty().withMessage("LGA field is required"),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("virtualTour").optional(),
