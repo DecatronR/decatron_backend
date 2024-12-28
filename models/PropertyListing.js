@@ -63,7 +63,7 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  NoOfKitchens: {
+  NoOfBathrooms: {
     type: String,
     required: true,
   },
