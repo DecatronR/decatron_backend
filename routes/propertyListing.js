@@ -108,7 +108,7 @@ router.post(
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
     body("lga").notEmpty().withMessage("LGA field is required"),
-    body("Price").notEmpty().withMessage("Price field is required"),
+    body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
@@ -192,7 +192,7 @@ router.post(
     body("NoOfParkingSpace")
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
-    body("Price").notEmpty().withMessage("Price field is required"),
+    body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
