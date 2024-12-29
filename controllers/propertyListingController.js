@@ -40,6 +40,7 @@ const createPropertyListing = async (req, res) => {
     parkingSpace,
     price,
     inspectionFee,
+    titleDocument,
     virtualTour,
     video,
     photo,
@@ -68,6 +69,7 @@ const createPropertyListing = async (req, res) => {
       parkingSpace,
       price,
       inspectionFee,
+      titleDocument,
       virtualTour,
       video,
     });
@@ -185,6 +187,7 @@ const updatePropertyListing = async (req, res) => {
       parkingSpace,
       price,
       inspectionFee,
+      titleDocument,
       virtualTour,
       video,
     } = req.body;
@@ -209,6 +212,7 @@ const updatePropertyListing = async (req, res) => {
       parkingSpace,
       price,
       inspectionFee,
+      titleDocument,
       virtualTour,
       video,
     };
@@ -306,6 +310,7 @@ const fetchPropertyListing = async (req, res) => {
           parkingSpace: 1,
           price: 1,
           inspectionFee: 1,
+          titleDocument: 1,
           virtualTour: 1,
           video: 1,
           isSoldOut: 1,
@@ -405,6 +410,7 @@ const myProperty = async (req, res) => {
           price: 1,
           isSoldOut: 1,
           inspectionFee: 1,
+          titleDocument: 1,
           virtualTour: 1,
           video: 1,
           photos: 1, // Include the photos array
