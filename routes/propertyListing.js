@@ -95,20 +95,15 @@ router.post(
     body("propertyDetails")
       .notEmpty()
       .withMessage("propertyDetails field is required"),
-    body("NoOfLivingRooms")
+    body("livingrooms")
       .notEmpty()
       .withMessage("NoOfLivingRooms field is required"),
-    body("NoOfBedRooms")
-      .notEmpty()
-      .withMessage("NoOfBedRooms field is required"),
-    body("NoOfKitchens")
-      .notEmpty()
-      .withMessage("NoOfKitchens field is required"),
-    body("NoOfParkingSpace")
+    body("bedrooms").notEmpty().withMessage("NoOfBedRooms field is required"),
+    body("bathrooms").notEmpty().withMessage("NoOfBathrooms field is required"),
+    body("parkingSpace")
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
-    body("lga").notEmpty().withMessage("LGA field is required"),
-    body("Price").notEmpty().withMessage("Price field is required"),
+    body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
@@ -180,19 +175,15 @@ router.post(
     body("propertyDetails")
       .notEmpty()
       .withMessage("propertyDetails field is required"),
-    body("NoOfLivingRooms")
+    body("livingrooms")
       .notEmpty()
       .withMessage("NoOfLivingRooms field is required"),
-    body("NoOfBedRooms")
-      .notEmpty()
-      .withMessage("NoOfBedRooms field is required"),
-    body("NoOfKitchens")
-      .notEmpty()
-      .withMessage("NoOfKitchens field is required"),
-    body("NoOfParkingSpace")
+    body("bedRooms").notEmpty().withMessage("NoOfBedRooms field is required"),
+    body("bathrooms").notEmpty().withMessage("NoOfBathrooms field is required"),
+    body("parkingSpace")
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
-    body("Price").notEmpty().withMessage("Price field is required"),
+    body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
