@@ -55,23 +55,23 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  NoOfLivingRooms: {
+  livingRooms: {
     type: String,
     required: true,
   },
-  NoOfBedRooms: {
+  bedRooms: {
     type: String,
     required: true,
   },
-  NoOfKitchens: {
+  bathrooms: {
     type: String,
     required: true,
   },
-  NoOfParkingSpace: {
+  parkingSpace: {
     type: String,
     required: true,
   },
-  Price: {
+  price: {
     type: String,
     required: true,
   },

@@ -4,8 +4,8 @@ const Photos = require("../models/Photos");
 const Favorite = require("../models/Favorite");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
-const cloudinary = require('cloudinary').v2;
-const fs = require('fs');
+const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -34,11 +34,11 @@ const createPropertyListing = async (req, res) => {
     size,
     lga,
     propertyDetails,
-    NoOfLivingRooms,
-    NoOfBedRooms,
-    NoOfKitchens,
-    NoOfParkingSpace,
-    Price,
+    livingrooms,
+    bedrooms,
+    bathrooms,
+    parkingSpace,
+    price,
     inspectionFee,
     virtualTour,
     video,
@@ -62,11 +62,11 @@ const createPropertyListing = async (req, res) => {
       size,
       lga,
       propertyDetails,
-      NoOfLivingRooms,
-      NoOfBedRooms,
-      NoOfKitchens,
-      NoOfParkingSpace,
-      Price,
+      livingrooms,
+      bedrooms,
+      bathrooms,
+      parkingSpace,
+      price,
       inspectionFee,
       virtualTour,
       video,
@@ -80,7 +80,7 @@ const createPropertyListing = async (req, res) => {
         for (const file of req.files) {
           // Upload to Cloudinary
           const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'properties', // Optional: specify a folder in Cloudinary
+            folder: "properties", // Optional: specify a folder in Cloudinary
           });
 
           // Save the Cloudinary URL to the Photos model
@@ -149,7 +149,7 @@ const editPropertyListing = async (req, res) => {
         responseCode: 200,
         data: checkDb,
         photos: checkPhoto,
-        role:gottenUser[0].role
+        role: gottenUser[0].role,
       });
     }
   } catch (error) {
@@ -179,11 +179,11 @@ const updatePropertyListing = async (req, res) => {
       size,
       lga,
       propertyDetails,
-      NoOfLivingRooms,
-      NoOfBedRooms,
-      NoOfKitchens,
-      NoOfParkingSpace,
-      Price,
+      livingrooms,
+      bedrooms,
+      bathrooms,
+      parkingSpace,
+      price,
       inspectionFee,
       virtualTour,
       video,
@@ -203,11 +203,11 @@ const updatePropertyListing = async (req, res) => {
       size,
       lga,
       propertyDetails,
-      NoOfLivingRooms,
-      NoOfBedRooms,
-      NoOfKitchens,
-      NoOfParkingSpace,
-      Price,
+      livingrooms,
+      bedrooms,
+      bathrooms,
+      parkingSpace,
+      price,
       inspectionFee,
       virtualTour,
       video,
@@ -256,65 +256,65 @@ const fetchPropertyListing = async (req, res) => {
   try {
     // const users = await User.find();
     // const fetchRcords = await PropertyListing.find().select(
-    //   "title slug listingType usageType propertyType propertySubType propertyCondition state neighbourhood size propertyDetails NoOfLivingRooms NoOfBedRooms NoOfKitchens NoOfParkingSpace Price virtualTour video photo createdAt"
+    //   "title slug listingType usageType propertyType propertySubType propertyCondition state neighbourhood size propertyDetails livingRooms bedrooms NoOfKitchens parkingSpace price virtualTour video photo createdAt"
     // );
     const fetchRecords = await PropertyListing.aggregate([
-  {
-    $addFields: {
-      _idString: { $toString: "$_id" },
-    },
-  },
-  {
-    $lookup: {
-      from: "photos", // The name of the photos collection
-      localField: "_idString", 
-      foreignField: "propertyListingId", 
-      as: "photos",
-    },
-  },
-  {
-    $lookup: {
-      from: "users", // The name of the users collection
-      localField: "userId", // Assuming there's a userId field in PropertyListing
-      foreignField: "_id", 
-      as: "user",
-    },
-  },
-  {
-    $unwind: {
-      path: "$user",
-      preserveNullAndEmptyArrays: true // This ensures the document is not dropped if no user is found
-    },
-  },
-  {
-    $project: {
-      title: 1,
-      slug: 1,
-      listingType: 1,
-      usageType: 1,
-      propertyType: 1,
-      propertySubType: 1,
-      propertyCondition: 1,
-      state: 1,
-      neighbourhood: 1,
-      size: 1,
-      lga: 1,
-      propertyDetails: 1,
-      NoOfLivingRooms: 1,
-      NoOfBedRooms: 1,
-      NoOfKitchens: 1,
-      NoOfParkingSpace: 1,
-      Price: 1,
-      inspectionFee: 1,
-      virtualTour: 1,
-      video: 1,
-      isSoldOut: 1,
-      photos: 1,
-      createdAt: 1,
-      userRole: "$user.role", // Add the user's role
-    },
-  },
-]);
+      {
+        $addFields: {
+          _idString: { $toString: "$_id" },
+        },
+      },
+      {
+        $lookup: {
+          from: "photos", // The name of the photos collection
+          localField: "_idString",
+          foreignField: "propertyListingId",
+          as: "photos",
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // The name of the users collection
+          localField: "userId", // Assuming there's a userId field in PropertyListing
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+          preserveNullAndEmptyArrays: true, // This ensures the document is not dropped if no user is found
+        },
+      },
+      {
+        $project: {
+          title: 1,
+          slug: 1,
+          listingType: 1,
+          usageType: 1,
+          propertyType: 1,
+          propertySubType: 1,
+          propertyCondition: 1,
+          state: 1,
+          neighbourhood: 1,
+          size: 1,
+          lga: 1,
+          propertyDetails: 1,
+          livingrooms: 1,
+          bedrooms: 1,
+          bathrooms: 1,
+          parkingSpace: 1,
+          price: 1,
+          inspectionFee: 1,
+          virtualTour: 1,
+          video: 1,
+          isSoldOut: 1,
+          photos: 1,
+          createdAt: 1,
+          userRole: "$user.role", // Add the user's role
+        },
+      },
+    ]);
 
     res.json(fetchRecords);
   } catch (error) {
@@ -398,11 +398,11 @@ const myProperty = async (req, res) => {
           neighbourhood: 1,
           size: 1,
           propertyDetails: 1,
-          NoOfLivingRooms: 1,
-          NoOfBedRooms: 1,
-          NoOfKitchens: 1,
-          NoOfParkingSpace: 1,
-          Price: 1,
+          livingrooms: 1,
+          bedrooms: 1,
+          bathrooms: 1,
+          parkingSpace: 1,
+          price: 1,
           isSoldOut: 1,
           inspectionFee: 1,
           virtualTour: 1,
@@ -430,9 +430,13 @@ const isSoldOut = async (req, res) => {
     const { id } = req.body;
 
     const updateData = { isSoldOut: 1 };
-    const updated = await PropertyListing.findOneAndUpdate({ _id:id }, updateData, {
-      new: true,
-    });
+    const updated = await PropertyListing.findOneAndUpdate(
+      { _id: id },
+      updateData,
+      {
+        new: true,
+      }
+    );
     if (!updated) {
       return res
         .status(404)
@@ -440,14 +444,14 @@ const isSoldOut = async (req, res) => {
     }
     return res.status(200).json({
       responseCode: 200,
-      responseMessage: "Status updated successfully"
+      responseMessage: "Status updated successfully",
     });
   } catch (error) {
-
-    return res.status(500).json({ responseCode: 500, responseMessage: error.message });
-    
+    return res
+      .status(500)
+      .json({ responseCode: 500, responseMessage: error.message });
   }
-}
+};
 
 module.exports = {
   createPropertyListing,
@@ -456,5 +460,5 @@ module.exports = {
   fetchPropertyListing,
   deletePropertyListing,
   myProperty,
-  isSoldOut
+  isSoldOut,
 };
