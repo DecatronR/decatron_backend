@@ -105,6 +105,7 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
+    body("titleDocument").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
     // body("photo").isArray().withMessage("Photos must be an array").custom((photos) => {
@@ -185,6 +186,7 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
+    body("titleDocument").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
   ],
