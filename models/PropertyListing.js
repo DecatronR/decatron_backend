@@ -79,6 +79,10 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  titleDocument: {
+    type: String,
+    required: false,
+  },
   virtualTour: {
     type: String,
     required: false,
