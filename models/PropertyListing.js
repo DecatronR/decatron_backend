@@ -55,11 +55,11 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  livingRooms: {
+  livingrooms: {
     type: String,
     required: true,
   },
-  bedRooms: {
+  bedrooms: {
     type: String,
     required: true,
   },
