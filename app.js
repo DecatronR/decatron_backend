@@ -21,6 +21,7 @@ const favoriteRouter = require("./routes/favorite");
 const myScheduleRouter = require("./routes/mySchedule");
 const reviewRouter = require("./routes/review");
 const bookingRouter = require("./routes/booking");
+const requestPropertyRouter = require("./routes/requestProperty");
 
 const app = express();
 
@@ -75,6 +76,7 @@ app.use("/favorite", favoriteRouter);
 app.use("/mySchedule", myScheduleRouter);
 app.use("/review", reviewRouter);
 app.use("/booking", bookingRouter);
+app.use("/requestProperty", requestPropertyRouter);
 
 // catch 404 and send response directly (Option 1)
 
