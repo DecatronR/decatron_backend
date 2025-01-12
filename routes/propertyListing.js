@@ -50,7 +50,7 @@ const {
   fetchPropertyListing,
   deletePropertyListing,
   myProperty,
-  isSoldOut
+  isSoldOut,
 } = require("../controllers/propertyListingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -109,7 +109,7 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("lga").notEmpty().withMessage("LGA field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
-    body("inspectionFee").notEmpty().withMessage("Inspection Fee field is required"),
+    body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
     // body("photo").isArray().withMessage("Photos must be an array").custom((photos) => {
@@ -193,7 +193,7 @@ router.post(
       .notEmpty()
       .withMessage("NoOfParkingSpace field is required"),
     body("Price").notEmpty().withMessage("Price field is required"),
-    body("inspectionFee").notEmpty().withMessage("Inspection fee field is required"),
+    body("inspectionFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
   ],

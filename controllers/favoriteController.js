@@ -14,15 +14,15 @@ const create = async (req, res) => {
 
   try {
     const createNew = await Favorite.create({
-        userId,
-        propertyListingId
+      userId,
+      propertyListingId,
     });
     // return res.send(propertyType);
     if (createNew) {
       return res.status(201).json({
         responseMessage: "Item added to favorite successfully",
         responseCode: 201,
-        data: createNew
+        data: createNew,
       });
     } else {
       return res.status(400).send({
@@ -56,15 +56,13 @@ const getMyFavorites = async (req, res) => {
       return res.status(200).json({
         responseMessage: "Record Found",
         responseCode: 200,
-        data: checkDb
+        data: checkDb,
       });
     }
   } catch (error) {
     res.status(400).json({ responseCode: 400, responseMessage: error.message });
   }
 };
-
-
 
 const deleteData = async (req, res) => {
   try {
@@ -102,5 +100,5 @@ const deleteData = async (req, res) => {
 module.exports = {
   create,
   getMyFavorites,
-  deleteData
+  deleteData,
 };
