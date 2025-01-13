@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const RequestPropertySchema = new mongoose.Schema({
+const AgencyRequestSchema = new mongoose.Schema({
   agentId: {
     type: String,
     required: true,
@@ -22,4 +22,4 @@ const RequestPropertySchema = new mongoose.Schema({
     default: new Date(),
   },
 });
-module.exports = mongoose.model("RequestProperty", RequestPropertySchema);
+module.exports = mongoose.model("AgencyRequest", AgencyRequestSchema);
