@@ -1,4 +1,4 @@
-const RequestProperty = require("../models/RequestProperty");
+const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 // const { formatRoleId } = require("../utils/helpers");
 const { ObjectId } = require("mongodb");
@@ -13,12 +13,11 @@ const create = async (req, res, next) => {
 
   const { agentId, propertyListingId, status, ownerId } = req.body;
   try {
-
-    const created = await RequestProperty.create({
+    const created = await AgencyRequest.create({
       agentId,
       propertyListingId,
       status,
-      ownerId
+      ownerId,
     });
     if (created) {
       return res.status(201).json({
@@ -50,16 +49,17 @@ const deleteRequest = async (req, res) => {
 
     const { requestId } = req.body;
     const id = new ObjectId(requestId);
-    const deleted = await RequestProperty.findById({ _id:id });
+    const deleted = await AgencyRequest.findById({ _id: id });
     if (!deleted) {
-      return res
-        .status(404)
-        .json({ responseCode: 404, responseMessage: "Property Request not found" });
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Property Request not found",
+      });
     }
 
     // Delete the user
     // await User.findByIdAndDelete({ roleId });
-    await RequestProperty.findByIdAndDelete({ _id:id });
+    await AgencyRequest.findByIdAndDelete({ _id: id });
 
     // Respond with a success message
     return res.status(200).json({
@@ -71,7 +71,7 @@ const deleteRequest = async (req, res) => {
   }
 };
 
-const agentRequest = async (req, res) => { 
+const agentRequest = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -82,24 +82,24 @@ const agentRequest = async (req, res) => {
 
     const { requestAgentId } = req.body;
     // const id = new ObjectId(requestAgentId);
-    const check = await RequestProperty.find({ agentId:requestAgentId });
+    const check = await AgencyRequest.find({ agentId: requestAgentId });
     if (!check) {
       return res
         .status(404)
         .json({ responseCode: 404, responseMessage: "No Record found" });
     }
-    const data = await RequestProperty.find({ agentId: requestAgentId });
+    const data = await AgencyRequest.find({ agentId: requestAgentId });
     return res.status(200).json({
-        responseMessage: "Record Found",
-        responseCode: 200,
-        data: data
-      });
+      responseMessage: "Record Found",
+      responseCode: 200,
+      data: data,
+    });
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
   }
-}
+};
 
-const ownerRequest = async (req, res) => { 
+const ownerRequest = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -110,25 +110,25 @@ const ownerRequest = async (req, res) => {
 
     const { ownerId } = req.body;
     const id = new ObjectId(ownerId);
-    const check = await RequestProperty.find({ ownerId:id });
+    const check = await AgencyRequest.find({ ownerId: id });
     if (!check) {
       return res
         .status(404)
         .json({ responseCode: 404, responseMessage: "No Record found" });
     }
-    const data = await RequestProperty.find({ ownerId: id });
+    const data = await AgencyRequest.find({ ownerId: id });
     return res.status(200).json({
-        responseMessage: "Record Found",
-        responseCode: 200,
-        data: data
-      });
+      responseMessage: "Record Found",
+      responseCode: 200,
+      data: data,
+    });
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
   }
-}
+};
 module.exports = {
   create,
   deleteRequest,
   agentRequest,
-  ownerRequest
+  ownerRequest,
 };
