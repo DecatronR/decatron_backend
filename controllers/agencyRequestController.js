@@ -1,6 +1,7 @@
 const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
+const PropertyListing = require("../models/PropertyListing");
 const { ObjectId } = require("mongodb");
 
 const create = async (req, res, next) => {
@@ -122,6 +123,7 @@ const agentRequest = async (req, res) => {
         ).map(async (request) => {
 
             const getProperty = await PropertyListing.findOne({ _id: request.propertyListingId});
+            
             const response = {
                 id: request._id,
                 agentId: request.agentId,
@@ -131,6 +133,7 @@ const agentRequest = async (req, res) => {
                 ownerId: request.ownerId,
                 createdAt: request.createdAt,
             };
+        
 
           return response;
         })
