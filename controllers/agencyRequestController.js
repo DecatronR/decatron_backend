@@ -72,33 +72,6 @@ const deleteRequest = async (req, res) => {
   }
 };
 
-// const agentRequest = async (req, res) => {
-//   try {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res
-//         .status(400)
-//         .json({ responseCode: 400, responseMessage: errors.array() });
-//     }
-
-//     const { requestAgentId } = req.body;
-//     // const id = new ObjectId(requestAgentId);
-//     const check = await AgencyRequest.find({ agentId: requestAgentId });
-//     if (!check) {
-//       return res
-//         .status(404)
-//         .json({ responseCode: 404, responseMessage: "No Record found" });
-//     }
-//     const data = await AgencyRequest.find({ agentId: requestAgentId });
-//     return res.status(200).json({
-//       responseMessage: "Record Found",
-//       responseCode: 200,
-//       data: data,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ responseMessage: error.message });
-//   }
-// };
 const agentRequest = async (req, res) => { 
   try {
     const errors = validationResult(req);
@@ -200,37 +173,49 @@ const ownerRequest = async (req, res) => {
     res.status(500).json({ responseMessage: error.message });
   }
 }
+const updateStatus = async (req, res) => {
+  try{
+    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({ responseCode: 400, responseMessage: errors.array() });
+      }
 
-// const ownerRequest = async (req, res) => {
-//   try {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res
-//         .status(400)
-//         .json({ responseCode: 400, responseMessage: errors.array() });
-//     }
+      const { id,status } = req.body;
+      const objId = new ObjectId(id);
+      const check = await AgencyRequest.find({ _id:objId });
+      if (!check) {
+        return res
+          .status(404)
+          .json({ responseCode: 404, responseMessage: "No Record found" });
+      }
+          const Data = { status };
+          const updated = await AgencyRequest.findOneAndUpdate({ _id: id }, Data, {
+            new: true,
+          });
+          if (!updated) {
+            return res
+              .status(404)
+              .json({
+                responseCode: 404,
+                responseMessage: "Recoed with ID not found",
+              });
+          }
+          return res.status(200).json({
+            responseCode: 200,
+            responseMessage: "Status updated successfully",
+           
+          });
 
-//     const { ownerId } = req.body;
-//     const id = new ObjectId(ownerId);
-//     const check = await AgencyRequest.find({ ownerId: id });
-//     if (!check) {
-//       return res
-//         .status(404)
-//         .json({ responseCode: 404, responseMessage: "No Record found" });
-//     }
-//     const data = await AgencyRequest.find({ ownerId: id });
-//     return res.status(200).json({
-//       responseMessage: "Record Found",
-//       responseCode: 200,
-//       data: data,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ responseMessage: error.message });
-//   }
-// };
+    } catch (error) {
+      res.status(500).json({ responseMessage: error.message });
+    }
+}
 module.exports = {
   create,
   deleteRequest,
   agentRequest,
   ownerRequest,
+  updateStatus
 };

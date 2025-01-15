@@ -5,6 +5,7 @@ const {
   deleteRequest,
   agentRequest,
   ownerRequest,
+  updateStatus
 } = require("../controllers/agencyRequestController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -28,6 +29,15 @@ router.post(
   requireAuth,
   [body("requestAgentId").notEmpty().withMessage("Agent ID field is required")],
   agentRequest
+);
+router.post(
+  "/agencyUpdateStatus",
+  requireAuth,
+  [
+    body("id").notEmpty().withMessage("ID field is required"),
+    body("status").notEmpty().withMessage("Status field is required"),
+  ],
+  updateStatus
 );
 
 router.post(
