@@ -148,13 +148,14 @@ const ownerRequest = async (req, res) => {
             const ratings = getUser.ratings;
             const totalRatings = ratings.length;
             const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
-            const averageRating =
-              totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+            const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+            const getProperty = await PropertyListing.findOne({ _id: request.propertyListingId});
             const response = {
                 id: request._id,
                 agentId: request.agentId,
                 agentProp: { agentName: getUser.name, rating: parseFloat(averageRating) },
                 propertyListingId: request.propertyListingId,
+                propertyName: getProperty.title,
                 status: request.status,
                 ownerId: request.ownerId,
                 createdAt: request.createdAt,
@@ -212,10 +213,41 @@ const updateStatus = async (req, res) => {
       res.status(500).json({ responseMessage: error.message });
     }
 }
+const agencyPropertyStatus = async (req, res) => {
+  try{
+    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({ responseCode: 400, responseMessage: errors.array() });
+      }
+
+      const { propertyListingId, agentId } = req.body;
+
+      const getRecord = await AgencyRequest.find({ propertyListingId,  agentId});
+          if (!getRecord) {
+            return res
+              .status(404)
+              .json({
+                responseCode: 404,
+                responseMessage: "Recoed with ID not found",
+              });
+          }
+          return res.status(200).json({
+            responseCode: 200,
+            responseMessage: "Record found",
+            data:getRecord.status
+          });
+
+    } catch (error) {
+      res.status(500).json({ responseMessage: error.message });
+    }
+}
 module.exports = {
   create,
   deleteRequest,
   agentRequest,
   ownerRequest,
-  updateStatus
+  updateStatus,
+  agencyPropertyStatus
 };
