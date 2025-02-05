@@ -4,6 +4,7 @@ const {
   comparePassword,
   generateOTP,
   sendOTPEmail,
+  generateReferralCode
 } = require("../utils/helpers");
 const User = require("../models/User");
 const Role = require("../models/Role");
@@ -17,6 +18,7 @@ const createToken = (id) => {
     expiresIn: maxAge,
   });
 };
+
 
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -48,6 +50,7 @@ const registerUser = async (req, res, next) => {
     }
 
     const otp = generateOTP();
+    const referralCode = generateReferralCode();
 
     const newUser = await User.create({
       name,
@@ -55,6 +58,7 @@ const registerUser = async (req, res, next) => {
       email,
       role: slug,
       otp,
+      referralCode,
       email_verified_at: null,
       password: hashedPassword,
     });
@@ -65,7 +69,7 @@ const registerUser = async (req, res, next) => {
     res.cookie("auth_jwt", token, {
       maxAge: maxAge * 1000,
       httpOnly: true,
-      sameSite: "none",
+      sameSite: "Lax",
       secure: true,
     });
     return res.status(201).json({
@@ -156,6 +160,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
+      referralCode: userdb.referralCode
     });
     //   res.sendStatus(200);
   } else {

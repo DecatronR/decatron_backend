@@ -51,4 +51,8 @@ const checkUser = (req, res, next) => {
   }
 };
 
+function generateReferralCode(userId) {
+  return Buffer.from(userId.toString()).toString('hex').toUpperCase();
+}
+
 module.exports = { requireAuth, checkUser };

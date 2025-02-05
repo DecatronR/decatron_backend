@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
   },
+  referralCode: {
+    type: String,
+    unique: true,
+  },
   role: {
     type: String,
     required: true,
