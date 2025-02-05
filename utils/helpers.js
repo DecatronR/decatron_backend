@@ -8,6 +8,11 @@ function hashPassword(password) {
   return bcrypt.hashSync(password, salt);
 }
 
+function generateReferralCode() {
+  return crypto.randomBytes(4).toString('hex').toUpperCase(); // Example: 'A1B2C3D4'
+}
+
+
 function comparePassword(raw, hash) {
   return bcrypt.compareSync(raw, hash);
 }
@@ -48,4 +53,5 @@ module.exports = {
   formatRoleId,
   generateOTP,
   sendOTPEmail,
+  generateReferralCode
 };
