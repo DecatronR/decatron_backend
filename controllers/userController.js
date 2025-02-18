@@ -47,6 +47,7 @@ const editUsers = async (req, res) => {
           email: userdb.email,
           phone: userdb.phone,
           passport: userdb.passport || null,
+          referralCode: userdb.referralCode || null,
           id: id,
         },
       });
@@ -256,49 +257,74 @@ const userTree = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ responseCode: 400, responseMessage: errors.array() });
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
     }
 
     const { id } = req.body;
     const objectId = new ObjectId(id);
-    
+
     const results = await Promise.all(
-      (await User.find({ _id: objectId })).map(async (request) => {
-        
+      (
+        await User.find({ _id: objectId })
+      ).map(async (request) => {
         const getUser = await User.findOne({ _id: request._id });
         const ratings = getUser.ratings || []; // Handle missing ratings safely
         const totalRatings = ratings.length;
-        const sumOfRatings = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-        const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+        const sumOfRatings = ratings.reduce(
+          (acc, curr) => acc + (curr.rating || 0),
+          0
+        );
+        const averageRating =
+          totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
 
         // Get role-specific data
         let roleSpecificData = 0;
         if (getUser.role === "propertyManager") {
-          roleSpecificData = await PropertyListing.countDocuments({ managerId: getUser._id });
+          roleSpecificData = await PropertyListing.countDocuments({
+            managerId: getUser._id,
+          });
         } else if (getUser.role === "agent") {
-          roleSpecificData = await AgencyRequest.countDocuments({ agentId: getUser._id });
+          roleSpecificData = await AgencyRequest.countDocuments({
+            agentId: getUser._id,
+          });
         } else if (getUser.role === "client") {
-          roleSpecificData = await SomeClientCollection.countDocuments({ clientId: getUser._id });
+          roleSpecificData = await SomeClientCollection.countDocuments({
+            clientId: getUser._id,
+          });
         }
 
         // Fetch children
         const children = await Promise.all(
-          (await AgencyRequest.find({ ownerId: request._id })).map(async (req) => {
+          (
+            await AgencyRequest.find({ ownerId: request._id })
+          ).map(async (req) => {
             const getChild = await User.findOne({ _id: req.agentId });
 
             if (!getChild) return null; // Skip if user not found
-            
+
             const ratings_ = getChild.ratings || [];
             const totalRatings_ = ratings_.length;
-            const sumOfRatings_ = ratings_.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-            const averageRating_ = totalRatings_ > 0 ? (sumOfRatings_ / totalRatings_).toFixed(1) : 0;
+            const sumOfRatings_ = ratings_.reduce(
+              (acc, curr) => acc + (curr.rating || 0),
+              0
+            );
+            const averageRating_ =
+              totalRatings_ > 0
+                ? (sumOfRatings_ / totalRatings_).toFixed(1)
+                : 0;
 
             // Get role-specific data for children
             let childRoleSpecificData = 0;
             if (getChild.role === "agent") {
-              childRoleSpecificData = await AgencyRequest.countDocuments({ agentId: getChild._id });
+              childRoleSpecificData = await AgencyRequest.countDocuments({
+                agentId: getChild._id,
+              });
             } else if (getChild.role === "client") {
-              childRoleSpecificData = await SomeClientCollection.countDocuments({ clientId: getChild._id });
+              childRoleSpecificData = await SomeClientCollection.countDocuments(
+                { clientId: getChild._id }
+              );
             }
 
             return {
@@ -330,15 +356,11 @@ const userTree = async (req, res) => {
       responseCode: 200,
       data: results,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ responseMessage: error.message });
   }
 };
-
-
-
 
 module.exports = {
   getUsers,
@@ -347,5 +369,5 @@ module.exports = {
   deleteUser,
   rateUser,
   fetchUserRating,
-  userTree
+  userTree,
 };
