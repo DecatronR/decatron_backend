@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
+const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 const cloudinary = require("cloudinary").v2;
@@ -251,6 +252,92 @@ const fetchUserRating = async (req, res) => {
   }
 };
 
+const userTree = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ responseCode: 400, responseMessage: errors.array() });
+    }
+
+    const { id } = req.body;
+    const objectId = new ObjectId(id);
+    
+    const results = await Promise.all(
+      (await User.find({ _id: objectId })).map(async (request) => {
+        
+        const getUser = await User.findOne({ _id: request._id });
+        const ratings = getUser.ratings || []; // Handle missing ratings safely
+        const totalRatings = ratings.length;
+        const sumOfRatings = ratings.reduce((acc, curr) => acc + (curr.rating || 0), 0);
+        const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+
+        // Get role-specific data
+        let roleSpecificData = 0;
+        if (getUser.role === "propertyManager") {
+          roleSpecificData = await PropertyListing.countDocuments({ managerId: getUser._id });
+        } else if (getUser.role === "agent") {
+          roleSpecificData = await AgencyRequest.countDocuments({ agentId: getUser._id });
+        } else if (getUser.role === "client") {
+          roleSpecificData = await SomeClientCollection.countDocuments({ clientId: getUser._id });
+        }
+
+        // Fetch children
+        const children = await Promise.all(
+          (await AgencyRequest.find({ ownerId: request._id })).map(async (req) => {
+            const getChild = await User.findOne({ _id: req.agentId });
+
+            if (!getChild) return null; // Skip if user not found
+            
+            const ratings_ = getChild.ratings || [];
+            const totalRatings_ = ratings_.length;
+            const sumOfRatings_ = ratings_.reduce((acc, curr) => acc + (curr.rating || 0), 0);
+            const averageRating_ = totalRatings_ > 0 ? (sumOfRatings_ / totalRatings_).toFixed(1) : 0;
+
+            // Get role-specific data for children
+            let childRoleSpecificData = 0;
+            if (getChild.role === "agent") {
+              childRoleSpecificData = await AgencyRequest.countDocuments({ agentId: getChild._id });
+            } else if (getChild.role === "client") {
+              childRoleSpecificData = await SomeClientCollection.countDocuments({ clientId: getChild._id });
+            }
+
+            return {
+              name: getChild.name,
+              image: getChild.passport,
+              role: getChild.role,
+              rating: parseFloat(averageRating_),
+              verified: !!getChild.email_verified_at, // Convert to boolean
+              roleSpecificData: childRoleSpecificData,
+              children: [], // Placeholder, you can add recursive logic here if needed
+            };
+          })
+        );
+
+        return {
+          name: request.name,
+          image: request.passport,
+          role: request.role,
+          rating: parseFloat(averageRating),
+          verified: !!request.email_verified_at, // Convert to boolean
+          roleSpecificData: roleSpecificData,
+          children: children.filter((child) => child !== null), // Remove null children
+        };
+      })
+    );
+
+    return res.status(200).json({
+      responseMessage: "Record Found",
+      responseCode: 200,
+      data: results,
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message });
+  }
+};
+
+
 
 
 module.exports = {
@@ -260,4 +347,5 @@ module.exports = {
   deleteUser,
   rateUser,
   fetchUserRating,
+  userTree
 };

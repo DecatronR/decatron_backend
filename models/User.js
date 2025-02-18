@@ -30,6 +30,9 @@ const UserSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  referrer: {
+    type: String
+  },
   role: {
     type: String,
     required: true,

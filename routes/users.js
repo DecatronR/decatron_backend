@@ -33,6 +33,7 @@ const {
   deleteUser,
   rateUser,
   fetchUserRating,
+  userTree
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -106,6 +107,12 @@ router.post(
   requireAuth,
   [body("id").notEmpty().withMessage("Id is required")],
   deleteUser
+);
+router.post(
+  "/userTree",
+  requireAuth,
+  [body("id").notEmpty().withMessage("Id is required")],
+  userTree
 );
 
 router.post(

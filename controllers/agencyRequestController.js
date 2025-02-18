@@ -139,7 +139,7 @@ const ownerRequest = async (req, res) => {
         .json({ responseCode: 404, responseMessage: "No Record found" });
     }
 
-    const results = await Promise.all(
+    const results = await Promise.all( 
         (
           await AgencyRequest.find({ ownerId:ownerId })
         ).map(async (request) => {
