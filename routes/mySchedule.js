@@ -7,6 +7,7 @@ const {
   fetch,
   deleteRecord,
   scheduleBooked,
+  fetchReferralSchedule
 } = require("../controllers/myScheduleController");
 const { body, validationResult } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -76,6 +77,12 @@ router.post(
 router.post(
   "/fetch",
   [body("userId").notEmpty().withMessage("User ID field is required")],
+  fetch
+);
+
+router.post(
+  "/fetchReferralSchedule",
+  [body("referralCode").notEmpty().withMessage("Referral Code field is required")],
   fetch
 );
 router.post(

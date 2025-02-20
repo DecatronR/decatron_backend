@@ -167,8 +167,6 @@ const update = async (req, res) => {
 
 const fetch = async (req, res) => {
   try {
-    // const users = await User.find();
-    // const fetchRcords = await MySchedule.find().select("userId date time isAvailable");
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res
@@ -177,6 +175,33 @@ const fetch = async (req, res) => {
     }
     const { userId } = req.body;
     const fetchRcords = await MySchedule.find({ userId });
+    // res.json(fetchRcords);
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Success",
+      data: fetchRcords
+    });
+  } catch (error) {
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+  }
+};
+const fetchReferralSchedule = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+    const { referralCode } = req.body;
+    const existingAgent = await User.findOne({ referralCode: referralCode });
+        if (!existingAgent) {
+          return res.status(404).json({
+            responseMessage: "Agent doesn't exist",
+            responseCode: 404,
+          });
+        }
+    const fetchRcords = await MySchedule.find({ userId:existingAgent._id  });
     // res.json(fetchRcords);
     return res.status(200).json({
       responseCode: 200,
@@ -263,5 +288,6 @@ module.exports = {
   update,
   fetch,
   deleteRecord,
-  scheduleBooked
+  scheduleBooked,
+  fetchReferralSchedule
 };
