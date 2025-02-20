@@ -201,6 +201,7 @@ const fetchReferralSchedule = async (req, res) => {
             responseCode: 404,
           });
         }
+        console.log(`data`, existingAgent);
     const fetchRcords = await MySchedule.find({ userId:existingAgent._id  });
     // res.json(fetchRcords);
     return res.status(200).json({

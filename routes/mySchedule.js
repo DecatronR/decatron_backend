@@ -83,7 +83,7 @@ router.post(
 router.post(
   "/fetchReferralSchedule",
   [body("referralCode").notEmpty().withMessage("Referral Code field is required")],
-  fetch
+  fetchReferralSchedule
 );
 router.post(
   "/deleteRecord",
