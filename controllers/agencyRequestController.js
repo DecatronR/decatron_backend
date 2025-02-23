@@ -1,6 +1,7 @@
 const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
+const Photos = require("../models/Photos");
 const PropertyListing = require("../models/PropertyListing");
 const { ObjectId } = require("mongodb");
 
@@ -213,6 +214,7 @@ const updateStatus = async (req, res) => {
       res.status(500).json({ responseMessage: error.message });
     }
 }
+
 const agencyPropertyStatus = async (req, res) => {
   try{
     const errors = validationResult(req);
@@ -239,15 +241,48 @@ const agencyPropertyStatus = async (req, res) => {
             data:getRecord.status
           });
 
-    } catch (error) {
-      res.status(500).json({ responseMessage: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ responseMessage: error.message });
+  }
 }
+
+const getAcceptedProperties = async (req, res) => {
+  try{
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+    const { agentId } = req.body;
+      const records = await Promise.all(
+        (
+          await AgencyRequest.find({ agentId})
+        ).map(async (req) => {
+
+          const property = await PropertyListing.findOne({ _id: req.propertyListingId });
+          const photo = await Photos.find({ propertyListingId: req.propertyListingId });
+          return {
+            property: property,
+            photo
+          }
+        }));
+        return res.status(200).json({
+          responseMessage: "Record Found",
+          responseCode: 200,
+          data: records, // Now returning a single object instead of an array
+        });
+  } catch (error) {
+    res.status(400).json({ responseCode: 400, responseMessage: error.message });
+  }
+}
+
 module.exports = {
   create,
   deleteRequest,
   agentRequest,
   ownerRequest,
   updateStatus,
-  agencyPropertyStatus
+  agencyPropertyStatus,
+  getAcceptedProperties
 };

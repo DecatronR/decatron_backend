@@ -7,6 +7,7 @@ const {
   ownerRequest,
   updateStatus,
   agencyPropertyStatus,
+  getAcceptedProperties
 } = require("../controllers/agencyRequestController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -46,6 +47,12 @@ router.post(
   requireAuth,
   [body("ownerId").notEmpty().withMessage("Owner ID field is required")],
   ownerRequest
+);
+router.post(
+  "/getAcceptedProperties",
+  requireAuth,
+  [body("agentId").notEmpty().withMessage("Agent ID field is required")],
+  getAcceptedProperties
 );
 
 router.post(
