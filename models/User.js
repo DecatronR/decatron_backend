@@ -26,6 +26,13 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
   },
+  referralCode: {
+    type: String,
+    unique: true,
+  },
+  referrer: {
+    type: String
+  },
   role: {
     type: String,
     required: true,
@@ -46,7 +53,15 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  phoneOTP: {
+    type: String,
+    required: false,
+  },
   email_verified_at: {
+    type: String,
+    required: false,
+  },
+  phone_no_verified_at: {
     type: String,
     required: false,
   },

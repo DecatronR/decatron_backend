@@ -7,7 +7,8 @@ const {
   updateBooking,
   deleteBooking,
   getBooking,
-  fetchBooking
+  fetchBooking,
+  createBookingReferral
 } = require("../controllers/bookingController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -23,6 +24,17 @@ router.post(
     body("bookingDateTime").notEmpty().withMessage("Invalid date format"), // Ensure the date is in ISO 8601 format
   ],
   createBooking
+);
+router.post(
+  "/referral",
+  requireAuth,
+  [
+    body("userID").notEmpty().withMessage("User ID field is required"),
+    body("referralCode").notEmpty().withMessage("Referral Code field is required"),
+    body("propertyID").notEmpty().withMessage("Property ID field is required"),
+    body("bookingDateTime").notEmpty().withMessage("Invalid date format"), // Ensure the date is in ISO 8601 format
+  ],
+  createBookingReferral
 );
 
 // Route to get a booking by ID
