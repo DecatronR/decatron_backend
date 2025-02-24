@@ -4,6 +4,8 @@ const {
   comparePassword,
   generateOTP,
   sendOTPEmail,
+  generateReferralCode,
+  sendWhatsappOTP
 } = require("../utils/helpers");
 const User = require("../models/User");
 const Role = require("../models/Role");
@@ -17,6 +19,7 @@ const createToken = (id) => {
     expiresIn: maxAge,
   });
 };
+
 
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -48,6 +51,7 @@ const registerUser = async (req, res, next) => {
     }
 
     const otp = generateOTP();
+    const referralCode = generateReferralCode();
 
     const newUser = await User.create({
       name,
@@ -55,6 +59,7 @@ const registerUser = async (req, res, next) => {
       email,
       role: slug,
       otp,
+      referralCode,
       email_verified_at: null,
       password: hashedPassword,
     });
@@ -65,7 +70,7 @@ const registerUser = async (req, res, next) => {
     res.cookie("auth_jwt", token, {
       maxAge: maxAge * 1000,
       httpOnly: true,
-      sameSite: "none",
+      sameSite: "Lax",
       secure: true,
     });
     return res.status(201).json({
@@ -125,6 +130,53 @@ const resendOTP = async (req, res) => {
   }
 };
 
+const sendWPOTP = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+  try {
+    const { phoneNo } = req.body;
+    const existing = await User.findOne({ phone: phoneNo });
+    if (!existing) {
+      return res.status(409).json({
+        responseCode: 409,
+        responseMessage: "Phone Number does not exist",
+      });
+    }
+    const otp = generateOTP();
+    const updateData = { phoneOTP:otp };
+    const updatedUser = await User.findOneAndUpdate(
+      { phone: phoneNo },
+      updateData,
+      {
+        new: true,
+      }
+    ).select("-password");
+    const sendOTP = await sendWhatsappOTP(phoneNo, otp);
+    if (sendOTP) {
+      return res.status(200).json({
+        responseCode: 200,
+        responseMessage: "OTP Sent Successfully",
+        data: updatedUser,
+      });
+    }else{
+      return res.status(401).json({
+        responseMessage: "An error occurred sending OTP",
+        responseCode: 401,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(401).json({
+      responseMessage: "oops an error occurred",
+      responseCode: 401,
+    });
+  }
+};
+
 const loginUser = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -156,6 +208,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
+      referralCode: userdb.referralCode
     });
     //   res.sendStatus(200);
   } else {
@@ -226,4 +279,5 @@ module.exports = {
   logoutUser,
   confirmOTP,
   resendOTP,
+  sendWPOTP
 };
