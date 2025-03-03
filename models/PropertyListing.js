@@ -47,6 +47,10 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  houseNoStreet: {
+    type: String,
+    required: true,
+  },
   size: {
     type: String,
     required: false,
@@ -79,7 +83,15 @@ const PropertyListingSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
-  titleDocument: {
+  cautionFee: {
+    type: String,
+    required: false,
+  },
+  agencyFee: {
+    type: String,
+    required: false,
+  },
+  latePaymentFee: {
     type: String,
     required: false,
   },

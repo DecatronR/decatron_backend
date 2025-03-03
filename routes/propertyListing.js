@@ -168,11 +168,14 @@ router.post(
       .notEmpty()
       .withMessage("propertyCondition field is required"),
     body("state").notEmpty().withMessage("state field is required"),
+    body("lga").notEmpty().withMessage("LGA field is required"),
     body("neighbourhood")
       .notEmpty()
       .withMessage("neighbourhood field is required"),
+    body("houseNoStreet")
+      .notEmpty()
+      .withMessage("house number and street field is required"),
     body("size").optional(),
-    body("lga").notEmpty().withMessage("LGA field is required"),
     body("propertyDetails")
       .notEmpty()
       .withMessage("propertyDetails field is required"),
@@ -186,7 +189,9 @@ router.post(
       .withMessage("NoOfParkingSpace field is required"),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
-    body("titleDocument").optional(),
+    body("cautionFee").optional(),
+    body("agencyFee").notEmpty().withMessage("please add agency fee"),
+    body("latePaymentFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
   ],
