@@ -51,7 +51,7 @@ const sendWelcomeEmail = async (email, name, role) => {
             <div style="text-align: center; margin-top: 30px;">
               <a href="${actionUrl}" 
                  style="background-color: #5a47fb; color: white; text-decoration: none; 
-                 padding: 12px 30px; border-radius: 5px; font-size: 16px; font-weight: bold;">
+                 padding: 12px 30px; border-radius: 20px; font-size: 16px; font-weight: bold;">
                  ${actionText}
               </a>
             </div>
