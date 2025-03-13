@@ -5,11 +5,12 @@ const {
   generateOTP,
   sendOTPEmail,
   generateReferralCode,
-  sendWhatsappOTP
+  sendWhatsappOTP,
 } = require("../utils/helpers");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
+const { sendWelcomeEmail } = require("../utils/emails/welcome");
 
 const secretKey = process.env.JWT_SECURITY_KEY;
 
@@ -19,7 +20,6 @@ const createToken = (id) => {
     expiresIn: maxAge,
   });
 };
-
 
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
@@ -147,7 +147,7 @@ const sendWPOTP = async (req, res) => {
       });
     }
     const otp = generateOTP();
-    const updateData = { phoneOTP:otp };
+    const updateData = { phoneOTP: otp };
     const updatedUser = await User.findOneAndUpdate(
       { phone: phoneNo },
       updateData,
@@ -162,7 +162,7 @@ const sendWPOTP = async (req, res) => {
         responseMessage: "OTP Sent Successfully",
         data: updatedUser,
       });
-    }else{
+    } else {
       return res.status(401).json({
         responseMessage: "An error occurred sending OTP",
         responseCode: 401,
@@ -208,7 +208,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
-      referralCode: userdb.referralCode
+      referralCode: userdb.referralCode,
     });
     //   res.sendStatus(200);
   } else {
@@ -260,6 +260,10 @@ const confirmOTP = async (req, res) => {
         responseMessage: "An error occurred confirming OTP",
       });
     }
+
+    //send welcome email
+    await sendWelcomeEmail(email, updatedUser.name);
+
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "OTP Confirmed Successfully",
@@ -279,5 +283,5 @@ module.exports = {
   logoutUser,
   confirmOTP,
   resendOTP,
-  sendWPOTP
+  sendWPOTP,
 };
