@@ -15,13 +15,13 @@ router.post(
     body("amount").notEmpty().withMessage("Amount is required"),
     body("customerName").notEmpty().withMessage("Customer Name is required"),
     body("customerEmail").isEmail().withMessage("Valid Email is required"),
+    body("paymentReference")
+      .notEmpty()
+      .withMessage("Payment Reference is required"),
     body("paymentDescription")
       .optional()
       .isString()
       .withMessage("Invalid Payment Description"),
-    body("paymentReference")
-      .notEmpty()
-      .withMessage("Payment Reference is required"),
   ],
   initiatePayment
 );

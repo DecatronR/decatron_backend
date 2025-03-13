@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Transaction = require("../models/Transaction"); // Import the Transaction model
+const Transaction = require("../models/transactions");
 const { getAuthToken, MONNIFY_BASE_URL } = require("../config/monnifyConfig");
 
 const CONTRACT_CODE = process.env.MONNIFY_CONTRACT_CODE;
