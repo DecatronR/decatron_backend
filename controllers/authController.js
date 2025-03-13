@@ -270,7 +270,7 @@ const confirmOTP = async (req, res) => {
   await sendWelcomeEmail(email, updatedUser.name);
 
   // Generate JWT Token
-  const token = createToken(updatedUser._id);
+  const token = createToken(updatedUser._id, updatedUser.role);
 
   // Set auth cookie for automatic login
   res.cookie("auth_jwt", token, {
