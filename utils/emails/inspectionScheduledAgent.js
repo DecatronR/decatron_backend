@@ -98,7 +98,7 @@ const inspectionScheduledAgent = async (
             <div style="text-align: center; margin-top: 30px;">
               <a href="${frontendUrl}/inspection/tracking/${bookingId}" 
                  style="background-color: #5a47fb; color: white; text-decoration: none; 
-                 padding: 12px 30px; border-radius: 5px; font-size: 16px; font-weight: bold;">
+                 padding: 12px 30px; border-radius: 20px; font-size: 16px; font-weight: bold;">
                  Start Tracking
               </a>
             </div>
@@ -109,8 +109,8 @@ const inspectionScheduledAgent = async (
           </div>
   
         <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
-  © ${new Date().getFullYear()} Decatron. All Rights Reserved.
-</div>
+          © ${new Date().getFullYear()} Decatron. All Rights Reserved.
+        </div>
 
         </div>
       `,

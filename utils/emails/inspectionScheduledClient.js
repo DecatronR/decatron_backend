@@ -98,7 +98,7 @@ const inspectionScheduledClient = async (
             <div style="text-align: center; margin-top: 30px;">
               <a href="${frontendUrl}/inspection/tracking/${bookingId}" 
                  style="background-color: #5a47fb; color: white; text-decoration: none; 
-                 padding: 12px 30px; border-radius: 5px; font-size: 16px; font-weight: bold;">
+                 padding: 12px 30px; border-radius: 20px; font-size: 16px; font-weight: bold;">
                  Start Tracking
               </a>
             </div>
