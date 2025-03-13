@@ -108,9 +108,9 @@ const inspectionScheduledClient = async (
             </p>
           </div>
   
-          <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
-            © 2024 Decatron. All Rights Reserved.
-          </div>
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #888;">
+          © ${new Date().getFullYear()} Decatron. All Rights Reserved.
+        </div>
         </div>
       `,
     attachments: [
