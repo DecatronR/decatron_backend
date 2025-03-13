@@ -34,13 +34,8 @@ const TransactionSchema = new mongoose.Schema(
       enum: ["PENDING", "PAID", "FAILED"],
       default: "PENDING",
     },
-    createdAt: {
-      type: Date,
-      required: true,
-      default: new Date(),
-    },
   },
-  { timestamps: true }
+  { timestamps: true } // Automatically adds createdAt and updatedAt
 );
 
 module.exports = mongoose.model("Transaction", TransactionSchema);
