@@ -22,6 +22,7 @@ const myScheduleRouter = require("./routes/mySchedule");
 const reviewRouter = require("./routes/review");
 const bookingRouter = require("./routes/booking");
 const agencyRequestRouter = require("./routes/agencyRequest");
+const paymentRouter = require("./routes/payment");
 
 const app = express();
 
@@ -77,6 +78,7 @@ app.use("/mySchedule", myScheduleRouter);
 app.use("/review", reviewRouter);
 app.use("/booking", bookingRouter);
 app.use("/agencyRequest", agencyRequestRouter);
+app.use("/payment", paymentRouter);
 
 // catch 404 and send response directly (Option 1)
 
