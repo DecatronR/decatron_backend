@@ -13,22 +13,19 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 exports.initiatePayment = async (req, res) => {
   try {
     const {
+      userId,
       amount,
       customerName,
       customerEmail,
       paymentReference,
       paymentDescription,
-      metadata = {},
     } = req.body;
-
-    const { name, userId } = metadata;
 
     const token = await getAuthToken();
 
-    // Save transaction to the database before calling Monnify
+    // Save transaction in the database before calling Monnify
     const transaction = await Transaction.create({
       userId,
-      name,
       paymentReference,
       amount,
       customerName,
@@ -46,18 +43,9 @@ exports.initiatePayment = async (req, res) => {
       contractCode: CONTRACT_CODE,
       paymentDescription: transaction.paymentDescription,
       currencyCode: "NGN",
-      redirectUrl: `${FRONTEND_URL}/payment-successful}`,
-      metadata: {
-        name,
-        userId,
-      },
+      redirectUrl: `${FRONTEND_URL}/payment-successful`,
+      paymentMethods: ["CARD", "ACCOUNT_TRANSFER"],
     };
-
-    console.log("Monify base url: ", MONNIFY_BASE_URL);
-    console.log(
-      "Payload sent to Monnify:",
-      JSON.stringify(paymentData, null, 2)
-    );
 
     // Send request to Monnify API
     const response = await axios.post(
@@ -72,12 +60,12 @@ exports.initiatePayment = async (req, res) => {
     res.status(500).json({ error: "Payment initiation failed" });
   }
 };
-
 /**
  * @desc    Handle Payment Webhook
  * @route   POST /api/payments/webhook
  * @access  Public (Monnify Calls This)
  */
+
 exports.webhookHandler = async (req, res) => {
   try {
     const { paymentReference, paymentStatus } = req.body;
@@ -101,7 +89,7 @@ exports.webhookHandler = async (req, res) => {
     }
 
     console.log(`Payment ${paymentStatus}: ${paymentReference}`);
-    res.sendStatus(200); // Respond to Monnify
+    res.sendStatus(200);
   } catch (error) {
     console.error("Webhook error:", error);
     res.status(500).json({ error: "Webhook processing failed" });
