@@ -3,7 +3,7 @@ const Transaction = require("../models/transactions");
 const { getAuthToken, MONNIFY_BASE_URL } = require("../config/monnifyConfig");
 
 const CONTRACT_CODE = process.env.MONNIFY_CONTRACT_CODE;
-const CALLBACK_URL = process.env.CALLBACK_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 /**
  * @desc    Initialize a Payment Transaction
@@ -40,7 +40,7 @@ exports.initiatePayment = async (req, res) => {
       contractCode: CONTRACT_CODE,
       paymentDescription: transaction.paymentDescription,
       currencyCode: "NGN",
-      redirectUrl: CALLBACK_URL,
+      redirectUrl: $`{FRONTEND_URL}/payment-successful}`,
     };
 
     // Send request to Monnify API
