@@ -13,6 +13,10 @@ async function getAuthToken() {
       {},
       { auth: { username: CLIENT_ID, password: CLIENT_SECRET } }
     );
+    console.log(
+      "Monnify access token: ",
+      response.data.responseBody.accessToken
+    );
     return response.data.responseBody.accessToken;
   } catch (error) {
     console.error(
