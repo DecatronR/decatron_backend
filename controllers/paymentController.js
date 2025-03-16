@@ -18,11 +18,17 @@ exports.initiatePayment = async (req, res) => {
       customerEmail,
       paymentReference,
       paymentDescription,
+      metadata = {},
     } = req.body;
+
+    const { name, userId } = metadata;
+
     const token = await getAuthToken();
 
     // Save transaction to the database before calling Monnify
     const transaction = await Transaction.create({
+      userId,
+      name,
       paymentReference,
       amount,
       customerName,
@@ -40,12 +46,22 @@ exports.initiatePayment = async (req, res) => {
       contractCode: CONTRACT_CODE,
       paymentDescription: transaction.paymentDescription,
       currencyCode: "NGN",
-      redirectUrl: $`{FRONTEND_URL}/payment-successful}`,
+      redirectUrl: `${FRONTEND_URL}/payment-successful}`,
+      metadata: {
+        name,
+        userId,
+      },
     };
+
+    console.log("Monify base url: ", MONNIFY_BASE_URL);
+    console.log(
+      "Payload sent to Monnify:",
+      JSON.stringify(paymentData, null, 2)
+    );
 
     // Send request to Monnify API
     const response = await axios.post(
-      `${MONNIFY_BASE_URL}/api/v1/merchant/transactions/initiate`,
+      `${MONNIFY_BASE_URL}/api/v1/merchant/transactions/init-transaction`,
       paymentData,
       { headers: { Authorization: `Bearer ${token}` } }
     );
