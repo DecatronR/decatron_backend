@@ -13,16 +13,19 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 exports.initiatePayment = async (req, res) => {
   try {
     const {
+      userId,
       amount,
       customerName,
       customerEmail,
       paymentReference,
       paymentDescription,
     } = req.body;
+
     const token = await getAuthToken();
 
-    // Save transaction to the database before calling Monnify
+    // Save transaction in the database before calling Monnify
     const transaction = await Transaction.create({
+      userId,
       paymentReference,
       amount,
       customerName,
@@ -40,12 +43,13 @@ exports.initiatePayment = async (req, res) => {
       contractCode: CONTRACT_CODE,
       paymentDescription: transaction.paymentDescription,
       currencyCode: "NGN",
-      redirectUrl: $`{FRONTEND_URL}/payment-successful}`,
+      redirectUrl: `${FRONTEND_URL}/payment-successful`,
+      paymentMethods: ["CARD", "ACCOUNT_TRANSFER"],
     };
 
     // Send request to Monnify API
     const response = await axios.post(
-      `${MONNIFY_BASE_URL}/api/v1/merchant/transactions/initiate`,
+      `${MONNIFY_BASE_URL}/api/v1/merchant/transactions/init-transaction`,
       paymentData,
       { headers: { Authorization: `Bearer ${token}` } }
     );
@@ -56,12 +60,12 @@ exports.initiatePayment = async (req, res) => {
     res.status(500).json({ error: "Payment initiation failed" });
   }
 };
-
 /**
  * @desc    Handle Payment Webhook
  * @route   POST /api/payments/webhook
  * @access  Public (Monnify Calls This)
  */
+
 exports.webhookHandler = async (req, res) => {
   try {
     const { paymentReference, paymentStatus } = req.body;
@@ -85,7 +89,7 @@ exports.webhookHandler = async (req, res) => {
     }
 
     console.log(`Payment ${paymentStatus}: ${paymentReference}`);
-    res.sendStatus(200); // Respond to Monnify
+    res.sendStatus(200);
   } catch (error) {
     console.error("Webhook error:", error);
     res.status(500).json({ error: "Webhook processing failed" });
