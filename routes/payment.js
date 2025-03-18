@@ -12,6 +12,7 @@ router.post(
   "/initiate-payment",
   requireAuth,
   [
+    body("userId").notEmpty().withMessage("User ID is required"),
     body("amount").notEmpty().withMessage("Amount is required"),
     body("customerName").notEmpty().withMessage("Customer Name is required"),
     body("customerEmail").isEmail().withMessage("Valid Email is required"),
