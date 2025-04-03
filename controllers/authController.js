@@ -193,9 +193,9 @@ const loginUser = async (req, res) => {
       responseCode: 401,
     });
   if (userdb.otp !== null) {
-    return res.status(401).send({
+    return res.status(410).send({
       responseMessage: "Kindly confirm your account to proceed",
-      responseCode: 401,
+      responseCode: 410,
     });
   }
   const token = createToken(userdb._id);
