@@ -20,7 +20,54 @@ const createToken = (id) => {
   });
 };
 
-
+const changePassword = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+  const { password, confirmPassword, email } = req.body;
+ 
+  try{
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Password and Confirm Password do not match",
+      });
+    }
+    const hashedPassword = hashPassword(password);
+    const email_verified_at = new Date();
+    const otp = null;
+    const updateData = { password: hashedPassword, email_verified_at, otp };
+    
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      updateData,
+      {
+        new: true,
+      }
+    ).select("-password");
+    if (updatedUser) {
+      return res.status(200).json({
+        responseCode: 200,
+        responseMessage: "Password Changed Successfully",
+        data: updatedUser,
+      });
+    }else{
+      return res.status(401).json({
+        responseMessage: "An error occurred changing password",
+        responseCode: 401,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      responseMessage: "oops an error occurred",
+      responseCode: 500,
+    });
+  }
+};
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -279,5 +326,6 @@ module.exports = {
   logoutUser,
   confirmOTP,
   resendOTP,
-  sendWPOTP
+  sendWPOTP,
+  changePassword
 };
