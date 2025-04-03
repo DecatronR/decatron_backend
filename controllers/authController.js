@@ -5,11 +5,12 @@ const {
   generateOTP,
   sendOTPEmail,
   generateReferralCode,
-  sendWhatsappOTP
+  sendWhatsappOTP,
 } = require("../utils/helpers");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
+const { sendWelcomeEmail } = require("../utils/emails/welcome");
 
 const secretKey = process.env.JWT_SECURITY_KEY;
 
@@ -19,7 +20,6 @@ const createToken = (id) => {
     expiresIn: maxAge,
   });
 };
-
 const changePassword = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -194,7 +194,7 @@ const sendWPOTP = async (req, res) => {
       });
     }
     const otp = generateOTP();
-    const updateData = { phoneOTP:otp };
+    const updateData = { phoneOTP: otp };
     const updatedUser = await User.findOneAndUpdate(
       { phone: phoneNo },
       updateData,
@@ -209,7 +209,7 @@ const sendWPOTP = async (req, res) => {
         responseMessage: "OTP Sent Successfully",
         data: updatedUser,
       });
-    }else{
+    } else {
       return res.status(401).json({
         responseMessage: "An error occurred sending OTP",
         responseCode: 401,
@@ -255,7 +255,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
-      referralCode: userdb.referralCode
+      referralCode: userdb.referralCode,
     });
     //   res.sendStatus(200);
   } else {
@@ -289,35 +289,50 @@ const confirmOTP = async (req, res) => {
       responseCode: 404,
     });
   }
-  const otpExisting = await User.findOne({ otp });
-  if (otpExisting) {
-    const newotp = null;
-    const email_verified_at = new Date();
-    const updateData = { otp: newotp, email_verified_at };
-    const updatedUser = await User.findOneAndUpdate(
-      { email: email },
-      updateData,
-      {
-        new: true,
-      }
-    ).select("-password");
-    if (!updatedUser) {
-      return res.status(401).json({
-        responseCode: 401,
-        responseMessage: "An error occurred confirming OTP",
-      });
-    }
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "OTP Confirmed Successfully",
-      data: updatedUser,
-    });
-  } else {
+
+  // Check if OTP matches for this specific user
+  if (existing.otp !== otp) {
     return res.status(401).json({
-      responseMessage: "invalid OTP Passed",
+      responseMessage: "Invalid OTP provided",
       responseCode: 401,
     });
   }
+
+  // OTP is correct, proceed with verification
+  const email_verified_at = new Date();
+  const updatedUser = await User.findOneAndUpdate(
+    { email: email },
+    { otp: null, email_verified_at },
+    { new: true }
+  ).select("-password");
+
+  if (!updatedUser) {
+    return res.status(401).json({
+      responseCode: 401,
+      responseMessage: "An error occurred confirming OTP",
+    });
+  }
+
+  // Send welcome email
+  await sendWelcomeEmail(email, updatedUser.name);
+
+  // Generate JWT Token
+  const token = createToken(updatedUser._id, updatedUser.role);
+
+  // Set auth cookie for automatic login
+  res.cookie("auth_jwt", token, {
+    maxAge: maxAge * 1000,
+    httpOnly: true,
+    sameSite: "Lax",
+    secure: true,
+  });
+
+  return res.status(200).json({
+    responseCode: 200,
+    responseMessage: "OTP Confirmed Successfully. You are now logged in.",
+    token, // Send token in response if frontend needs it
+    user: updatedUser._id,
+  });
 };
 
 module.exports = {
@@ -326,6 +341,5 @@ module.exports = {
   logoutUser,
   confirmOTP,
   resendOTP,
-  sendWPOTP,
-  changePassword
+  sendWPOTP
 };
