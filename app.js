@@ -81,7 +81,6 @@ app.use("/booking", bookingRouter);
 app.use("/agencyRequest", agencyRequestRouter);
 app.use("/payment", paymentRouter);
 app.use("/track", trackRoutes);
-
 // catch 404 and send response directly (Option 1)
 
 app.use((req, res, next) => {
