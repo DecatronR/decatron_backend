@@ -1,14 +1,19 @@
-// Optional: Import model if you're saving to a DB
-// const Visitor = require('../models/Visitor');
+const Visitor = require("../models/Visitor.js");
 
 exports.trackVisitor = async (req, res) => {
   try {
     const { ip, userAgent } = req.body;
 
-    console.log(`Visitor Info: IP - ${ip}, User Agent - ${userAgent}`);
+    const parser = new UAParser(userAgent);
+    const browser = parser.getBrowser().name || "Unknown";
+    const os = parser.getOS().name || "Unknown";
+    const device = parser.getDevice().type || "Desktop";
 
-    // Example: Save to DB if using a model
-    // await Visitor.create({ ip, userAgent });
+    console.log(
+      `Visitor Info: IP - ${ip}, Browser - ${browser}, OS - ${os}, Device - ${device}`
+    );
+
+    await Visitor.create({ ip, browser, os, device });
 
     return res.status(200).json({ message: "Visitor tracked successfully" });
   } catch (error) {
