@@ -5,16 +5,12 @@ const { sendWhatsAppNotification } = require("../utils/helpers");
 
 exports.trackVisitor = async (req, res) => {
   // Function to get geolocation info from IP
-
-  console.log("IPINFO API KEY: ", process.env.IPINFO_API_KEY);
   const getGeolocationFromIp = async (ip) => {
     try {
       const response = await axios.get(
         `https://ipinfo.io/${ip}/json?token=${process.env.IPINFO_API_KEY}`
       );
-      console.log("IPInfo API Response:", response.data);
-      const { country, region } = response.data; // Extract country and region from the response
-      console.log("Country: ", country, "Region: ", region);
+      const { country, region } = response.data;
       return { country, region };
     } catch (error) {
       console.error("Error fetching geolocation:", error);
