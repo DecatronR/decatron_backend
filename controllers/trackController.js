@@ -1,29 +1,67 @@
-const Visitor = require("../models/visitorModel");
+const axios = require("axios");
+const Visitor = require("../models/Visitor");
 const UAParser = require("ua-parser-js");
+const { sendWhatsAppNotification } = require("../utils/helpers");
 
 exports.trackVisitor = async (req, res) => {
+  // Function to get geolocation info from IP
+
+  console.log("IPINFO API KEY: ", process.env.IPINFO_API_KEY);
+  const getGeolocationFromIp = async (ip) => {
+    try {
+      const response = await axios.get(
+        `https://ipinfo.io/${ip}/json?token=${process.env.IPINFO_API_KEY}`
+      );
+      console.log("IPInfo API Response:", response.data);
+      const { country, region } = response.data; // Extract country and region from the response
+      console.log("Country: ", country, "Region: ", region);
+      return { country, region };
+    } catch (error) {
+      console.error("Error fetching geolocation:", error);
+      return { country: "Unknown", region: "Unknown" }; // Default to unknown if there's an error
+    }
+  };
+
   try {
-    const { ip, userAgent } = req.body;
+    const { ip, visitorId, notify, userAgent } = req.body;
+
     const parser = new UAParser(userAgent);
     const browser = parser.getBrowser().name || "Unknown";
     const os = parser.getOS().name || "Unknown";
     const device = parser.getDevice().type || "Desktop";
-
-    // Check if visitor already exists based on IP & browser
-    let visitor = await Visitor.findOne({ ip, browser, os, device });
+    console.log("IP address: ", ip);
+    const { country, region } = await getGeolocationFromIp(ip);
+    let visitor = await Visitor.findOne({ visitorId });
 
     if (visitor) {
-      // Add new visit timestamp
-      visitor.visits.push({ timestamp: new Date() });
+      visitor.visits.push({ timestamp: new Date(), country, region });
       await visitor.save();
     } else {
-      // Create new visitor entry
       visitor = await Visitor.create({
-        ip,
+        visitorId,
         browser,
         os,
         device,
-        visits: [{ timestamp: new Date() }],
+        visits: [
+          {
+            timestamp: new Date(),
+            country,
+            region,
+          },
+        ],
+      });
+    }
+
+    // Notify only if frontend says "yes"
+    if (notify) {
+      await sendWhatsAppNotification({
+        visitorId,
+        browser,
+        os,
+        device,
+        timestamp: new Date(),
+        country,
+        region,
       });
     }
 
