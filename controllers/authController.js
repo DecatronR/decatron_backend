@@ -28,8 +28,8 @@ const changePassword = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
   const { password, confirmPassword, email } = req.body;
- 
-  try{
+
+  try {
     if (password !== confirmPassword) {
       return res.status(400).json({
         responseCode: 400,
@@ -40,7 +40,7 @@ const changePassword = async (req, res) => {
     const email_verified_at = new Date();
     const otp = null;
     const updateData = { password: hashedPassword, email_verified_at, otp };
-    
+
     const updatedUser = await User.findOneAndUpdate(
       { email: email },
       updateData,
@@ -54,7 +54,7 @@ const changePassword = async (req, res) => {
         responseMessage: "Password Changed Successfully",
         data: updatedUser,
       });
-    }else{
+    } else {
       return res.status(401).json({
         responseMessage: "An error occurred changing password",
         responseCode: 401,
@@ -341,5 +341,6 @@ module.exports = {
   logoutUser,
   confirmOTP,
   resendOTP,
-  sendWPOTP
+  sendWPOTP,
+  changePassword,
 };

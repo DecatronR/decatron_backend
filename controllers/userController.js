@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
-const AgencyRequest = require("../models/agencyRequest");
+const AgencyRequest = require("../models/AgencyRequest");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 const cloudinary = require("cloudinary").v2;
@@ -266,98 +266,98 @@ const userTree = async (req, res) => {
     const objectId = new ObjectId(id);
 
     // Get the main user
-const request = await User.findOne({ _id: objectId });
-if (!request) {
-  return res.status(404).json({
-    responseMessage: "User not found",
-    responseCode: 404,
-  });
-}
-
-// Get user details and calculate ratings
-const getUser = await User.findOne({ _id: request._id });
-const ratings = getUser.ratings || [];
-const totalRatings = ratings.length;
-const sumOfRatings = ratings.reduce(
-  (acc, curr) => acc + (curr.rating || 0),
-  0
-);
-const averageRating =
-  totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
-
-// Get role-specific data
-let roleSpecificData = 0;
-if (getUser.role === "propertyManager") {
-  roleSpecificData = await PropertyListing.countDocuments({
-    managerId: getUser._id,
-  });
-} else if (getUser.role === "agent") {
-  roleSpecificData = await AgencyRequest.countDocuments({
-    agentId: getUser._id,
-  });
-} else if (getUser.role === "client") {
-  roleSpecificData = await SomeClientCollection.countDocuments({
-    clientId: getUser._id,
-  });
-}
-
-// Fetch children
-const children = await Promise.all(
-  (
-    await AgencyRequest.find({ ownerId: request._id })
-  ).map(async (req) => {
-    const getChild = await User.findOne({ _id: req.agentId });
-
-    if (!getChild) return null;
-
-    const ratings_ = getChild.ratings || [];
-    const totalRatings_ = ratings_.length;
-    const sumOfRatings_ = ratings_.reduce(
-      (acc, curr) => acc + (curr.rating || 0),
-      0
-    );
-    const averageRating_ =
-      totalRatings_ > 0 ? (sumOfRatings_ / totalRatings_).toFixed(1) : 0;
-
-    // Get role-specific data for children
-    let childRoleSpecificData = 0;
-    if (getChild.role === "agent") {
-      childRoleSpecificData = await AgencyRequest.countDocuments({
-        agentId: getChild._id,
-      });
-    } else if (getChild.role === "client") {
-      childRoleSpecificData = await SomeClientCollection.countDocuments({
-        clientId: getChild._id,
+    const request = await User.findOne({ _id: objectId });
+    if (!request) {
+      return res.status(404).json({
+        responseMessage: "User not found",
+        responseCode: 404,
       });
     }
 
-    return {
-      name: getChild.name,
-      image: getChild.passport,
-      role: getChild.role,
-      rating: parseFloat(averageRating_),
-      verified: !!getChild.email_verified_at,
-      roleSpecificData: childRoleSpecificData,
-      children: [],
+    // Get user details and calculate ratings
+    const getUser = await User.findOne({ _id: request._id });
+    const ratings = getUser.ratings || [];
+    const totalRatings = ratings.length;
+    const sumOfRatings = ratings.reduce(
+      (acc, curr) => acc + (curr.rating || 0),
+      0
+    );
+    const averageRating =
+      totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+
+    // Get role-specific data
+    let roleSpecificData = 0;
+    if (getUser.role === "propertyManager") {
+      roleSpecificData = await PropertyListing.countDocuments({
+        managerId: getUser._id,
+      });
+    } else if (getUser.role === "agent") {
+      roleSpecificData = await AgencyRequest.countDocuments({
+        agentId: getUser._id,
+      });
+    } else if (getUser.role === "client") {
+      roleSpecificData = await SomeClientCollection.countDocuments({
+        clientId: getUser._id,
+      });
+    }
+
+    // Fetch children
+    const children = await Promise.all(
+      (
+        await AgencyRequest.find({ ownerId: request._id })
+      ).map(async (req) => {
+        const getChild = await User.findOne({ _id: req.agentId });
+
+        if (!getChild) return null;
+
+        const ratings_ = getChild.ratings || [];
+        const totalRatings_ = ratings_.length;
+        const sumOfRatings_ = ratings_.reduce(
+          (acc, curr) => acc + (curr.rating || 0),
+          0
+        );
+        const averageRating_ =
+          totalRatings_ > 0 ? (sumOfRatings_ / totalRatings_).toFixed(1) : 0;
+
+        // Get role-specific data for children
+        let childRoleSpecificData = 0;
+        if (getChild.role === "agent") {
+          childRoleSpecificData = await AgencyRequest.countDocuments({
+            agentId: getChild._id,
+          });
+        } else if (getChild.role === "client") {
+          childRoleSpecificData = await SomeClientCollection.countDocuments({
+            clientId: getChild._id,
+          });
+        }
+
+        return {
+          name: getChild.name,
+          image: getChild.passport,
+          role: getChild.role,
+          rating: parseFloat(averageRating_),
+          verified: !!getChild.email_verified_at,
+          roleSpecificData: childRoleSpecificData,
+          children: [],
+        };
+      })
+    );
+
+    const result = {
+      name: request.name,
+      image: request.passport,
+      role: request.role,
+      rating: parseFloat(averageRating),
+      verified: !!request.email_verified_at,
+      roleSpecificData: roleSpecificData,
+      children: children.filter((child) => child !== null),
     };
-  })
-);
 
-const result = {
-  name: request.name,
-  image: request.passport,
-  role: request.role,
-  rating: parseFloat(averageRating),
-  verified: !!request.email_verified_at,
-  roleSpecificData: roleSpecificData,
-  children: children.filter((child) => child !== null),
-};
-
-return res.status(200).json({
-  responseMessage: "Record Found",
-  responseCode: 200,
-  data: result, // Now returning a single object instead of an array
-});
+    return res.status(200).json({
+      responseMessage: "Record Found",
+      responseCode: 200,
+      data: result, // Now returning a single object instead of an array
+    });
 
     // return res.status(200).json({
     //   responseMessage: "Record Found",
