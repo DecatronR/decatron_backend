@@ -4,7 +4,7 @@ const fs = require("fs");
 const { body } = require("express-validator");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-
+const { updateFcmToken } = require("../controllers/userController");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -33,7 +33,7 @@ const {
   deleteUser,
   rateUser,
   fetchUserRating,
-  userTree
+  userTree,
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -132,5 +132,7 @@ router.post(
   ],
   rateUser
 );
+
+router.post("/update-fcm-token", requireAuth, updateFcmToken);
 
 module.exports = router;

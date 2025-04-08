@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const RatingSchema = new mongoose.Schema({
   rating: { type: Number, required: true },
   reviewerID: { type: String, required: true }, // ID of the user who gave the rating
-  comment: { type: String, required: false },  // Optional comment for the rating
-  createdAt: { type: Date, default: new Date() }
+  comment: { type: String, required: false }, // Optional comment for the rating
+  createdAt: { type: Date, default: new Date() },
 });
 
 const UserSchema = new mongoose.Schema({
@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
   referrer: {
-    type: String
+    type: String,
   },
   role: {
     type: String,
@@ -69,6 +69,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  fcmToken: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     required: true,
@@ -79,6 +83,6 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     required: true,
     default: new Date(),
-  }
+  },
 });
 module.exports = mongoose.model("User", UserSchema);
