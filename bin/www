@@ -59,6 +59,45 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
+
+  // Chat Messaging
+  console.log("New client connected:", socket.id);
+
+  // 1️⃣ Register user with their userId
+  socket.on("register", (userId) => {
+    users[userId] = socket.id;
+    console.log(`User ${userId} registered with socket ${socket.id}`);
+  });
+
+  // 2️⃣ Handle private messaging
+  socket.on("sendPrivateMessage", ({ to, from, text }) => {
+    const toSocketId = users[to];
+    const message = {
+      from,
+      to,
+      text,
+      timestamp: Date.now(),
+    };
+
+    if (toSocketId) {
+      // Send to recipient
+      io.to(toSocketId).emit("receivePrivateMessage", message);
+    }
+
+    // Optionally also emit to sender (for confirmation)
+    socket.emit("receivePrivateMessage", message);
+  });
+
+  // 3️⃣ Clean up on disconnect
+  socket.on("disconnect", () => {
+    const disconnectedUser = Object.keys(users).find(
+      (key) => users[key] === socket.id
+    );
+    if (disconnectedUser) {
+      delete users[disconnectedUser];
+      console.log(`User ${disconnectedUser} disconnected.`);
+    }
+  });
 });
 
 /**
