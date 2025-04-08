@@ -1,6 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { registerUser, loginUser, logoutUser,confirmOTP, resendOTP, sendWPOTP, changePassword } = require("../controllers/authController");
+const { registerUser, loginUser, logoutUser,confirmOTP, resendOTP, sendWPOTP, changePassword, confirmPhoneNo } = require("../controllers/authController");
 const router = express.Router();
 
 /* GET home page. */
@@ -27,6 +27,15 @@ router.post(
   ],
   resendOTP
 );
+
+router.post(
+  "/confirmPhoneNo",
+  [
+    body("id").notEmpty().withMessage("ID field is required")
+  ],
+  confirmPhoneNo
+);
+
 router.post(
   "/sendWPOTP",
   [
@@ -34,6 +43,7 @@ router.post(
   ],
   sendWPOTP
 );
+
 router.post(
   "/changePassword",
   [
