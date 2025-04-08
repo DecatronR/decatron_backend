@@ -370,6 +370,34 @@ const userTree = async (req, res) => {
   }
 };
 
+const updateFcmToken = async (req, res) => {
+  const { userId, fcmToken } = req.body;
+
+  if (!userId || !fcmToken) {
+    return res
+      .status(400)
+      .json({ message: "User ID and FCM token are required" });
+  }
+
+  try {
+    // Find the user and update the FCM token
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { fcmToken },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "FCM token updated successfully", user });
+  } catch (error) {
+    console.error("Error updating FCM token:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 module.exports = {
   getUsers,
   editUsers,
@@ -378,4 +406,5 @@ module.exports = {
   rateUser,
   fetchUserRating,
   userTree,
+  updateFcmToken,
 };
