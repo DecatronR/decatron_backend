@@ -23,7 +23,8 @@ const reviewRouter = require("./routes/review");
 const bookingRouter = require("./routes/booking");
 const agencyRequestRouter = require("./routes/agencyRequest");
 const paymentRouter = require("./routes/payment");
-const trackRoutes = require("./routes/track");
+const trackRouter = require("./routes/track");
+const notificationRouter = require("./routes/notification");
 
 const app = express();
 
@@ -80,7 +81,8 @@ app.use("/review", reviewRouter);
 app.use("/booking", bookingRouter);
 app.use("/agencyRequest", agencyRequestRouter);
 app.use("/payment", paymentRouter);
-app.use("/track", trackRoutes);
+app.use("/track", trackRouter);
+app.use("notification", notificationRouter);
 // catch 404 and send response directly (Option 1)
 
 app.use((req, res, next) => {
