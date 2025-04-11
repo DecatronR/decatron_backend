@@ -6,6 +6,19 @@ const RatingSchema = new mongoose.Schema({
   comment: { type: String, required: false },  // Optional comment for the rating
   createdAt: { type: Date, default: new Date() }
 });
+const ninSchema = new mongoose.Schema({
+  nin: { type: String, required: true },
+  firstname: { type: String, required: true },
+  lastname: { type: String, required: true },
+  middlename: { type: String, required: true },
+  phone: { type: String, required: true },
+  gender: { type: String, required: true },
+  dob: { type: String, required: true },
+  address: { type: String, required: true },
+  lga: { type: String, required: true },
+  state: { type: String, required: true },
+  photo: { type: String, required: true }
+});
 
 const UserSchema = new mongoose.Schema({
   // userID: {
@@ -65,6 +78,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  nin_verified_at: {
+    type: String,
+    required: false,
+  },
   password: {
     type: String,
     required: true,
@@ -75,10 +92,12 @@ const UserSchema = new mongoose.Schema({
     default: new Date(),
   },
   ratings: [RatingSchema], // Array of individual ratings
+  nin:[ninSchema],
   createdAt: {
     type: Date,
     required: true,
     default: new Date(),
   }
 });
+
 module.exports = mongoose.model("User", UserSchema);
