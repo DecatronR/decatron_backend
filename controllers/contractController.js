@@ -34,8 +34,6 @@ const createContract = async (req, res) => {
       ownerName,
       propertyPrice,
       propertyLocation,
-      contractAmount,
-      terms,
     });
 
     return res.status(201).json({
