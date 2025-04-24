@@ -2,18 +2,18 @@ const express = require("express");
 const { body } = require("express-validator");
 const {
   createContract,
-  fetchContractsByClient,
-  fetchContractsByOwner,
+  fetchClientContracts,
+  fetchOwnerContracts,
   fetchContractById,
 } = require("../controllers/contractController");
-const authenticate = require("../middleware/authMiddleware");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Create contract
 router.post(
   "/create",
-  authenticate,
+  requireAuth,
   [
     body("propertyId").notEmpty().withMessage("Property ID is required"),
     body("propertyName").notEmpty().withMessage("Property Name is required"),
@@ -25,18 +25,19 @@ router.post(
     body("propertyLocation")
       .notEmpty()
       .withMessage("Property location is required"),
-    body("contractAmount")
-      .isNumeric()
-      .withMessage("Contract amount must be a number"),
-    body("terms").notEmpty().withMessage("Terms are required"),
   ],
   createContract
 );
 
-router.get("/my-contracts", authenticate, fetchContractsByClient);
+router.get("/my-contracts", requireAuth, fetchClientContracts);
 
-router.get("/owner-contracts", authenticate, fetchContractsByOwner);
+router.get("/owner-contracts", requireAuth, fetchOwnerContracts);
 
-router.get("/:id", authenticate, fetchContractById);
+router.post(
+  "/getContract",
+  requireAuth,
+  [body("contractId").notEmpty().withMessage("Contract ID field is required")],
+  fetchContractById
+);
 
 module.exports = router;
