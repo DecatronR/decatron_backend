@@ -20,15 +20,18 @@ const createContract = async (req, res) => {
       propertyLocation,
     } = req.body;
 
-    if (!req.user || !req.user._id || !req.user.name) {
+    if (!req.user || !req.user.details) {
       return res.status(400).json({
         responseCode: 400,
         responseMessage: "User is not authenticated properly",
       });
     }
 
-    const clientId = req.user._id;
-    const clientName = req.user.name;
+    const clientId = req.user.details._id;
+    const clientName = req.user.details.name;
+
+    console.log("client id: ", clientId);
+    console.log("client name: ", clientName);
 
     const newContract = await Contract.create({
       clientId,
