@@ -32,6 +32,7 @@ const io = new Server(server, {
 
 let agentLocation = null;
 let buyerLocation = null;
+const users = {};
 
 // Handle WebSocket connections
 io.on("connection", (socket) => {
