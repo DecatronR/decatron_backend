@@ -18,9 +18,14 @@ const createContract = async (req, res) => {
       ownerName,
       propertyPrice,
       propertyLocation,
-      contractAmount,
-      terms,
     } = req.body;
+
+    if (!req.user || !req.user._id || !req.user.name) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "User is not authenticated properly",
+      });
+    }
 
     const clientId = req.user._id;
     const clientName = req.user.name;
@@ -49,7 +54,7 @@ const createContract = async (req, res) => {
 };
 
 // Fetch contracts by client
-const fetchContractsByClient = async (req, res) => {
+const fetchClientContracts = async (req, res) => {
   try {
     const clientId = req.user._id;
     const contracts = await Contract.find({ clientId });
@@ -65,7 +70,7 @@ const fetchContractsByClient = async (req, res) => {
 };
 
 // Fetch contracts by owner
-const fetchContractsByOwner = async (req, res) => {
+const fetchOwnerContracts = async (req, res) => {
   try {
     const ownerId = req.user._id;
     const contracts = await Contract.find({ ownerId });
@@ -82,30 +87,42 @@ const fetchContractsByOwner = async (req, res) => {
 
 // Fetch single contract by contractId
 const fetchContractById = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: errors.array(),
+    });
+  }
+
   try {
-    const { id } = req.params;
-    const contract = await Contract.findById(id);
+    const { contractId } = req.body;
+
+    const contract = await Contract.findById(contractId);
 
     if (!contract) {
       return res.status(404).json({
         responseCode: 404,
-        responseMessage: "Contract not found",
+        responseMessage: "Contract not found.",
       });
     }
 
     return res.status(200).json({
       responseCode: 200,
-      responseMessage: "Contract fetched successfully",
+      responseMessage: "Contract fetched successfully.",
       data: contract,
     });
   } catch (error) {
-    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
   }
 };
 
 module.exports = {
   createContract,
-  fetchContractsByClient,
-  fetchContractsByOwner,
+  fetchClientContracts,
+  fetchOwnerContracts,
   fetchContractById,
 };
