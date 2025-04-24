@@ -46,7 +46,7 @@ router.get(
 );
 
 router.post(
-  "/getContract",
+  "/fetchContractById",
   requireAuth,
   [body("contractId").notEmpty().withMessage("Contract ID field is required")],
   fetchContractById
