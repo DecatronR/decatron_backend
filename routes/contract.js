@@ -31,9 +31,19 @@ router.post(
   createContract
 );
 
-router.get("/my-contracts", requireAuth, fetchClientContracts);
+router.get(
+  "/clientContracts",
+  requireAuth,
+  attachUserDetails,
+  fetchClientContracts
+);
 
-router.get("/owner-contracts", requireAuth, fetchOwnerContracts);
+router.get(
+  "/ownerContracts",
+  requireAuth,
+  attachUserDetails,
+  fetchOwnerContracts
+);
 
 router.post(
   "/getContract",

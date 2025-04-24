@@ -59,7 +59,7 @@ const createContract = async (req, res) => {
 // Fetch contracts by client
 const fetchClientContracts = async (req, res) => {
   try {
-    const clientId = req.user._id;
+    const clientId = req.user.details._id;
     const contracts = await Contract.find({ clientId });
 
     return res.status(200).json({
@@ -75,7 +75,7 @@ const fetchClientContracts = async (req, res) => {
 // Fetch contracts by owner
 const fetchOwnerContracts = async (req, res) => {
   try {
-    const ownerId = req.user._id;
+    const ownerId = req.user.details._id;
     const contracts = await Contract.find({ ownerId });
 
     return res.status(200).json({
