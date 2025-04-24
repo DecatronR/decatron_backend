@@ -7,6 +7,7 @@ const {
   fetchContractById,
 } = require("../controllers/contractController");
 const { requireAuth } = require("../middleware/authMiddleware");
+const { attachUserDetails } = require("../middleware/attachUserDetails");
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post(
   "/create",
   requireAuth,
+  attachUserDetails,
   [
     body("propertyId").notEmpty().withMessage("Property ID is required"),
     body("propertyName").notEmpty().withMessage("Property Name is required"),
