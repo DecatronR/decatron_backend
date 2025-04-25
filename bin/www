@@ -64,16 +64,19 @@ io.on("connection", (socket) => {
   // Chat Messaging
   console.log("New client connected:", socket.id);
 
-  // 1️⃣ Register user with their userId
+  // Register user with their userId
   socket.on("register", (userId) => {
     users[userId] = socket.id;
     console.log(`User ${userId} registered with socket ${socket.id}`);
   });
 
-  // 2️⃣ Handle private messaging
+  // Handle private messaging
   socket.on("sendPrivateMessage", ({ to, from, text }) => {
     const toSocketId = users[to];
+
+    // Construct the message object with messageId
     const message = {
+      messageId: `${from}-${Date.now()}`, // Generate unique messageId
       from,
       to,
       text,
@@ -81,15 +84,18 @@ io.on("connection", (socket) => {
     };
 
     if (toSocketId) {
-      // Send to recipient
+      // Send the message to the recipient
       io.to(toSocketId).emit("receivePrivateMessage", message);
     }
 
-    // Optionally also emit to sender (for confirmation)
-    socket.emit("receivePrivateMessage", message);
+    // Optionally acknowledge the sender with a response
+    socket.emit("receivePrivateMessage", {
+      ...message,
+      status: "delivered", // Acknowledge delivery to sender
+    });
   });
 
-  // 3️⃣ Clean up on disconnect
+  // Clean up on disconnect
   socket.on("disconnect", () => {
     const disconnectedUser = Object.keys(users).find(
       (key) => users[key] === socket.id
