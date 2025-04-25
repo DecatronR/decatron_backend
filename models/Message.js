@@ -25,6 +25,11 @@ const MessageSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ["owner", "client"],
+    required: true,
+  },
   timestamp: {
     type: Date,
     default: Date.now,
