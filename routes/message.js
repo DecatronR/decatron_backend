@@ -2,7 +2,7 @@ const express = require("express");
 const { body } = require("express-validator");
 const {
   fetchMessagesByContractId,
-} = require("../controllers/messagesController");
+} = require("../controllers/messageController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();

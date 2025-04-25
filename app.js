@@ -86,7 +86,7 @@ app.use("/payment", paymentRouter);
 app.use("/track", trackRouter);
 app.use("/notification", notificationRouter);
 app.use("/contract", contractRouter);
-app.use("message", messageRouter);
+app.use("/message", messageRouter);
 // catch 404 and send response directly (Option 1)
 
 app.use((req, res, next) => {
