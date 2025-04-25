@@ -7,11 +7,9 @@ const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Fetch messages by contractId
 router.post(
   "/fetchMessages",
   requireAuth,
-  attachUserDetails,
   [body("contractId").notEmpty().withMessage("Contract ID is required")],
   fetchMessagesByContractId
 );
