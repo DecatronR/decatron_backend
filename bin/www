@@ -7,6 +7,7 @@ var app = require("../app");
 var debug = require("debug")("my-express-app:server");
 var http = require("http");
 const { Server } = require("socket.io");
+const { Message } = require("../models/Message");
 
 /**
  * Get port from environment and store in Express.
@@ -71,29 +72,36 @@ io.on("connection", (socket) => {
   });
 
   // Handle private messaging
-  socket.on("sendPrivateMessage", ({ to, from, text }) => {
-    const toSocketId = users[to];
+  socket.on(
+    "sendPrivateMessage",
+    async ({ contractId, messageId, from, to, text, role }) => {
+      try {
+        const newMessage = new Message({
+          contractId,
+          messageId,
+          from,
+          to,
+          text,
+          role,
+          timestamp: Date.now(),
+        });
 
-    // Construct the message object with messageId
-    const message = {
-      messageId: `${from}-${Date.now()}`, // Generate unique messageId
-      from,
-      to,
-      text,
-      timestamp: Date.now(),
-    };
+        // Save the message to the database
+        await newMessage.save();
 
-    if (toSocketId) {
-      // Send the message to the recipient
-      io.to(toSocketId).emit("receivePrivateMessage", message);
+        // Emit the message to the recipient
+        const toSocketId = users[to];
+        if (toSocketId) {
+          io.to(toSocketId).emit("receivePrivateMessage", newMessage);
+        }
+
+        // Optionally send the message back to the sender (for confirmation)
+        socket.emit("receivePrivateMessage", newMessage);
+      } catch (error) {
+        console.error("Error saving message:", error);
+      }
     }
-
-    // Optionally acknowledge the sender with a response
-    socket.emit("receivePrivateMessage", {
-      ...message,
-      status: "delivered", // Acknowledge delivery to sender
-    });
-  });
+  );
 
   // Clean up on disconnect
   socket.on("disconnect", () => {
