@@ -4,7 +4,6 @@ const {
   fetchMessagesByContractId,
 } = require("../controllers/messagesController");
 const { requireAuth } = require("../middleware/authMiddleware");
-const { attachUserDetails } = require("../middleware/attachUserDetails");
 
 const router = express.Router();
 
