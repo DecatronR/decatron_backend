@@ -18,7 +18,6 @@ const createContract = async (req, res) => {
       ownerName,
       propertyPrice,
       propertyLocation,
-      agreement,
     } = req.body;
 
     if (!req.user || !req.user.details) {
@@ -27,6 +26,9 @@ const createContract = async (req, res) => {
         responseMessage: "User is not authenticated properly",
       });
     }
+
+    // The agreement is not included here for the client
+    const agreement = {};
 
     const clientId = req.user.details._id;
     const clientName = req.user.details.name;
@@ -142,6 +144,14 @@ const updateAgreement = async (req, res) => {
       return res.status(404).json({
         responseCode: 404,
         responseMessage: "Contract not found.",
+      });
+    }
+
+    //make sure only owner can make change to contract
+    if (contract.ownerId.toString() !== req.user.id.toString()) {
+      return res.status(403).json({
+        responseCode: 403,
+        responseMessage: "You are not authorized to update this agreement.",
       });
     }
 

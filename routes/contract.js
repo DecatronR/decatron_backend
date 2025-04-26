@@ -5,6 +5,7 @@ const {
   fetchClientContracts,
   fetchOwnerContracts,
   fetchContractById,
+  updateAgreement,
 } = require("../controllers/contractController");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -53,7 +54,7 @@ router.post(
 );
 
 router.post(
-  "/update-agreement",
+  "/updateAgreement",
   requireAuth,
   [
     body("contractId").notEmpty().withMessage("Contract ID field is required"),
