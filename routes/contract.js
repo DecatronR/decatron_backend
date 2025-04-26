@@ -52,4 +52,14 @@ router.post(
   fetchContractById
 );
 
+router.post(
+  "/update-agreement",
+  requireAuth,
+  [
+    body("contractId").notEmpty().withMessage("Contract ID field is required"),
+    body("agreement").notEmpty().withMessage("Agreement field is required"),
+  ],
+  updateAgreement
+);
+
 module.exports = router;

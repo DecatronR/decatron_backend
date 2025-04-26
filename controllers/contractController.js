@@ -18,6 +18,7 @@ const createContract = async (req, res) => {
       ownerName,
       propertyPrice,
       propertyLocation,
+      agreement,
     } = req.body;
 
     if (!req.user || !req.user.details) {
@@ -42,6 +43,7 @@ const createContract = async (req, res) => {
       ownerName,
       propertyPrice,
       propertyLocation,
+      agreement,
     });
 
     return res.status(201).json({
@@ -123,9 +125,52 @@ const fetchContractById = async (req, res) => {
   }
 };
 
+const updateAgreement = async (req, res) => {
+  try {
+    const { contractId, agreement } = req.body;
+
+    if (!contractId || !agreement) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Contract ID and agreement data are required.",
+      });
+    }
+
+    const contract = await Contract.findById(contractId);
+
+    if (!contract) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Contract not found.",
+      });
+    }
+
+    // update the agreement object
+    contract.agreement = {
+      rentAndDuration: agreement.rentAndDuration || [],
+      tenantObligations: agreement.tenantObligations || [],
+      landlordObligations: agreement.landlordObligations || [],
+    };
+
+    await contract.save();
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Agreement updated successfully.",
+      data: contract,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createContract,
   fetchClientContracts,
   fetchOwnerContracts,
   fetchContractById,
+  updateAgreement,
 };
