@@ -41,6 +41,21 @@ const ContractSchema = new mongoose.Schema({
     enum: ["pending", "active", "completed", "cancelled"],
     default: "pending",
   },
+  //agreement
+  agreement: {
+    rentAndDuration: {
+      type: [String],
+      default: [],
+    },
+    tenantObligations: {
+      type: [String],
+      default: [],
+    },
+    landlordObligations: {
+      type: [String],
+      default: [],
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
