@@ -5,8 +5,8 @@ const secretKey = process.env.JWT_SECURITY_KEY;
 
 const requireAuth = (req, res, next) => {
   // const token = req.cookies.auth_jwt;
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
   console.log(token);
   if (token) {
     jwt.verify(token, secretKey, (err, decodedToken) => {
@@ -19,6 +19,8 @@ const requireAuth = (req, res, next) => {
         });
       } else {
         console.log(decodedToken);
+        req.user = decodedToken;
+        console.log("User: ", req.user);
         next(); // Proceed to the next middleware or route handler
       }
     });
@@ -52,7 +54,7 @@ const checkUser = (req, res, next) => {
 };
 
 function generateReferralCode(userId) {
-  return Buffer.from(userId.toString()).toString('hex').toUpperCase();
+  return Buffer.from(userId.toString()).toString("hex").toUpperCase();
 }
 
 module.exports = { requireAuth, checkUser };

@@ -7,6 +7,7 @@ var app = require("../app");
 var debug = require("debug")("my-express-app:server");
 var http = require("http");
 const { Server } = require("socket.io");
+const Message = require("../models/Message");
 
 /**
  * Get port from environment and store in Express.
@@ -32,6 +33,7 @@ const io = new Server(server, {
 
 let agentLocation = null;
 let buyerLocation = null;
+const users = {};
 
 // Handle WebSocket connections
 io.on("connection", (socket) => {
@@ -58,6 +60,58 @@ io.on("connection", (socket) => {
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+  });
+
+  // Chat Messaging
+  console.log("New client connected:", socket.id);
+
+  // Register user with their userId
+  socket.on("register", (userId) => {
+    users[userId] = socket.id;
+    console.log(`User ${userId} registered with socket ${socket.id}`);
+  });
+
+  // Handle private messaging
+  socket.on(
+    "sendPrivateMessage",
+    async ({ contractId, messageId, from, to, text, role }) => {
+      try {
+        const newMessage = new Message({
+          contractId,
+          messageId,
+          from,
+          to,
+          text,
+          role,
+          timestamp: Date.now(),
+        });
+
+        // Save the message to the database
+        await newMessage.save();
+
+        // Emit the message to the recipient
+        const toSocketId = users[to];
+        if (toSocketId) {
+          io.to(toSocketId).emit("receivePrivateMessage", newMessage);
+        }
+
+        // Optionally send the message back to the sender (for confirmation)
+        socket.emit("receivePrivateMessage", newMessage);
+      } catch (error) {
+        console.error("Error saving message:", error);
+      }
+    }
+  );
+
+  // Clean up on disconnect
+  socket.on("disconnect", () => {
+    const disconnectedUser = Object.keys(users).find(
+      (key) => users[key] === socket.id
+    );
+    if (disconnectedUser) {
+      delete users[disconnectedUser];
+      console.log(`User ${disconnectedUser} disconnected.`);
+    }
   });
 });
 
