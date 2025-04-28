@@ -84,6 +84,11 @@ app.use("/review", reviewRouter);
 app.use("/booking", bookingRouter);
 app.use("/agencyRequest", agencyRequestRouter);
 app.use("/payment", paymentRouter);
+app.use("track", trackRouter);
+app.use("notification", notificationRouter);
+app.use("contract", contractRouter);
+app.use("messageRouter", messageRouter);
+app.use("apiRouter", apiRouter);
 
 // catch 404 and send response directly (Option 1)
 
