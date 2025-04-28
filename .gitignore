@@ -33,4 +33,6 @@ Thumbs.db
 .qodo
 
 /firebase-config.json/
-config/firebase-config.json
+/config/firebase-config.json
+/config/serviceAccountKey.json
+
