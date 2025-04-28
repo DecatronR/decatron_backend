@@ -8,6 +8,7 @@ const {
   resendOTP,
   sendWPOTP,
   changePassword,
+  confirmPhoneNo,
 } = require("../controllers/authController");
 const router = express.Router();
 
@@ -35,11 +36,19 @@ router.post(
   [body("email").isEmail().withMessage("Invalid email address")],
   resendOTP
 );
+
+router.post(
+  "/confirmPhoneNo",
+  [body("id").notEmpty().withMessage("ID field is required")],
+  confirmPhoneNo
+);
+
 router.post(
   "/sendWPOTP",
   [body("phoneNo").notEmpty().withMessage("Phone Number Fields is required")],
   sendWPOTP
 );
+
 router.post(
   "/changePassword",
   [

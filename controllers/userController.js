@@ -140,8 +140,6 @@ const updateUsers = async (req, res) => {
   }
 };
 
-module.exports = { updateUsers };
-
 const deleteUser = async (req, res) => {
   try {
     const errors = validationResult(req);
