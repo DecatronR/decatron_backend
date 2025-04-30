@@ -5,6 +5,7 @@ const {
   fetchSignatureByContract,
 } = require("../controllers/signatureEventController");
 const { requireAuth } = require("../middleware/authMiddleware");
+const { attachUserDetails } = require("../middleware/attachUserDetails");
 
 const router = express.Router();
 
@@ -12,14 +13,13 @@ const router = express.Router();
 router.post(
   "/create",
   requireAuth,
+  attachUserDetails, // <-- here
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),
     body("event")
       .isIn(["signed", "viewed", "declined"])
       .withMessage("Invalid event type"),
     body("timestamp").notEmpty().withMessage("Timestamp is required"),
-    body("user.id").notEmpty().withMessage("User ID is required"),
-    body("user.email").isEmail().withMessage("Valid user email is required"),
     body("device").notEmpty().withMessage("Device is required"),
     body("signature")
       .notEmpty()
@@ -27,7 +27,6 @@ router.post(
   ],
   createSignature
 );
-
 // Fetch events for a contract
 router.post(
   "/fetchByContract",

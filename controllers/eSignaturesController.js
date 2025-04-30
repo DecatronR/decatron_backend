@@ -1,4 +1,4 @@
-const ESignature = require("../models/ESignatures");
+const ESignature = require("../models/ESignature");
 const { validationResult } = require("express-validator");
 
 // Create signature event
@@ -14,13 +14,16 @@ const createSignature = async (req, res) => {
   try {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-    const { contractId, event, timestamp, user, device, signature } = req.body;
+    const { contractId, event, timestamp, device, signature } = req.body;
 
     const newEvent = await ESignature.create({
       contractId,
       event,
       timestamp,
-      user,
+      user: {
+        id: req.user.id,
+        email: req.user.details.email,
+      },
       ip,
       device,
       signature,
