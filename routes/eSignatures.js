@@ -13,7 +13,7 @@ const router = express.Router();
 router.post(
   "/create",
   requireAuth,
-  attachUserDetails, // <-- here
+  attachUserDetails,
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),
     body("event")
