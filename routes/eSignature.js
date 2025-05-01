@@ -3,7 +3,8 @@ const { body } = require("express-validator");
 const {
   createSignature,
   fetchSignatureByContract,
-} = require("../controllers/signatureEventController");
+  fetchSignedRoles,
+} = require("../controllers/eSignaturesController");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
 
@@ -19,6 +20,15 @@ router.post(
     body("event")
       .isIn(["signed", "viewed", "declined"])
       .withMessage("Invalid event type"),
+    body("role")
+      .isIn([
+        "propertyOwner",
+        "tenant",
+        "propertyOwnerWitness",
+        "tenantWitness",
+      ])
+      .withMessage("Invalid signer role"),
+
     body("timestamp").notEmpty().withMessage("Timestamp is required"),
     body("device").notEmpty().withMessage("Device is required"),
     body("signature")
@@ -33,6 +43,13 @@ router.post(
   requireAuth,
   [body("contractId").notEmpty().withMessage("Contract ID is required")],
   fetchSignatureByContract
+);
+
+router.post(
+  "/fetchSignedRoles",
+  requireAuth,
+  [body("contractId").notEmpty().withMessage("Contract ID is required")],
+  fetchSignedRoles
 );
 
 module.exports = router;

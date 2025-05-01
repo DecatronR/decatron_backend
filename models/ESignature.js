@@ -10,6 +10,11 @@ const ESignatureSchema = new mongoose.Schema({
     enum: ["signed", "viewed", "declined"],
     required: true,
   },
+  role: {
+    type: String,
+    enum: ["propertyOwner", "tenant", "propertyOwnerWitness", "tenantWitness"],
+    required: true,
+  },
   timestamp: {
     type: Date,
     required: true,

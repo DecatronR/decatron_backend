@@ -14,7 +14,7 @@ const createSignature = async (req, res) => {
   try {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
 
-    const { contractId, event, timestamp, device, signature } = req.body;
+    const { contractId, event, timestamp, role, device, signature } = req.body;
 
     const newEvent = await ESignature.create({
       contractId,
@@ -24,6 +24,7 @@ const createSignature = async (req, res) => {
         id: req.user.id,
         email: req.user.details.email,
       },
+      role,
       ip,
       device,
       signature,
@@ -62,7 +63,27 @@ const fetchSignatureByContract = async (req, res) => {
   }
 };
 
+const fetchSignedRoles = async (req, res) => {
+  const { contractId } = req.body;
+
+  try {
+    const roles = await ESignature.find({ contractId }).distinct("role");
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Signed roles fetched successfully",
+      data: roles,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createSignature,
   fetchSignatureByContract,
+  fetchSignedRoles,
 };

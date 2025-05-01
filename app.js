@@ -28,7 +28,7 @@ const notificationRouter = require("./routes/notification");
 const contractRouter = require("./routes/contract");
 const messageRouter = require("./routes/message");
 const apiRouter = require("./routes/api");
-const eSignatureRouter = require("./routes/api");
+const eSignatureRouter = require("./routes/eSignature");
 
 const app = express();
 
