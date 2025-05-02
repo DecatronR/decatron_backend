@@ -30,6 +30,8 @@ const ESignatureSchema = new mongoose.Schema({
       required: true,
     },
   },
+  guestName: String, // for witness
+  guestEmail: String, //for witness
   ip: {
     type: String,
   },
@@ -40,6 +42,7 @@ const ESignatureSchema = new mongoose.Schema({
     type: String, // base64 image string
     required: true,
   },
+  signingToken: String, //for guest
 });
 
 module.exports = mongoose.model("ESignature", ESignatureSchema);

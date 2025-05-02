@@ -5,29 +5,49 @@ const { validationResult } = require("express-validator");
 const createSignature = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
-      responseCode: 400,
-      responseMessage: errors.array(),
-    });
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
   try {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
+    const {
+      contractId,
+      event,
+      timestamp,
+      role,
+      device,
+      signature,
+      signingToken,
+    } = req.body;
 
-    const { contractId, event, timestamp, role, device, signature } = req.body;
+    let user = null;
+    let guestName = null;
+    let guestEmail = null;
+
+    if (req.user) {
+      user = {
+        id: req.user.id,
+        email: req.user.email,
+      };
+    } else {
+      guestName = req.body.guestName;
+      guestEmail = req.body.guestEmail;
+    }
 
     const newEvent = await ESignature.create({
       contractId,
       event,
       timestamp,
-      user: {
-        id: req.user.id,
-        email: req.user.details.email,
-      },
       role,
+      user,
+      guestName,
+      guestEmail,
       ip,
       device,
       signature,
+      signingToken,
     });
 
     return res.status(201).json({
