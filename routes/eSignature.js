@@ -5,7 +5,7 @@ const {
   fetchSignatureByContract,
   fetchSignedRoles,
 } = require("../controllers/eSignaturesController");
-const { requireAuth } = require("../middleware/authMiddleware");
+const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
 
 const router = express.Router();
@@ -13,7 +13,7 @@ const router = express.Router();
 // Create signature event
 router.post(
   "/create",
-  requireAuth,
+  optionalAuth,
   attachUserDetails,
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),

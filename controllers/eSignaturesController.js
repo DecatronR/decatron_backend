@@ -22,6 +22,17 @@ const createSignature = async (req, res) => {
       signingToken,
     } = req.body;
 
+    // Define roles that require authentication
+    const rolesRequiringAuth = ["propertyOwner", "tenant"];
+
+    // If role requires auth but no authenticated user, reject
+    if (rolesRequiringAuth.includes(role) && !req.user) {
+      return res.status(403).json({
+        responseCode: 403,
+        responseMessage: `Authentication required to sign as ${role}. Please login.`,
+      });
+    }
+
     let user = null;
     let guestName = null;
     let guestEmail = null;
