@@ -1,5 +1,6 @@
 const ESignature = require("../models/ESignature");
 const { validationResult } = require("express-validator");
+const sendWitnessInviteEmail = require("../utils/emails/sendWitnessInvite");
 
 // Create signature event
 const createSignature = async (req, res) => {
@@ -34,8 +35,8 @@ const createSignature = async (req, res) => {
     }
 
     let user = null;
-    let guestName = null;
-    let guestEmail = null;
+    let witnessName = null;
+    let witnessEmail = null;
 
     if (req.user) {
       user = {
@@ -43,8 +44,8 @@ const createSignature = async (req, res) => {
         email: req.user.email,
       };
     } else {
-      guestName = req.body.guestName;
-      guestEmail = req.body.guestEmail;
+      witnessName = req.body.witnessName;
+      witnessEmail = req.body.witnessEmail;
     }
 
     const newEvent = await ESignature.create({
@@ -53,8 +54,8 @@ const createSignature = async (req, res) => {
       timestamp,
       role,
       user,
-      guestName,
-      guestEmail,
+      witnessName,
+      witnessEmail,
       ip,
       device,
       signature,
@@ -113,8 +114,46 @@ const fetchSignedRoles = async (req, res) => {
   }
 };
 
+const sendWitnessInvite = async (req, res) => {
+  const { witnessName, witnessEmail, contractId, role } = req.body;
+
+  if (!witnessName || !witnessEmail || !contractId || !role) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: "Missing required fields",
+    });
+  }
+  const inviterId = req.user.details._id;
+  const inviterName = req.user.details.name;
+
+  try {
+    // Send witness invite email
+    const signingToken = await sendWitnessInviteEmail(
+      witnessName,
+      witnessEmail,
+      contractId,
+      role,
+      inviterName,
+      inviterId
+    );
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Guest invitation sent successfully",
+      data: { signingToken },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createSignature,
   fetchSignatureByContract,
   fetchSignedRoles,
+  sendWitnessInvite,
 };

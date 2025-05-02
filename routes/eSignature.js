@@ -4,6 +4,7 @@ const {
   createSignature,
   fetchSignatureByContract,
   fetchSignedRoles,
+  sendWitnessInvite,
 } = require("../controllers/eSignaturesController");
 const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -50,6 +51,17 @@ router.post(
   requireAuth,
   [body("contractId").notEmpty().withMessage("Contract ID is required")],
   fetchSignedRoles
+);
+
+router.post(
+  "/sendWitnessInvite",
+  [
+    body("witnessName").notEmpty(),
+    body("witnessEmail").isEmail(),
+    body("contractId").notEmpty(),
+    body("role").notEmpty(),
+  ],
+  sendWitnessInvite
 );
 
 module.exports = router;
