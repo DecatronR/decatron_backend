@@ -176,12 +176,31 @@ const fetchSignedRoles = async (req, res) => {
   const { contractId } = req.body;
 
   try {
-    const roles = await ESignature.find({ contractId }).distinct("role");
+    // Get all signatures for this contract
+    const signatures = await ESignature.find({ contractId });
+
+    // Create a map to track signed roles
+    const signedRoles = new Set();
+
+    // Process each signature
+    signatures.forEach((signature) => {
+      // Add the main signer's role
+      signedRoles.add(signature.role);
+
+      // If there's a witness, add the corresponding witness role
+      if (signature.witness) {
+        const witnessRole =
+          signature.role === "propertyOwner"
+            ? "propertyOwnerWitness"
+            : "tenantWitness";
+        signedRoles.add(witnessRole);
+      }
+    });
 
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "Signed roles fetched successfully",
-      data: roles,
+      data: Array.from(signedRoles),
     });
   } catch (error) {
     return res.status(500).json({
