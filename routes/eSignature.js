@@ -1,13 +1,19 @@
 const express = require("express");
 const { body } = require("express-validator");
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
 const {
   createSignature,
   fetchSignatureByContract,
   fetchSignedRoles,
   sendWitnessInvite,
-} = require("../controllers/eSignaturesController");
+  validateWitnessSignatureLink,
+} = require("../controllers/eSignatureController");
 const { requireAuth, optionalAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
+const validateWitnessToken = require("../middleware/validateWitnessToken");
 
 const router = express.Router();
 
@@ -16,6 +22,7 @@ router.post(
   "/create",
   optionalAuth,
   attachUserDetails,
+  upload.single("signatureImage"),
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),
     body("event")
@@ -29,15 +36,31 @@ router.post(
         "tenantWitness",
       ])
       .withMessage("Invalid signer role"),
-
+    body("witnessName")
+      .optional()
+      .custom((value, { req }) => {
+        if (req.body.role.includes("Witness") && !value) {
+          throw new Error("Witness name is required for witness signatures");
+        }
+        return true;
+      }),
+    body("witnessEmail")
+      .optional()
+      .isEmail()
+      .custom((value, { req }) => {
+        if (req.body.role.includes("Witness") && !value) {
+          throw new Error(
+            "Valid witness email is required for witness signatures"
+          );
+        }
+        return true;
+      }),
     body("timestamp").notEmpty().withMessage("Timestamp is required"),
     body("device").notEmpty().withMessage("Device is required"),
-    body("signature")
-      .notEmpty()
-      .withMessage("Signature (base64 string) is required"),
   ],
   createSignature
 );
+
 // Fetch events for a contract
 router.post(
   "/fetchByContract",
@@ -55,13 +78,22 @@ router.post(
 
 router.post(
   "/sendWitnessInvite",
+  requireAuth,
+  attachUserDetails,
   [
+    body("contractId").notEmpty(),
     body("witnessName").notEmpty(),
     body("witnessEmail").isEmail(),
-    body("contractId").notEmpty(),
     body("role").notEmpty(),
   ],
   sendWitnessInvite
+);
+
+// Validate witness signature link
+router.get(
+  "/validateSignatureLink",
+  validateWitnessToken,
+  validateWitnessSignatureLink
 );
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const ESignature = require("../models/ESignature");
+const WitnessSignatureInvite = require("../models/WitnessSignatureInvite");
 
 const validateWitnessToken = async (req, res, next) => {
   const { token } = req.query;
@@ -6,7 +6,10 @@ const validateWitnessToken = async (req, res, next) => {
     return res.status(401).json({ message: "Invalid or missing token" });
 
   // Find the signature event associated with the token
-  const signatureEvent = await ESignature.findOne({ signingToken: token });
+  const signatureEvent = await WitnessSignatureInvite.findOne({
+    signingToken: token,
+  });
+
   if (!signatureEvent)
     return res.status(401).json({ message: "Invalid token" });
 

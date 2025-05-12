@@ -23,15 +23,19 @@ const ESignatureSchema = new mongoose.Schema({
     id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: function () {
+        return !this.isWitnessSignature;
+      },
     },
     email: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.isWitnessSignature;
+      },
     },
   },
-  guestName: String, // for witness
-  guestEmail: String, //for witness
+  witnessName: String, // for witness
+  witnessEmail: String, //for witness
   ip: {
     type: String,
   },
@@ -42,7 +46,25 @@ const ESignatureSchema = new mongoose.Schema({
     type: String, // base64 image string
     required: true,
   },
-  signingToken: String, //for guest
+  signingToken: String, //for witness
+  // New fields for witness relationships
+  isWitnessSignature: {
+    type: Boolean,
+    default: false,
+  },
+  witnessedSignature: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ESignature",
+  },
+  witnessFor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ESignature",
+  },
 });
+
+// Add indexes for better query performance
+ESignatureSchema.index({ contractId: 1, role: 1 });
+ESignatureSchema.index({ witnessedSignature: 1 });
+ESignatureSchema.index({ witnessFor: 1 });
 
 module.exports = mongoose.model("ESignature", ESignatureSchema);

@@ -13,7 +13,7 @@ const sendWitnessSignatureInviteEmail = async (
 ) => {
   const frontendUrl = process.env.FRONTEND_URL;
   const signingToken = crypto.randomBytes(20).toString("hex");
-  const signingLink = `${frontendUrl}/sign-contract?contractId=${contractId}&signingToken=${signingToken}&role=${role}`;
+  const signingLink = `${frontendUrl}/witness-signing?contractId=${contractId}&token=${signingToken}&role=${role}&witnessName=${witnessName}&witnessEmail=${witnessEmail}`;
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
