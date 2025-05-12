@@ -55,6 +55,7 @@ const createSignature = async (req, res) => {
       user = {
         id: req.user.details._id,
         email: req.user.details.email,
+        name: req.user.details.name,
       };
 
       // Check for existing signature by this user for this contract

@@ -50,6 +50,10 @@ const ESignatureSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
+    name: {
+      type: String,
+      required: true,
+    },
   },
   ip: {
     type: String,
