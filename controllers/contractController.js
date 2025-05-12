@@ -1,5 +1,43 @@
 const Contract = require("../models/Contract");
+const ESignature = require("../models/ESignature");
 const { validationResult } = require("express-validator");
+
+// Helper function to check and update contract status based on signatures
+const checkAndUpdateContractStatus = async (contractId) => {
+  try {
+    const signatures = await ESignature.find({ contractId });
+    const signedRoles = new Set();
+
+    // Process each signature
+    signatures.forEach((signature) => {
+      signedRoles.add(signature.role);
+      if (signature.witness) {
+        const witnessRole =
+          signature.role === "propertyOwner"
+            ? "propertyOwnerWitness"
+            : "tenantWitness";
+        signedRoles.add(witnessRole);
+      }
+    });
+
+    // Check if all required signatures are present
+    const hasAllSignatures =
+      signedRoles.has("propertyOwner") &&
+      signedRoles.has("propertyOwnerWitness") &&
+      signedRoles.has("tenant") &&
+      signedRoles.has("tenantWitness");
+
+    if (hasAllSignatures) {
+      // Update contract status to active
+      await Contract.findByIdAndUpdate(contractId, { status: "active" });
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error checking contract status:", error);
+    return false;
+  }
+};
 
 // Create a new contract
 const createContract = async (req, res) => {
@@ -177,10 +215,61 @@ const updateAgreement = async (req, res) => {
   }
 };
 
+const updateContractStatus = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: errors.array(),
+    });
+  }
+
+  try {
+    const { contractId, status } = req.body;
+
+    const contract = await Contract.findById(contractId);
+    if (!contract) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Contract not found.",
+      });
+    }
+
+    // Check if user is authorized (either owner or client)
+    if (
+      contract.ownerId.toString() !== req.user.id.toString() &&
+      contract.clientId.toString() !== req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        responseCode: 403,
+        responseMessage:
+          "You are not authorized to update this contract's status.",
+      });
+    }
+
+    // Update the status
+    contract.status = status;
+    await contract.save();
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Contract status updated successfully.",
+      data: contract,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createContract,
   fetchClientContracts,
   fetchOwnerContracts,
   fetchContractById,
   updateAgreement,
+  updateContractStatus,
+  checkAndUpdateContractStatus,
 };

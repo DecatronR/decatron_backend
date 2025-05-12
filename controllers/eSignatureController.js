@@ -1,14 +1,12 @@
 const ESignature = require("../models/ESignature");
-const fs = require("fs");
-const path = require("path");
 const { validationResult } = require("express-validator");
-const multer = require("multer");
 const {
   sendWitnessSignatureInviteEmail,
 } = require("../utils/emails/sendWitnessInvite");
 const Contract = require("../models/Contract");
 const WitnessSignatureInvite = require("../models/WitnessSignatureInvite");
 const getClientIP = require("../utils/getClientIP");
+const { checkAndUpdateContractStatus } = require("./contractController");
 
 // Create signature event
 const createSignature = async (req, res) => {
@@ -120,6 +118,10 @@ const createSignature = async (req, res) => {
       };
 
       await mainSignature.save();
+
+      // Check and update contract status after witness signature is added
+      await checkAndUpdateContractStatus(contractId);
+
       return res.status(201).json({
         responseCode: 201,
         responseMessage: "Witness signature added successfully",
@@ -138,6 +140,9 @@ const createSignature = async (req, res) => {
       device,
       signature,
     });
+
+    // Check and update contract status after signature is added
+    await checkAndUpdateContractStatus(contractId);
 
     return res.status(201).json({
       responseCode: 201,

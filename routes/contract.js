@@ -6,6 +6,7 @@ const {
   fetchOwnerContracts,
   fetchContractById,
   updateAgreement,
+  updateContractStatus,
 } = require("../controllers/contractController");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -61,6 +62,18 @@ router.post(
     body("agreement").notEmpty().withMessage("Agreement field is required"),
   ],
   updateAgreement
+);
+
+router.post(
+  "/updateStatus",
+  requireAuth,
+  [
+    body("contractId").notEmpty().withMessage("Contract ID is required"),
+    body("status")
+      .isIn(["pending", "active", "completed", "cancelled"])
+      .withMessage("Invalid status value"),
+  ],
+  updateContractStatus
 );
 
 module.exports = router;
