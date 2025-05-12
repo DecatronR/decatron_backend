@@ -46,6 +46,13 @@ const UserSchema = new mongoose.Schema({
   referrer: {
     type: String
   },
+  agentReferralCode: {
+    type: String,
+    unique: true,
+  },
+  agentReferrer: {
+    type: String
+  },
   role: {
     type: String,
     required: true,

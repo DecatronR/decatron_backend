@@ -26,7 +26,7 @@ const createBookingReferral = async (req, res) => {
       return res.status(400).json({
         responseMessage: "Invalid or missing booking date and time",
         responseCode: 400,
-      });
+      }); 
     }
     const existingUser = await User.findOne({ _id: userID });
     if (!existingUser) {
@@ -35,7 +35,7 @@ const createBookingReferral = async (req, res) => {
         responseCode: 404,
       });
     }
-    const existingAgent = await User.findOne({ referralCode: referralCode });
+    const existingAgent = await User.findOne({ agentReferralCode: referralCode });
     if (!existingAgent) {
       return res.status(404).json({
         responseMessage: "Agent doesn't exist",

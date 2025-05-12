@@ -33,7 +33,8 @@ const {
   deleteUser,
   rateUser,
   fetchUserRating,
-  userTree
+  userTree,
+  getMyReferrals
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -78,6 +79,12 @@ router.post(
   "/editusers",
   [body("id").notEmpty().withMessage("Id is required")],
   editUsers
+);
+
+router.post(
+  "/getMyReferrals",
+  [body("referralCode").notEmpty().withMessage("Referral Code is required")],
+  getMyReferrals
 );
 
 router.post(

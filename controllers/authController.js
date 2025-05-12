@@ -69,6 +69,7 @@ const changePassword = async (req, res) => {
     });
   }
 };
+
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -77,7 +78,7 @@ const registerUser = async (req, res, next) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { name, phone, email, password, role } = req.body;
+  const { name, phone, email, password, role, referrer } = req.body;
   const hashedPassword = hashPassword(password);
   try {
     const existing = await User.findOne({ email });
@@ -99,6 +100,7 @@ const registerUser = async (req, res, next) => {
     }
 
     const otp = generateOTP();
+    const agentReferralCode = generateReferralCode();
     const referralCode = generateReferralCode();
 
     const newUser = await User.create({
@@ -107,7 +109,9 @@ const registerUser = async (req, res, next) => {
       email,
       role: slug,
       otp,
+      agentReferralCode,
       referralCode,
+      referrer,
       email_verified_at: null,
       password: hashedPassword,
     });
@@ -256,7 +260,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
-      referralCode: userdb.referralCode,
+      referralCode: userdb.agentReferralCode,
     });
     //   res.sendStatus(200);
   } else {

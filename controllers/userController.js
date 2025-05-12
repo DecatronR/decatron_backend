@@ -47,7 +47,7 @@ const editUsers = async (req, res) => {
           email: userdb.email,
           phone: userdb.phone,
           passport: userdb.passport || null,
-          referralCode: userdb.referralCode || null,
+          referralCode: userdb.agentReferralCode || null,
           id: id,
         },
       });
@@ -368,6 +368,45 @@ const userTree = async (req, res) => {
   }
 };
 
+const getMyReferrals = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+
+    const { referralCode } = req.body;
+
+    // Get the main user
+    const request = await User.findOne({ referralCode });
+    if (!request) {
+      return res.status(404).json({
+        responseMessage: "Referral Code not found",
+        responseCode: 404,
+      });
+    }
+    const userdb = await User.findOne({ referrer: referralCode });
+    if (!userdb) {
+      return res.status(404).json({
+        responseMessage: "Record not found",
+        responseCode: 404,
+      });
+    } else {
+      return res.status(200).json({
+        responseMessage: "Record Found",
+        responseCode: 200,
+        data: userdb
+      });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message, responseCode: 500 });
+  }
+};
+
 module.exports = {
   getUsers,
   editUsers,
@@ -376,4 +415,5 @@ module.exports = {
   rateUser,
   fetchUserRating,
   userTree,
+  getMyReferrals
 };
