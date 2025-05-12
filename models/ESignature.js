@@ -1,5 +1,26 @@
 const mongoose = require("mongoose");
 
+const WitnessSignatureSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  signature: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    required: true,
+  },
+  ip: String,
+  device: String,
+});
+
 const ESignatureSchema = new mongoose.Schema({
   contractId: {
     type: String,
@@ -12,7 +33,7 @@ const ESignatureSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["propertyOwner", "tenant", "propertyOwnerWitness", "tenantWitness"],
+    enum: ["propertyOwner", "tenant"],
     required: true,
   },
   timestamp: {
@@ -23,19 +44,13 @@ const ESignatureSchema = new mongoose.Schema({
     id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: function () {
-        return !this.isWitnessSignature;
-      },
+      required: true,
     },
     email: {
       type: String,
-      required: function () {
-        return !this.isWitnessSignature;
-      },
+      required: true,
     },
   },
-  witnessName: String, // for witness
-  witnessEmail: String, //for witness
   ip: {
     type: String,
   },
@@ -46,25 +61,17 @@ const ESignatureSchema = new mongoose.Schema({
     type: String, // base64 image string
     required: true,
   },
-  signingToken: String, //for witness
-  // New fields for witness relationships
-  isWitnessSignature: {
-    type: Boolean,
-    default: false,
-  },
-  witnessedSignature: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ESignature",
-  },
-  witnessFor: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "ESignature",
-  },
+  witness: WitnessSignatureSchema,
 });
+
+// Add compound indexes for uniqueness
+ESignatureSchema.index(
+  { contractId: 1, "user.id": 1, role: 1 },
+  { unique: true, partialFilterExpression: { "user.id": { $exists: true } } }
+);
 
 // Add indexes for better query performance
 ESignatureSchema.index({ contractId: 1, role: 1 });
-ESignatureSchema.index({ witnessedSignature: 1 });
-ESignatureSchema.index({ witnessFor: 1 });
+ESignatureSchema.index({ "witness.email": 1 });
 
 module.exports = mongoose.model("ESignature", ESignatureSchema);

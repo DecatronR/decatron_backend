@@ -35,7 +35,18 @@ router.post(
         "propertyOwnerWitness",
         "tenantWitness",
       ])
-      .withMessage("Invalid signer role"),
+      .withMessage("Invalid signer role")
+      .custom((value, { req }) => {
+        // If it's a witness role, ensure witness details are provided
+        if (value.includes("Witness")) {
+          if (!req.body.witnessName || !req.body.witnessEmail) {
+            throw new Error(
+              "Witness name and email are required for witness signatures"
+            );
+          }
+        }
+        return true;
+      }),
     body("witnessName")
       .optional()
       .custom((value, { req }) => {

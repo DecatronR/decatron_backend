@@ -51,25 +51,38 @@ const createSignature = async (req, res) => {
     }
 
     let user = null;
-    let witnessName = null;
-    let witnessEmail = null;
-    let isWitnessSignature = false;
-    let witnessedSignature = null;
-    let witnessFor = null;
+    let witnessData = null;
 
     if (req.user) {
       user = {
         id: req.user.details._id,
         email: req.user.details.email,
       };
-    } else {
-      witnessName = req.body.witnessName;
-      witnessEmail = req.body.witnessEmail;
-      isWitnessSignature = true;
-    }
 
-    // If this is a witness signature, find the signature they're witnessing
-    if (isWitnessSignature) {
+      // Check for existing signature by this user for this contract
+      const existingSignature = await ESignature.findOne({
+        contractId,
+        "user.id": user.id,
+        role,
+      });
+
+      if (existingSignature) {
+        return res.status(400).json({
+          responseCode: 400,
+          responseMessage: "You have already signed this contract.",
+        });
+      }
+    } else {
+      // This is a witness signature
+      const { witnessName, witnessEmail } = req.body;
+      if (!witnessName || !witnessEmail) {
+        return res.status(400).json({
+          responseCode: 400,
+          responseMessage: "Witness name and email are required.",
+        });
+      }
+
+      // Find the main signature to attach witness to
       const mainRole =
         role === "propertyOwnerWitness" ? "propertyOwner" : "tenant";
       const mainSignature = await ESignature.findOne({
@@ -78,27 +91,52 @@ const createSignature = async (req, res) => {
         event: "signed",
       }).sort({ timestamp: -1 });
 
-      if (mainSignature) {
-        witnessedSignature = mainSignature._id;
-        witnessFor = mainSignature._id;
+      if (!mainSignature) {
+        return res.status(404).json({
+          responseCode: 404,
+          responseMessage: "Main signature not found to witness.",
+        });
       }
+
+      // Check if this witness has already signed
+      if (
+        mainSignature.witness &&
+        mainSignature.witness.email === witnessEmail
+      ) {
+        return res.status(400).json({
+          responseCode: 400,
+          responseMessage: "This witness has already signed the contract.",
+        });
+      }
+
+      // Update the main signature with witness data
+      mainSignature.witness = {
+        name: witnessName,
+        email: witnessEmail,
+        signature: signature,
+        timestamp: new Date(),
+        ip: ip,
+        device: device,
+      };
+
+      await mainSignature.save();
+      return res.status(201).json({
+        responseCode: 201,
+        responseMessage: "Witness signature added successfully",
+        data: mainSignature,
+      });
     }
 
+    // Create new signature for main signer
     const newEvent = await ESignature.create({
       contractId,
       event,
       timestamp,
       role,
       user,
-      witnessName,
-      witnessEmail,
       ip,
       device,
       signature,
-      signingToken,
-      isWitnessSignature,
-      witnessedSignature,
-      witnessFor,
     });
 
     return res.status(201).json({
