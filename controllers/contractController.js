@@ -278,7 +278,7 @@ const updateContractStatus = async (req, res) => {
 };
 
 /**
- * Verifies the integrity of a contract document
+ * Verifies the integrity of a contract document (public endpoint for QR code verification)
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
@@ -294,15 +294,17 @@ const verifyDocumentIntegrity = async (req, res) => {
 
     if (!contract) {
       return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "Contract not found",
+        verified: false,
+        message: "Document not found",
+        timestamp: new Date().toISOString(),
       });
     }
 
     if (!contract.documentHash) {
       return res.status(400).json({
-        responseCode: 400,
-        responseMessage: "Contract has not been fully signed and hashed yet",
+        verified: false,
+        message: "Document has not been fully signed yet",
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -317,16 +319,26 @@ const verifyDocumentIntegrity = async (req, res) => {
       contract.documentHash
     );
 
+    // Return a QR-friendly response
     return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Document integrity verification completed",
-      data: verificationResult,
+      verified: verificationResult.isVerified,
+      message: verificationResult.details,
+      document: {
+        propertyName: contract.propertyName,
+        propertyLocation: contract.propertyLocation,
+        ownerName: contract.ownerName,
+        clientName: contract.clientName,
+        signedDate: contract.updatedAt,
+        status: contract.status,
+      },
+      timestamp: verificationResult.timestamp,
     });
   } catch (error) {
     console.error("Error verifying document integrity:", error);
     return res.status(500).json({
-      responseCode: 500,
-      responseMessage: error.message,
+      verified: false,
+      message: "Error verifying document",
+      timestamp: new Date().toISOString(),
     });
   }
 };

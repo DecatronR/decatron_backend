@@ -77,7 +77,7 @@ router.post(
   updateContractStatus
 );
 
-// Verify document integrity
-router.get("/:contractId/verify", verifyDocumentIntegrity); // this would be used in admin dashboard
+// Public verification endpoint for QR code
+router.get("/verify/:contractId", verifyDocumentIntegrity);
 
 module.exports = router;
