@@ -7,6 +7,7 @@ const {
   fetchContractById,
   updateAgreement,
   updateContractStatus,
+  verifyDocumentIntegrity,
 } = require("../controllers/contractController");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -75,5 +76,8 @@ router.post(
   ],
   updateContractStatus
 );
+
+// Verify document integrity
+router.get("/:contractId/verify", verifyDocumentIntegrity); // this would be used in admin dashboard
 
 module.exports = router;

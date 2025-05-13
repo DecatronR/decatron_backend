@@ -1,6 +1,7 @@
 const Contract = require("../models/Contract");
 const ESignature = require("../models/ESignature");
 const { validationResult } = require("express-validator");
+const { hashDocument, verifyDocumentHash } = require("../utils/documentHasher");
 
 // Helper function to check and update contract status based on signatures
 const checkAndUpdateContractStatus = async (contractId) => {
@@ -28,8 +29,20 @@ const checkAndUpdateContractStatus = async (contractId) => {
       signedRoles.has("tenantWitness");
 
     if (hasAllSignatures) {
-      // Update contract status to active
-      await Contract.findByIdAndUpdate(contractId, { status: "active" });
+      // Get the contract document
+      const contract = await Contract.findById(contractId);
+      if (!contract) {
+        throw new Error("Contract not found");
+      }
+
+      // Generate document hash
+      const documentHash = hashDocument(contract, signatures);
+
+      // Update contract status to active and store the hash
+      await Contract.findByIdAndUpdate(contractId, {
+        status: "active",
+        documentHash: documentHash,
+      });
       return true;
     }
     return false;
@@ -264,6 +277,60 @@ const updateContractStatus = async (req, res) => {
   }
 };
 
+/**
+ * Verifies the integrity of a contract document
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const verifyDocumentIntegrity = async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    // Get contract with all its data
+    const contract = await Contract.findById(contractId)
+      .populate("propertyId")
+      .populate("ownerId")
+      .populate("clientId");
+
+    if (!contract) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Contract not found",
+      });
+    }
+
+    if (!contract.documentHash) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Contract has not been fully signed and hashed yet",
+      });
+    }
+
+    // Get all signatures
+    const signatures = await ESignature.find({ contractId });
+
+    // Verify document integrity
+    const verificationResult = verifyDocumentHash(
+      contract,
+      contract.auditTrail,
+      signatures,
+      contract.documentHash
+    );
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Document integrity verification completed",
+      data: verificationResult,
+    });
+  } catch (error) {
+    console.error("Error verifying document integrity:", error);
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createContract,
   fetchClientContracts,
@@ -272,4 +339,5 @@ module.exports = {
   updateAgreement,
   updateContractStatus,
   checkAndUpdateContractStatus,
+  verifyDocumentIntegrity,
 };

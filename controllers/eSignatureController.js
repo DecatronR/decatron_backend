@@ -7,6 +7,7 @@ const Contract = require("../models/Contract");
 const WitnessSignatureInvite = require("../models/WitnessSignatureInvite");
 const getClientIP = require("../utils/getClientIP");
 const { checkAndUpdateContractStatus } = require("./contractController");
+const { hashDocument } = require("../utils/documentHasher");
 
 // Create signature event
 const createSignature = async (req, res) => {
@@ -21,8 +22,15 @@ const createSignature = async (req, res) => {
   let signature;
   try {
     const ip = getClientIP(req);
-    const { contractId, event, timestamp, role, device, signingToken } =
-      req.body;
+    const {
+      contractId,
+      event,
+      timestamp,
+      role,
+      device,
+      signingToken,
+      documentContent,
+    } = req.body;
 
     // Handle file upload and convert to base64 (file is in memory)
     const file = req.file; // Assuming multer is set up and file is saved in req.file
@@ -145,10 +153,18 @@ const createSignature = async (req, res) => {
     // Check and update contract status after signature is added
     await checkAndUpdateContractStatus(contractId);
 
+    // After creating signature, check if we need to hash the document
+    const hashResult = await handleDocumentHashing(contractId);
+
     return res.status(201).json({
       responseCode: 201,
       responseMessage: "Signature event created successfully",
-      data: newEvent,
+      data: {
+        signature: newEvent,
+        documentHash: hashResult ? hashResult.documentHash : null,
+        documentContent: hashResult ? hashResult.documentContent : null,
+        auditTrail: hashResult ? hashResult.auditTrail : null,
+      },
     });
   } catch (error) {
     return res.status(500).json({
@@ -289,10 +305,97 @@ const validateWitnessSignatureLink = async (req, res) => {
   }
 };
 
+const handleDocumentHashing = async (contractId) => {
+  try {
+    // Get all signatures for this contract
+    const signatures = await ESignature.find({ contractId });
+    const signedRoles = new Set();
+
+    // Process each signature
+    signatures.forEach((signature) => {
+      signedRoles.add(signature.role);
+      if (signature.witness) {
+        const witnessRole =
+          signature.role === "propertyOwner"
+            ? "propertyOwnerWitness"
+            : "tenantWitness";
+        signedRoles.add(witnessRole);
+      }
+    });
+
+    // Check if all required signatures are present
+    const hasAllSignatures =
+      signedRoles.has("propertyOwner") &&
+      signedRoles.has("propertyOwnerWitness") &&
+      signedRoles.has("tenant") &&
+      signedRoles.has("tenantWitness");
+
+    if (hasAllSignatures) {
+      // Get the contract document with all its data
+      const contract = await Contract.findById(contractId)
+        .populate("propertyId")
+        .populate("ownerId")
+        .populate("clientId");
+
+      if (!contract) {
+        throw new Error("Contract not found");
+      }
+
+      // Create audit trail from signatures
+      const auditTrail = signatures.map((sig) => ({
+        role: sig.role,
+        event: sig.event,
+        timestamp: sig.timestamp,
+        user: sig.user
+          ? {
+              id: sig.user.id,
+              email: sig.user.email,
+              name: sig.user.name,
+            }
+          : null,
+        witness: sig.witness
+          ? {
+              name: sig.witness.name,
+              email: sig.witness.email,
+              timestamp: sig.witness.timestamp,
+            }
+          : null,
+        ip: sig.ip,
+        device: sig.device,
+      }));
+
+      try {
+        // Generate document hash including signatures
+        const documentHash = hashDocument(contract, auditTrail, signatures);
+
+        // Update contract with hash and audit trail
+        contract.documentHash = documentHash;
+        contract.auditTrail = auditTrail;
+        await contract.save();
+
+        return {
+          documentHash,
+          auditTrail,
+        };
+      } catch (hashError) {
+        console.error("Error generating document hash:", hashError);
+        throw new Error(
+          "Failed to generate document hash: " + hashError.message
+        );
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error handling document hashing:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   createSignature,
   fetchSignatureByContract,
   fetchSignedRoles,
   sendWitnessInvite,
   validateWitnessSignatureLink,
+  handleDocumentHashing,
 };
