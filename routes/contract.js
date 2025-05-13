@@ -7,6 +7,7 @@ const {
   fetchContractById,
   updateAgreement,
   updateContractStatus,
+  verifyDocumentIntegrity,
 } = require("../controllers/contractController");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -75,5 +76,8 @@ router.post(
   ],
   updateContractStatus
 );
+
+// Public verification endpoint for QR code
+router.get("/verify/:contractId", verifyDocumentIntegrity);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const Contract = require("../models/Contract");
 const ESignature = require("../models/ESignature");
 const { validationResult } = require("express-validator");
+const { hashDocument, verifyDocumentHash } = require("../utils/documentHasher");
 
 // Helper function to check and update contract status based on signatures
 const checkAndUpdateContractStatus = async (contractId) => {
@@ -28,8 +29,20 @@ const checkAndUpdateContractStatus = async (contractId) => {
       signedRoles.has("tenantWitness");
 
     if (hasAllSignatures) {
-      // Update contract status to active
-      await Contract.findByIdAndUpdate(contractId, { status: "active" });
+      // Get the contract document
+      const contract = await Contract.findById(contractId);
+      if (!contract) {
+        throw new Error("Contract not found");
+      }
+
+      // Generate document hash
+      const documentHash = hashDocument(contract, signatures);
+
+      // Update contract status to active and store the hash
+      await Contract.findByIdAndUpdate(contractId, {
+        status: "active",
+        documentHash: documentHash,
+      });
       return true;
     }
     return false;
@@ -264,6 +277,72 @@ const updateContractStatus = async (req, res) => {
   }
 };
 
+/**
+ * Verifies the integrity of a contract document (public endpoint for QR code verification)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const verifyDocumentIntegrity = async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    // Get contract with all its data
+    const contract = await Contract.findById(contractId)
+      .populate("propertyId")
+      .populate("ownerId")
+      .populate("clientId");
+
+    if (!contract) {
+      return res.status(404).json({
+        verified: false,
+        message: "Document not found",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (!contract.documentHash) {
+      return res.status(400).json({
+        verified: false,
+        message: "Document has not been fully signed yet",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Get all signatures
+    const signatures = await ESignature.find({ contractId });
+
+    // Verify document integrity
+    const verificationResult = verifyDocumentHash(
+      contract,
+      contract.auditTrail,
+      signatures,
+      contract.documentHash
+    );
+
+    // Return a QR-friendly response
+    return res.status(200).json({
+      verified: verificationResult.isVerified,
+      message: verificationResult.details,
+      document: {
+        propertyName: contract.propertyName,
+        propertyLocation: contract.propertyLocation,
+        ownerName: contract.ownerName,
+        clientName: contract.clientName,
+        signedDate: contract.updatedAt,
+        status: contract.status,
+      },
+      timestamp: verificationResult.timestamp,
+    });
+  } catch (error) {
+    console.error("Error verifying document integrity:", error);
+    return res.status(500).json({
+      verified: false,
+      message: "Error verifying document",
+      timestamp: new Date().toISOString(),
+    });
+  }
+};
+
 module.exports = {
   createContract,
   fetchClientContracts,
@@ -272,4 +351,5 @@ module.exports = {
   updateAgreement,
   updateContractStatus,
   checkAndUpdateContractStatus,
+  verifyDocumentIntegrity,
 };
