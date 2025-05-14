@@ -58,6 +58,25 @@ const create = async (req, res) => {
   }
 };
 
+const getManualPayments = async (req, res) => {
+  try {
+    const payments = await ManualPayment.find().sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      responseMessage: "Manual payments fetched successfully",
+      responseCode: 200,
+      data: payments,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      responseMessage: `Error fetching manual payments: ${error.message}`,
+      responseCode: 500,
+    });
+  }
+};
+
 module.exports = {
   create,
+  getManualPayments,
 };
