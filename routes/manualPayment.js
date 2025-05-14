@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { create } = require("../controllers/manualPaymentController");
+const {
+  create,
+  getManualPayments,
+} = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
@@ -17,6 +20,13 @@ router.post(
     body("amount").notEmpty().withMessage("Amount is required"),
   ],
   create
+);
+
+router.get(
+  "/getManualPayments",
+  requireAuth,
+  attachUserDetails,
+  getManualPayments
 );
 
 module.exports = router;
