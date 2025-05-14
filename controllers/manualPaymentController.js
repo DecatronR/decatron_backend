@@ -76,7 +76,42 @@ const getManualPayments = async (req, res) => {
   }
 };
 
+const getByContractId = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: errors.array(),
+    });
+  }
+
+  const { contractId } = req.body;
+
+  try {
+    const payments = await ManualPayment.find({ contractId });
+
+    if (payments.length === 0) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "No manual payments found for this contract",
+      });
+    }
+
+    res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Manual payments fetched successfully",
+      data: payments,
+    });
+  } catch (error) {
+    res.status(500).json({
+      responseCode: 500,
+      responseMessage: `${error.message}`,
+    });
+  }
+};
+
 module.exports = {
   create,
   getManualPayments,
+  getByContractId,
 };

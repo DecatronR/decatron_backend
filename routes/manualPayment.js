@@ -3,11 +3,12 @@ const router = express.Router();
 const {
   create,
   getManualPayments,
+  getByContractId,
 } = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
-
+const { requireAdmin } = require("../middleware/requireAdmin");
 router.post(
   "/create",
   requireAuth,
@@ -26,7 +27,17 @@ router.get(
   "/getManualPayments",
   requireAuth,
   attachUserDetails,
+  requireAdmin,
   getManualPayments
+);
+
+router.post(
+  "/getPaymentsByContract",
+  requireAuth,
+  attachUserDetails,
+  requireAdmin,
+  [body("contractId").notEmpty().withMessage("Contract ID is required")],
+  getByContractId
 );
 
 module.exports = router;
