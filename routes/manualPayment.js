@@ -4,15 +4,18 @@ const {
   create,
   getManualPayments,
   getByContractId,
+  updatePaymentStatus,
 } = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
 const { requireAdmin } = require("../middleware/requireAdmin");
+
 router.post(
   "/create",
   requireAuth,
   attachUserDetails,
+  requireAdmin,
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),
     body("accountName").notEmpty().withMessage("Account name is required"),
@@ -27,7 +30,7 @@ router.get(
   "/getManualPayments",
   requireAuth,
   attachUserDetails,
-  requireAdmin,
+  // requireAdmin,
   getManualPayments
 );
 
@@ -35,9 +38,20 @@ router.post(
   "/getPaymentsByContract",
   requireAuth,
   attachUserDetails,
-  requireAdmin,
+  // requireAdmin,
   [body("contractId").notEmpty().withMessage("Contract ID is required")],
   getByContractId
 );
 
+router.post(
+  "/updatePaymentStatus",
+  requireAuth,
+  attachUserDetails,
+  requireAdmin,
+  [
+    body("paymentId").notEmpty().withMessage("Payment ID is required"),
+    body("status").notEmpty().withMessage("Status is required"),
+  ],
+  updatePaymentStatus
+);
 module.exports = router;

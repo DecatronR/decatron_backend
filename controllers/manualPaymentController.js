@@ -110,8 +110,47 @@ const getByContractId = async (req, res) => {
   }
 };
 
+const updatePaymentStatus = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: errors.array(),
+    });
+  }
+
+  const { paymentId, status } = req.body;
+
+  try {
+    const payment = await ManualPayment.findById(paymentId);
+
+    if (!payment) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Payment record not found",
+      });
+    }
+
+    payment.status = status;
+    await payment.save();
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Payment status updated successfully",
+      data: payment,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: `Server error: ${error.message}`,
+    });
+  }
+};
+
 module.exports = {
   create,
   getManualPayments,
   getByContractId,
+  updatePaymentStatus,
 };
