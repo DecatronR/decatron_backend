@@ -62,6 +62,17 @@ io.on("connection", (socket) => {
     console.log("Client disconnected:", socket.id);
   });
 
+  // Join both paymentId + contractId rooms
+  socket.on("joinPaymentRoom", ({ contractId, paymentId }) => {
+    if (contractId) {
+      socket.join(contractId);
+      console.log(`Socket ${socket.id} joined contract room ${contractId}`);
+    }
+    if (paymentId) {
+      socket.join(paymentId);
+      console.log(`Socket ${socket.id} joined payment room ${paymentId}`);
+    }
+  });
   // Chat Messaging
   console.log("New client connected:", socket.id);
 
@@ -175,3 +186,5 @@ function onListening() {
   debug("Listening on " + bind);
   console.log(`Server is listening on ${bind}`);
 }
+
+module.exports.io = io;

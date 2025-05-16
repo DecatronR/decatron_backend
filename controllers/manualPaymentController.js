@@ -1,6 +1,7 @@
 const ManualPayment = require("../models/ManualPayment");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
+const { io } = require("../bin/www");
 
 const create = async (req, res) => {
   const errors = validationResult(req);
@@ -134,6 +135,13 @@ const updatePaymentStatus = async (req, res) => {
     payment.status = status;
     await payment.save();
 
+    if (payment.status === "confirmed" || payment.status === "failed") {
+      io.to(payment.contractId).emit("paymentStatusChanged", {
+        contractId: payment.contractId,
+        status: payment.status,
+      });
+    }
+
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "Payment status updated successfully",
@@ -153,4 +161,5 @@ module.exports = {
   getManualPayments,
   getByContractId,
   updatePaymentStatus,
+  checkPaymentStatusWebhook,
 };
