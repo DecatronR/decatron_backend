@@ -7,6 +7,8 @@ var app = require("../app");
 var debug = require("debug")("my-express-app:server");
 var http = require("http");
 const { Server } = require("socket.io");
+const socket = require("../utils/socket");
+// const io = socket.setIO(server);
 const Message = require("../models/Message");
 
 /**
@@ -24,7 +26,7 @@ var server = http.createServer(app);
 /**
  * Integrate Socket.io with the server.
  */
-const io = new Server(server, {
+const io = socket.setIO(server, {
   cors: {
     origin: "*", // Allow all origins, adjust in production
     methods: ["GET", "POST"],

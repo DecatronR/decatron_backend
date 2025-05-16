@@ -5,19 +5,16 @@ const {
   getManualPayments,
   getByContractId,
   updatePaymentStatus,
-  checkPaymentStatusWebhook,
 } = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 const { attachUserDetails } = require("../middleware/attachUserDetails");
 const { requireAdmin } = require("../middleware/requireAdmin");
-const { verifyWebhook } = require("../middleware/verifyWebhook");
 
 router.post(
   "/create",
   requireAuth,
   attachUserDetails,
-  requireAdmin,
   [
     body("contractId").notEmpty().withMessage("Contract ID is required"),
     body("accountName").notEmpty().withMessage("Account name is required"),
@@ -55,15 +52,6 @@ router.post(
     body("status").notEmpty().withMessage("Status is required"),
   ],
   updatePaymentStatus
-);
-
-router.post(
-  "/confirmPayment",
-  requireAuth,
-  attachUserDetails,
-  // requireAdmin, // if you want to restrict this to admins only
-  [body("contractId").notEmpty().withMessage("Contract ID is required")],
-  confirmPayment
 );
 
 module.exports = router;
