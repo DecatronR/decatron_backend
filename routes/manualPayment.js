@@ -5,6 +5,7 @@ const {
   getManualPayments,
   getByContractId,
   updatePaymentStatus,
+  getPaymentById,
 } = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -54,4 +55,12 @@ router.post(
   updatePaymentStatus
 );
 
+router.post(
+  "/getPaymentById",
+  requireAuth,
+  attachUserDetails,
+  // requireAdmin,
+  [body("paymentId").notEmpty().withMessage("Payment ID is required")],
+  getPaymentById
+);
 module.exports = router;

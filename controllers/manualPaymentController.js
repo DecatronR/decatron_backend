@@ -136,16 +136,52 @@ const updatePaymentStatus = async (req, res) => {
 
     const io = getIO();
 
+    console.log("Payment status changed:", payment.status);
     if (payment.status === "confirmed" || payment.status === "failed") {
-      io.to(payment.contractId).emit("paymentStatusChanged", {
+      const eventPayload = {
         contractId: payment.contractId,
+        paymentId: payment._id.toString(),
         status: payment.status,
+      };
+
+      io.to(payment.contractId).emit("paymentStatusChanged", eventPayload);
+      io.to(payment.paymentId).emit("paymentStatusChanged", eventPayload);
+    }
+    console.log("paymentId to emit:", payment._id.toString());
+    console.log("contractId to emit:", payment.contractId);
+
+    console.log("Payment status changed:", payment.status);
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "Payment status updated successfully",
+      data: payment,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: `Server error: ${error.message}`,
+    });
+  }
+};
+
+const getPaymentById = async (req, res) => {
+  const { paymentId } = req.params;
+
+  try {
+    const payment = await ManualPayment.findById(paymentId);
+
+    if (!payment) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "Payment record not found",
       });
     }
 
     return res.status(200).json({
       responseCode: 200,
-      responseMessage: "Payment status updated successfully",
+      responseMessage: "Payment fetched successfully",
       data: payment,
     });
   } catch (error) {
@@ -162,4 +198,5 @@ module.exports = {
   getManualPayments,
   getByContractId,
   updatePaymentStatus,
+  getPaymentById,
 };

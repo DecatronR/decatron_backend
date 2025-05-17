@@ -8,7 +8,7 @@ var debug = require("debug")("my-express-app:server");
 var http = require("http");
 const { Server } = require("socket.io");
 const socket = require("../utils/socket");
-// const io = socket.setIO(server);
+const { instrument } = require("@socket.io/admin-ui");
 const Message = require("../models/Message");
 
 /**
@@ -32,6 +32,11 @@ const io = socket.setIO(server, {
     methods: ["GET", "POST"],
   },
 });
+
+// instrument(io, {
+//   auth: false,
+//   mode: "development",
+// });
 
 let agentLocation = null;
 let buyerLocation = null;
@@ -65,6 +70,7 @@ io.on("connection", (socket) => {
   });
 
   // Join both paymentId + contractId rooms
+  console.log("New client for payment room:", socket.id);
   socket.on("joinPaymentRoom", ({ contractId, paymentId }) => {
     if (contractId) {
       socket.join(contractId);
@@ -75,6 +81,7 @@ io.on("connection", (socket) => {
       console.log(`Socket ${socket.id} joined payment room ${paymentId}`);
     }
   });
+
   // Chat Messaging
   console.log("New client connected:", socket.id);
 
@@ -188,5 +195,3 @@ function onListening() {
   debug("Listening on " + bind);
   console.log(`Server is listening on ${bind}`);
 }
-
-module.exports.io = io;
