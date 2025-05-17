@@ -167,7 +167,7 @@ const updatePaymentStatus = async (req, res) => {
 };
 
 const getPaymentById = async (req, res) => {
-  const { paymentId } = req.params;
+  const { paymentId } = req.body;
 
   try {
     const payment = await ManualPayment.findById(paymentId);
