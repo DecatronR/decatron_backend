@@ -4,6 +4,7 @@ const ManualPaymentSchema = new mongoose.Schema({
   userId: {
     type: String,
     required: false,
+    ref: "User",
   },
   userName: {
     type: String,
@@ -42,5 +43,7 @@ const ManualPaymentSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
+
+ManualPaymentSchema.index({ userId: 1, contractId: 1 }, { unique: true });
 
 module.exports = mongoose.model("ManualPayment", ManualPaymentSchema);

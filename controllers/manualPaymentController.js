@@ -52,6 +52,12 @@ const create = async (req, res) => {
       });
     }
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        responseMessage: "Manual payment already exists for this contract.",
+        responseCode: 400,
+      });
+    }
     res
       .status(500)
       .json({ responseCode: 500, responseMessage: `${error.message}` });
@@ -76,37 +82,50 @@ const getManualPayments = async (req, res) => {
   }
 };
 
-const getByContractId = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      responseCode: 400,
-      responseMessage: errors.array(),
-    });
-  }
-
+// Gets all payments for a particular contract
+const getPaymentsByContract = async (req, res) => {
   const { contractId } = req.body;
 
   try {
     const payments = await ManualPayment.find({ contractId });
-
-    if (payments.length === 0) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "No manual payments found for this contract",
-      });
-    }
-
     res.status(200).json({
+      responseMessage: "Payments fetched successfully",
       responseCode: 200,
-      responseMessage: "Manual payments fetched successfully",
       data: payments,
     });
   } catch (error) {
-    res.status(500).json({
-      responseCode: 500,
-      responseMessage: `${error.message}`,
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+  }
+};
+
+// Gets a payment for a particular contract for a particular user
+const getUserPaymentByContract = async (req, res) => {
+  if (!req.user || !req.user.details) {
+    return res
+      .status(401)
+      .json({ responseMessage: "User not authenticated", responseCode: 401 });
+  }
+  const userId = req.user.details._id;
+  const { contractId } = req.body;
+
+  console.log("userId:", userId);
+  console.log("contractId:", contractId);
+
+  try {
+    const payment = await ManualPayment.findOne({ userId, contractId });
+    if (!payment) {
+      return res.status(404).json({
+        responseMessage: "No payment found for this contract.",
+        responseCode: 404,
+      });
+    }
+    res.status(200).json({
+      responseMessage: "Payment fetched successfully",
+      responseCode: 200,
+      data: payment,
     });
+  } catch (error) {
+    res.status(500).json({ responseCode: 500, responseMessage: error.message });
   }
 };
 
@@ -196,7 +215,8 @@ const getPaymentById = async (req, res) => {
 module.exports = {
   create,
   getManualPayments,
-  getByContractId,
+  getPaymentsByContract,
+  getUserPaymentByContract,
   updatePaymentStatus,
   getPaymentById,
 };

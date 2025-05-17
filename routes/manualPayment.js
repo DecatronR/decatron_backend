@@ -3,7 +3,8 @@ const router = express.Router();
 const {
   create,
   getManualPayments,
-  getByContractId,
+  getPaymentsByContract,
+  getUserPaymentByContract,
   updatePaymentStatus,
   getPaymentById,
 } = require("../controllers/manualPaymentController");
@@ -40,7 +41,15 @@ router.post(
   attachUserDetails,
   // requireAdmin,
   [body("contractId").notEmpty().withMessage("Contract ID is required")],
-  getByContractId
+  getPaymentsByContract
+);
+
+router.post(
+  "/getUserPaymentByContract",
+  requireAuth,
+  attachUserDetails,
+  [body("contractId").notEmpty().withMessage("Contract ID is required")],
+  getUserPaymentByContract
 );
 
 router.post(
