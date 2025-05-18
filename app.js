@@ -29,6 +29,7 @@ const contractRouter = require("./routes/contract");
 const messageRouter = require("./routes/message");
 const apiRouter = require("./routes/api");
 const eSignatureRouter = require("./routes/eSignature");
+const manualPaymentRouter = require("./routes/manualPayment");
 
 const app = express();
 
@@ -91,6 +92,7 @@ app.use("/contract", contractRouter);
 app.use("/message", messageRouter);
 app.use("/api", apiRouter);
 app.use("/eSignature", eSignatureRouter);
+app.use("/manualPayment", manualPaymentRouter);
 
 // catch 404 and send response directly (Option 1)
 

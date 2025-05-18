@@ -7,6 +7,8 @@ var app = require("../app");
 var debug = require("debug")("my-express-app:server");
 var http = require("http");
 const { Server } = require("socket.io");
+const socket = require("../utils/socket");
+const { instrument } = require("@socket.io/admin-ui");
 const Message = require("../models/Message");
 
 /**
@@ -24,12 +26,17 @@ var server = http.createServer(app);
 /**
  * Integrate Socket.io with the server.
  */
-const io = new Server(server, {
+const io = socket.setIO(server, {
   cors: {
     origin: "*", // Allow all origins, adjust in production
     methods: ["GET", "POST"],
   },
 });
+
+// instrument(io, {
+//   auth: false,
+//   mode: "development",
+// });
 
 let agentLocation = null;
 let buyerLocation = null;
@@ -60,6 +67,19 @@ io.on("connection", (socket) => {
   // Handle disconnection
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+  });
+
+  // Join both paymentId + contractId rooms
+  console.log("New client for payment room:", socket.id);
+  socket.on("joinPaymentRoom", ({ contractId, paymentId }) => {
+    if (contractId) {
+      socket.join(contractId);
+      console.log(`Socket ${socket.id} joined contract room ${contractId}`);
+    }
+    if (paymentId) {
+      socket.join(paymentId);
+      console.log(`Socket ${socket.id} joined payment room ${paymentId}`);
+    }
   });
 
   // Chat Messaging
