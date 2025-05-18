@@ -114,9 +114,10 @@ const getUserPaymentByContract = async (req, res) => {
   try {
     const payment = await ManualPayment.findOne({ userId, contractId });
     if (!payment) {
-      return res.status(404).json({
+      return res.status(200).json({
         responseMessage: "No payment found for this contract.",
-        responseCode: 404,
+        responseCode: 200,
+        data: payment,
       });
     }
     res.status(200).json({
