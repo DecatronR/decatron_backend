@@ -40,7 +40,7 @@ const checkAndUpdateContractStatus = async (contractId) => {
 
       // Update contract status to active and store the hash
       await Contract.findByIdAndUpdate(contractId, {
-        status: "active",
+        status: "completed",
         documentHash: documentHash,
       });
       return true;
@@ -67,6 +67,7 @@ const createContract = async (req, res) => {
       propertyName,
       ownerId,
       ownerName,
+      ownerEmail,
       propertyPrice,
       propertyLocation,
     } = req.body;
@@ -83,6 +84,7 @@ const createContract = async (req, res) => {
 
     const clientId = req.user.details._id;
     const clientName = req.user.details.name;
+    const clientEmail = req.user.details.email;
 
     console.log("client id: ", clientId);
     console.log("client name: ", clientName);
@@ -90,10 +92,12 @@ const createContract = async (req, res) => {
     const newContract = await Contract.create({
       clientId,
       clientName,
+      clientEmail,
       propertyId,
       propertyName,
       ownerId,
       ownerName,
+      ownerEmail,
       propertyPrice,
       propertyLocation,
       agreement,

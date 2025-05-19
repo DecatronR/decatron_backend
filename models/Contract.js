@@ -10,6 +10,10 @@ const ContractSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  clientEmail: {
+    type: String,
+    required: true,
+  },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "PropertyListing",
@@ -25,6 +29,10 @@ const ContractSchema = new mongoose.Schema({
     required: true,
   },
   ownerName: {
+    type: String,
+    required: true,
+  },
+  ownerEmail: {
     type: String,
     required: true,
   },

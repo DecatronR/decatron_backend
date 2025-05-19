@@ -5,6 +5,7 @@ const generateReceipt = require("../utils/helpers/generatePaymentReceipt");
 const Contract = require("../models/Contract");
 const updateContractStatus = require("../utils/helpers/updateContractStatus");
 const sendPaymentReceipt = require("../utils/emails/sendPaymentReceipt");
+const sendPaymentNotification = require("../utils/emails/sendPaymentNotification");
 const create = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -175,11 +176,16 @@ const updatePaymentStatus = async (req, res) => {
       const receiptPath = await generateReceipt(payment);
       payment.receiptPath = receiptPath;
 
-      await sendPaymentReceipt(payment, receiptPath);
+      // Update associated contract status to 'paid'
+      await updateContractStatus(payment.contractId, "paid");
+
       await payment.save();
 
-      // Update associated contract status to 'paid'
-      updateContractStatus(payment.contractId, "paid");
+      await sendPaymentReceipt(payment, receiptPath);
+      const contract = await Contract.findById(payment.contractId);
+      if (contract) {
+        await sendPaymentNotification(payment, contract);
+      }
     }
 
     return res.status(200).json({
