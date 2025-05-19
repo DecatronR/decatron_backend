@@ -7,6 +7,7 @@ const {
   getUserPaymentByContract,
   updatePaymentStatus,
   getPaymentById,
+  verifyReceiptById,
 } = require("../controllers/manualPaymentController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");

@@ -54,7 +54,8 @@ const generateReceipt = async (payment) => {
     .moveDown(0.5);
 
   // Generate QR Code
-  const qrText = `${frontendUrl}/verify-receipt/${payment._id}`;
+  const qrText = `${frontendUrl}/verify-receipt?paymentId=${payment._id}`;
+
   const qrImageData = await QRCode.toDataURL(qrText);
 
   doc.image(qrImageData, (doc.page.width - 150) / 2, doc.y, {
