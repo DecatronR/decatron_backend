@@ -229,6 +229,33 @@ const getPaymentById = async (req, res) => {
   }
 };
 
+const verifyReceiptById = async (req, res) => {
+  const { paymentId } = req.body;
+
+  try {
+    const payment = await ManualPayment.findById(paymentId);
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: "Receipt not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: payment,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   create,
   getManualPayments,
@@ -236,4 +263,5 @@ module.exports = {
   getUserPaymentByContract,
   updatePaymentStatus,
   getPaymentById,
+  verifyReceiptById,
 };

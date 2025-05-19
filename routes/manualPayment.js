@@ -72,4 +72,11 @@ router.post(
   [body("paymentId").notEmpty().withMessage("Payment ID is required")],
   getPaymentById
 );
+
+router.post(
+  "/verifyReceiptById",
+  [body("paymentId").notEmpty().withMessage("Payment ID is required")],
+  verifyReceiptById
+);
+
 module.exports = router;
