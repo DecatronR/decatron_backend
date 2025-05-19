@@ -38,6 +38,10 @@ const ManualPaymentSchema = new mongoose.Schema({
     type: String,
     default: "pending",
   },
+  receiptPath: {
+    type: String,
+    required: false,
+  },
   createdAt: {
     type: Date,
     default: new Date(),

@@ -29,7 +29,7 @@ router.post(
 
 router.post("/webhook", webhookHandler);
 
-router.get("/verify-payment", (req, res, next) => {
+router.get("/verify-receipt", (req, res, next) => {
   const { paymentReference } = req.query;
 
   if (!paymentReference) {

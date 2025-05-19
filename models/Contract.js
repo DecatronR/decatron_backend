@@ -10,6 +10,10 @@ const ContractSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  clientEmail: {
+    type: String,
+    required: true,
+  },
   propertyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "PropertyListing",
@@ -28,6 +32,10 @@ const ContractSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  ownerEmail: {
+    type: String,
+    required: true,
+  },
   propertyPrice: {
     type: Number,
     required: true,
@@ -38,7 +46,7 @@ const ContractSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "active", "completed", "cancelled"],
+    enum: ["pending", "paid", "completed", "cancelled"],
     default: "pending",
   },
   documentHash: {
