@@ -5,6 +5,17 @@ const {
 
 const router = express.Router();
 
-router.post("/send-notification", sendNotificationController);
+router.post(
+  "/send-notification",
+  [body("requestAgentId").notEmpty().withMessage("Agent ID field is required")],
+  sendNotificationController
+);
+
+router.post(
+  "/agentRequest",
+  requireAuth,
+  [body("requestAgentId").notEmpty().withMessage("Agent ID field is required")],
+  agentRequest
+);
 
 module.exports = router;
