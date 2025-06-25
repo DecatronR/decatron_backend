@@ -3,15 +3,27 @@ const Notification = require("../models/Notification");
 
 // Example controller method to trigger the notification
 const sendNotificationController = async (req, res) => {
-  const { fcmToken, title, body, data } = req.body;
+  const { fcmToken, title, body, data, userId, type, route } = req.body;
 
-  if (!fcmToken || !title || !body) {
+  if (!fcmToken || !title || !body || !userId || !type || !route) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   try {
     await sendPushNotification(fcmToken, title, body, data);
-    return res.status(200).json({ message: "Notification sent successfully" });
+    // Save to DB
+    await Notification.create({
+      userId,
+      title,
+      body,
+      type,
+      route,
+      read: false,
+      createdAt: new Date(),
+    });
+    return res
+      .status(200)
+      .json({ message: "Notification sent and saved successfully" });
   } catch (error) {
     console.error("Error in sending notification:", error);
     return res.status(500).json({ error: "Failed to send notification" });
