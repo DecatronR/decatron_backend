@@ -5,6 +5,7 @@ const {
   getNotifications,
   markAsRead,
 } = require("../controllers/notificationController");
+const { unregisterFcmToken } = require("../controllers/notificationController");
 
 const router = express.Router();
 
@@ -24,5 +25,8 @@ router.get("/", getNotifications);
 
 // PATCH /notifications/:id/read
 router.patch("/:id/read", markAsRead);
+
+// routes/notification.js
+router.post("/unregister-token", unregisterFcmToken);
 
 module.exports = router;

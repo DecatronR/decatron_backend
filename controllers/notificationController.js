@@ -1,5 +1,6 @@
 const sendPushNotification = require("../services/sendNotification");
 const Notification = require("../models/Notification");
+const User = require("../models/User");
 
 // Example controller method to trigger the notification
 const sendNotificationController = async (req, res) => {
@@ -64,8 +65,30 @@ const markAsRead = async (req, res) => {
   }
 };
 
+// POST /notification/unregister-token
+const unregisterFcmToken = async (req, res) => {
+  const { userId, fcmToken } = req.body;
+  if (!userId || !fcmToken) {
+    return res.status(400).json({ error: "userId and fcmToken are required" });
+  }
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: userId, fcmToken },
+      { $unset: { fcmToken: "" } }, // or { fcmToken: null }
+      { new: true }
+    );
+    if (!user) {
+      return res.status(404).json({ error: "User or token not found" });
+    }
+    res.json({ message: "FCM token unregistered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to unregister FCM token" });
+  }
+};
+
 module.exports = {
   sendNotificationController,
   getNotifications,
   markAsRead,
+  unregisterFcmToken,
 };
