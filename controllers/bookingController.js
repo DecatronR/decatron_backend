@@ -10,6 +10,7 @@ const {
 const {
   inspectionScheduledAgent,
 } = require("../utils/emails/inspectionScheduledAgent");
+const agenda = require("../services/agenda");
 
 const createBookingReferral = async (req, res) => {
   const errors = validationResult(req);
@@ -52,7 +53,7 @@ const createBookingReferral = async (req, res) => {
 
     const createNew = await Booking.create({
       userID,
-      agentID:existingAgent._id,
+      agentID: existingAgent._id,
       propertyID,
       bookingDateTime,
     });
@@ -94,6 +95,34 @@ const createBookingReferral = async (req, res) => {
         bookingDateTime,
         createNew._id //bookingId
       );
+
+      // Schedule inspection reminders
+      const inspectionTime = new Date(bookingDateTime);
+      const reminderTimes = [
+        {
+          type: "24h",
+          time: new Date(inspectionTime.getTime() - 24 * 60 * 60 * 1000),
+        },
+        {
+          type: "1h",
+          time: new Date(inspectionTime.getTime() - 1 * 60 * 60 * 1000),
+        },
+        {
+          type: "10m",
+          time: new Date(inspectionTime.getTime() - 10 * 60 * 1000),
+        },
+        { type: "now", time: inspectionTime },
+      ];
+      for (const reminder of reminderTimes) {
+        if (reminder.time > new Date()) {
+          await agenda.schedule(reminder.time, "inspection reminder", {
+            agentFcm: existingAgent.fcmToken,
+            clientFcm: existingUser.fcmToken,
+            propertyTitle: existingProperty.title,
+            reminderType: reminder.type,
+          });
+        }
+      }
 
       return res.status(201).json({
         responseMessage: "Successfully booked an inspection",
@@ -197,6 +226,34 @@ const createBooking = async (req, res) => {
         bookingDateTime,
         createNew._id //bookingId
       );
+
+      // Schedule inspection reminders
+      const inspectionTime = new Date(bookingDateTime);
+      const reminderTimes = [
+        {
+          type: "24h",
+          time: new Date(inspectionTime.getTime() - 24 * 60 * 60 * 1000),
+        },
+        {
+          type: "1h",
+          time: new Date(inspectionTime.getTime() - 1 * 60 * 60 * 1000),
+        },
+        {
+          type: "10m",
+          time: new Date(inspectionTime.getTime() - 10 * 60 * 1000),
+        },
+        { type: "now", time: inspectionTime },
+      ];
+      for (const reminder of reminderTimes) {
+        if (reminder.time > new Date()) {
+          await agenda.schedule(reminder.time, "inspection reminder", {
+            agentFcm: existingAgent.fcmToken,
+            clientFcm: existingUser.fcmToken,
+            propertyTitle: existingProperty.title,
+            reminderType: reminder.type,
+          });
+        }
+      }
 
       return res.status(201).json({
         responseMessage: "Successfully booked an inspection",
@@ -481,5 +538,5 @@ module.exports = {
   deleteBooking,
   getBooking,
   fetchBooking,
-  createBookingReferral
+  createBookingReferral,
 };

@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
 require("./utils/db");
+const agenda = require("./services/agenda");
+require("./jobs/inspectionReminder");
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -119,6 +121,11 @@ app.use(function (err, req, res, next) {
     responseCode: err.status || 500,
     responseMessage: err.message || "Unknown error occurred",
   });
+});
+
+agenda.on("ready", () => {
+  agenda.start();
+  console.log("Agenda started and ready to process jobs.");
 });
 
 module.exports = app;

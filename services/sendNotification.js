@@ -16,3 +16,5 @@ const sendPushNotification = async (fcmToken, title, body) => {
     console.error("Error sending message:", error);
   }
 };
+
+module.exports = sendPushNotification;

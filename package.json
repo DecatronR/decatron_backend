@@ -11,6 +11,7 @@
     "@aws-sdk/credential-providers": "^3.665.0",
     "@mongodb-js/zstd": "^1.2.2",
     "@socket.io/admin-ui": "^0.5.1",
+    "agenda": "^5.0.0",
     "aws4": "^1.13.2",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
