@@ -2,6 +2,8 @@ const express = require("express");
 const { body } = require("express-validator");
 const {
   sendNotificationController,
+  getNotifications,
+  markAsRead,
 } = require("../controllers/notificationController");
 
 const router = express.Router();
@@ -12,8 +14,15 @@ router.post(
     body("fcmToken").notEmpty().withMessage("FCM token is required"),
     body("title").notEmpty().withMessage("Title is required"),
     body("body").notEmpty().withMessage("Body is required"),
+    body("data").optional().isObject().withMessage("Data must be an object"),
   ],
   sendNotificationController
 );
+
+// GET /notifications?userId=...
+router.get("/", getNotifications);
+
+// PATCH /notifications/:id/read
+router.patch("/:id/read", markAsRead);
 
 module.exports = router;
