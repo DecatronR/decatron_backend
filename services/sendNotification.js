@@ -1,11 +1,14 @@
 const admin = require("./firebaseAdmin");
 
-const sendPushNotification = async (fcmToken, title, body) => {
+const sendPushNotification = async (fcmToken, title, body, data = {}) => {
   const message = {
     token: fcmToken,
     notification: {
       title,
       body,
+    },
+    data: {
+      ...data, // e.g., { type: 'inspection', route: '/my-inspections' }
     },
   };
 
