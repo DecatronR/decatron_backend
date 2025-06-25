@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const RatingSchema = new mongoose.Schema({
   rating: { type: Number, required: true },
   reviewerID: { type: String, required: true }, // ID of the user who gave the rating
-  comment: { type: String, required: false },  // Optional comment for the rating
-  createdAt: { type: Date, default: new Date() }
+  comment: { type: String, required: false }, // Optional comment for the rating
+  createdAt: { type: Date, default: new Date() },
 });
 const ninSchema = new mongoose.Schema({
   nin: { type: String, required: true },
@@ -17,7 +17,7 @@ const ninSchema = new mongoose.Schema({
   address: { type: String, required: true },
   lga: { type: String, required: true },
   state: { type: String, required: true },
-  photo: { type: String, required: true }
+  photo: { type: String, required: true },
 });
 
 const UserSchema = new mongoose.Schema({
@@ -44,14 +44,14 @@ const UserSchema = new mongoose.Schema({
     unique: true,
   },
   referrer: {
-    type: String
+    type: String,
   },
   agentReferralCode: {
     type: String,
     unique: true,
   },
   agentReferrer: {
-    type: String
+    type: String,
   },
   role: {
     type: String,
@@ -89,6 +89,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+
+  nin_verified: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+
   password: {
     type: String,
     required: true,
@@ -99,12 +106,12 @@ const UserSchema = new mongoose.Schema({
     default: new Date(),
   },
   ratings: [RatingSchema], // Array of individual ratings
-  nin:[ninSchema],
+  nin: [ninSchema],
   createdAt: {
     type: Date,
     required: true,
     default: new Date(),
-  }
+  },
 });
 
 module.exports = mongoose.model("User", UserSchema);
