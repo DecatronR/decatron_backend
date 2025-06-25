@@ -120,6 +120,9 @@ const createBookingReferral = async (req, res) => {
             clientFcm: existingUser.fcmToken,
             propertyTitle: existingProperty.title,
             reminderType: reminder.type,
+            agentId: existingAgent._id.toString(),
+            userId: existingUser._id.toString(),
+            inspectionId: createNew._id.toString(),
           });
         }
       }
@@ -251,6 +254,9 @@ const createBooking = async (req, res) => {
             clientFcm: existingUser.fcmToken,
             propertyTitle: existingProperty.title,
             reminderType: reminder.type,
+            agentId: existingAgent._id.toString(),
+            userId: existingUser._id.toString(),
+            inspectionId: createNew._id.toString(),
           });
         }
       }
