@@ -7,12 +7,13 @@ const {
   getPropertyRequestsByPhone,
   updatePropertyRequest,
 } = require("../controllers/propertyRequestController");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 // Create a new property request
 router.post("/", createPropertyRequest);
 
 // Fetch all property requests (with filtering, sorting, pagination)
-router.get("/", getAllPropertyRequests);
+router.get("/", requireAuth, getAllPropertyRequests);
 
 // Fetch property requests by userId
 router.get("/user/:userId", getPropertyRequestsByUser);
