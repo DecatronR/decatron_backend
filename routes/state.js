@@ -13,11 +13,7 @@ const { requireAuth } = require("../middleware/authMiddleware");
 router.post(
   "/createState",
   requireAuth,
-  [
-    body("state")
-      .notEmpty()
-      .withMessage("State Name field is required"),
-  ],
+  [body("state").notEmpty().withMessage("State Name field is required")],
   createState
 );
 
@@ -33,14 +29,12 @@ router.post(
   requireAuth,
   [
     body("id").notEmpty().withMessage("State ID field is required"),
-    body("state")
-      .notEmpty()
-      .withMessage("State field is required"),
+    body("state").notEmpty().withMessage("State field is required"),
   ],
   updateState
 );
 
-router.get("/fetchState", requireAuth, fetchState);
+router.get("/fetchState", fetchState);
 router.post(
   "/deleteState",
   requireAuth,
