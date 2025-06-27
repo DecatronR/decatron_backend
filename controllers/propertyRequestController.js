@@ -38,7 +38,13 @@ const getAllPropertyRequests = async (req, res) => {
     ];
     const query = {};
     for (const key of allowedFilters) {
-      if (filters[key]) query[key] = filters[key];
+      if (filters[key]) {
+        if (key === "neighbourhood") {
+          query[key] = { $regex: filters[key], $options: "i" };
+        } else {
+          query[key] = filters[key];
+        }
+      }
     }
     const requests = await PropertyRequest.find(query)
       .sort(sort)
