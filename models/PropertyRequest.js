@@ -15,7 +15,7 @@ const PropertyRequestSchema = new mongoose.Schema({
   neighbourhood: { type: String, required: true },
   note: { type: String },
   source: { type: String, default: "web" }, // e.g., 'web', 'whatsapp'
-  status: { type: String, default: "pending" },
+  status: { type: String, default: "open" },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
