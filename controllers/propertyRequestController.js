@@ -1,10 +1,32 @@
 const PropertyRequest = require("../models/PropertyRequest");
+const User = require("../models/User");
+const {
+  sendPropertyRequestNotification,
+} = require("../utils/emails/propertyRequestNotification");
 
 // Create a new property request
 const createPropertyRequest = async (req, res) => {
   try {
     const data = req.body;
     const request = await PropertyRequest.create(data);
+
+    // Send email notifications to property managers, owners, and caretakers
+    try {
+      const eligibleUsers = await User.find({
+        role: { $in: ["property-manager", "owner", "caretaker"] },
+      });
+
+      for (const user of eligibleUsers) {
+        await sendPropertyRequestNotification(user.email, user.name, request);
+      }
+    } catch (emailError) {
+      console.error(
+        "Error sending property request notifications:",
+        emailError
+      );
+      // Don't fail the request if email sending fails
+    }
+
     res.status(201).json(request);
   } catch (err) {
     res.status(400).json({ error: err.message });

@@ -1,5 +1,9 @@
 const PropertyRequest = require("../models/PropertyRequest");
 const WhatsAppUserState = require("../models/WhatsAppUserState");
+const User = require("../models/User");
+const {
+  sendPropertyRequestNotification,
+} = require("../utils/emails/propertyRequestNotification");
 
 // Helper: Send Twilio WhatsApp reply
 const twilio = require("twilio");
@@ -178,7 +182,7 @@ const whatsappWebhook = async (req, res) => {
     const note = noteArr.join(", ");
     // Get user data from state
     userData = await getUserData(phone);
-    await PropertyRequest.create({
+    const newRequest = await PropertyRequest.create({
       propertyType,
       category,
       budget: Number(budget),
@@ -193,6 +197,27 @@ const whatsappWebhook = async (req, res) => {
       email: userData.email,
       role: userData.role,
     });
+
+    // Send email notifications to property managers, owners, and caretakers
+    try {
+      const eligibleUsers = await User.find({
+        role: { $in: ["property_manager", "owner", "caretaker"] },
+      });
+
+      for (const user of eligibleUsers) {
+        await sendPropertyRequestNotification(
+          user.email,
+          user.name,
+          newRequest
+        );
+      }
+    } catch (emailError) {
+      console.error(
+        "Error sending property request notifications:",
+        emailError
+      );
+      // Don't fail the request if email sending fails
+    }
     await sendWhatsAppReply(
       from,
       `Thank you! Your request has been received. We'll share it with our large network of property developers, managers, and owners. You can follow up or see more properties at decatron.com.ng.`
