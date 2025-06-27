@@ -33,6 +33,7 @@ const apiRouter = require("./routes/api");
 const eSignatureRouter = require("./routes/eSignature");
 const manualPaymentRouter = require("./routes/manualPayment");
 const propertyRequestRouter = require("./routes/propertyRequest");
+const webhookRouter = require("./routes/webhook");
 
 const app = express();
 
@@ -97,6 +98,7 @@ app.use("/api", apiRouter);
 app.use("/eSignature", eSignatureRouter);
 app.use("/manualPayment", manualPaymentRouter);
 app.use("/propertyRequest", propertyRequestRouter);
+app.use("/webhook", webhookRouter);
 
 // catch 404 and send response directly (Option 1)
 
