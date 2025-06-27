@@ -27,12 +27,14 @@ const getAllPropertyRequests = async (req, res) => {
       "status",
       "state",
       "lga",
+      "neighbourhood",
       "category",
       "propertyType",
       "propertyUsage",
       "source",
       "userId",
       "phone",
+      "role",
     ];
     const query = {};
     for (const key of allowedFilters) {

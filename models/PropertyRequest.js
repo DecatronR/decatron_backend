@@ -9,6 +9,7 @@ const PropertyRequestSchema = new mongoose.Schema({
   propertyType: { type: String, required: true },
   propertyUsage: { type: String, required: true },
   budget: { type: Number, required: true },
+  role: { type: String }, // e.g., buyer, agent, etc.
   state: { type: String, required: true },
   lga: { type: String, required: true },
   neighbourhood: { type: String, required: true },
