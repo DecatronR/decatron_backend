@@ -1,7 +1,5 @@
 const PropertyRequest = require("../models/PropertyRequest");
-
-// In-memory state store for demo (use Redis or DB for production)
-const userStates = new Map();
+const WhatsAppUserState = require("../models/WhatsAppUserState");
 
 // Helper: Send Twilio WhatsApp reply
 const twilio = require("twilio");
@@ -18,13 +16,28 @@ async function sendWhatsAppReply(to, body) {
   });
 }
 
+// Helper: Get/set user state in MongoDB
+async function getUserState(phone) {
+  const record = await WhatsAppUserState.findOne({ phone });
+  return record ? record.state : "menu";
+}
+
+async function setUserState(phone, state) {
+  await WhatsAppUserState.findOneAndUpdate(
+    { phone },
+    { state, updatedAt: new Date() },
+    { upsert: true }
+  );
+}
+
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
   const from = req.body.From; // e.g., 'whatsapp:+2348012345678'
+  const phone = from.replace("whatsapp:", "");
   const body = (req.body.Body || "").trim();
 
-  // Get user state
-  let state = userStates.get(from) || "menu";
+  // Get user state from MongoDB
+  let state = await getUserState(phone);
 
   if (/^(hi|hello)$/i.test(body)) {
     state = "menu";
@@ -35,7 +48,7 @@ const whatsappWebhook = async (req, res) => {
       from,
       `Hi! Welcome to Decatron.\nTo make a property request, type 1.\nTo see all recent property requests, type 2.`
     );
-    userStates.set(from, "awaiting_menu_selection");
+    await setUserState(phone, "awaiting_menu_selection");
     return res.sendStatus(200);
   }
 
@@ -45,7 +58,7 @@ const whatsappWebhook = async (req, res) => {
         from,
         `Please enter your property request in the following format:\n[Property Type], [Category], [Budget], [State], [LGA], [Neighbourhood], [Any notes]\nExample: Apartment, Rent, 5000000, Lagos, Ikeja, Ikeja GRA, 2-bedroom, close to mall`
       );
-      userStates.set(from, "awaiting_request_details");
+      await setUserState(phone, "awaiting_request_details");
       return res.sendStatus(200);
     } else if (body === "2") {
       // Optionally, fetch and show recent requests (limit to 3 for brevity)
@@ -63,7 +76,7 @@ const whatsappWebhook = async (req, res) => {
           .join("\n");
         await sendWhatsAppReply(from, `Recent property requests:\n${msg}`);
       }
-      userStates.set(from, "menu");
+      await setUserState(phone, "menu");
       return res.sendStatus(200);
     } else {
       await sendWhatsAppReply(
@@ -103,7 +116,7 @@ const whatsappWebhook = async (req, res) => {
       lga,
       neighbourhood,
       note,
-      phone: from.replace("whatsapp:", ""),
+      phone,
       source: "whatsapp",
       status: "open",
     });
@@ -111,7 +124,7 @@ const whatsappWebhook = async (req, res) => {
       from,
       `Thank you! Your request has been received. We'll share it with our large network of property developers, managers, and owners. You can follow up or see more properties at decatron.com.ng.`
     );
-    userStates.set(from, "menu");
+    await setUserState(phone, "menu");
     return res.sendStatus(200);
   }
 
@@ -120,7 +133,7 @@ const whatsappWebhook = async (req, res) => {
     from,
     `Sorry, I didn't understand that. Please type 'Hello' to start.`
   );
-  userStates.set(from, "menu");
+  await setUserState(phone, "menu");
   res.sendStatus(200);
 };
 
