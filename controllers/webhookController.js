@@ -22,12 +22,17 @@ async function getUserState(phone) {
   return record ? record.state : "menu";
 }
 
-async function setUserState(phone, state) {
+async function setUserState(phone, state, data = {}) {
   await WhatsAppUserState.findOneAndUpdate(
     { phone },
-    { state, updatedAt: new Date() },
+    { state, updatedAt: new Date(), ...data },
     { upsert: true }
   );
+}
+
+async function getUserData(phone) {
+  const record = await WhatsAppUserState.findOne({ phone });
+  return record || {};
 }
 
 // Main webhook handler
@@ -38,6 +43,7 @@ const whatsappWebhook = async (req, res) => {
 
   // Get user state from MongoDB
   let state = await getUserState(phone);
+  let userData = await getUserData(phone);
 
   if (/^(hi|hello)$/i.test(body)) {
     state = "menu";
@@ -48,17 +54,19 @@ const whatsappWebhook = async (req, res) => {
       from,
       `Hi! Welcome to Decatron.\nTo make a property request, type 1.\nTo see all recent property requests, type 2.`
     );
-    await setUserState(phone, "awaiting_menu_selection");
+    await setUserState(phone, "awaiting_menu_selection", {
+      name: "",
+      email: "",
+      role: "",
+      tempRequest: {},
+    });
     return res.sendStatus(200);
   }
 
   if (state === "awaiting_menu_selection") {
     if (body === "1") {
-      await sendWhatsAppReply(
-        from,
-        `Please enter your property request in the following format:\n[Property Type], [Category], [Budget], [State], [LGA], [Neighbourhood], [Any notes]\nExample: Apartment, Rent, 5000000, Lagos, Ikeja, Ikeja GRA, 2-bedroom, close to mall`
-      );
-      await setUserState(phone, "awaiting_request_details");
+      await sendWhatsAppReply(from, `Please enter your full name:`);
+      await setUserState(phone, "awaiting_name");
       return res.sendStatus(200);
     } else if (body === "2") {
       // Optionally, fetch and show recent requests (limit to 3 for brevity)
@@ -87,6 +95,66 @@ const whatsappWebhook = async (req, res) => {
     }
   }
 
+  if (state === "awaiting_name") {
+    if (!body) {
+      await sendWhatsAppReply(
+        from,
+        "Name cannot be empty. Please enter your full name:"
+      );
+      return res.sendStatus(200);
+    }
+    await sendWhatsAppReply(from, "Please enter your email address:");
+    await setUserState(phone, "awaiting_email", { name: body });
+    return res.sendStatus(200);
+  }
+
+  if (state === "awaiting_email") {
+    // Basic email validation
+    if (!/^\S+@\S+\.\S+$/.test(body)) {
+      await sendWhatsAppReply(
+        from,
+        "Invalid email. Please enter a valid email address:"
+      );
+      return res.sendStatus(200);
+    }
+    await sendWhatsAppReply(
+      from,
+      `What best describes you? Reply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
+    );
+    await setUserState(phone, "awaiting_role", { email: body });
+    return res.sendStatus(200);
+  }
+
+  if (state === "awaiting_role") {
+    let role = "";
+    switch (body) {
+      case "1":
+        role = "agent";
+        break;
+      case "2":
+        role = "buyer"; // Store as 'buyer' in DB
+        break;
+      case "3":
+        role = "owner";
+        break;
+      case "4":
+        role = "property manager";
+        break;
+      default:
+        await sendWhatsAppReply(
+          from,
+          `Invalid option. Please reply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
+        );
+        return res.sendStatus(200);
+    }
+    await sendWhatsAppReply(
+      from,
+      `Please enter your property request in the following format:\n[Property Type], [Category], [Budget], [State], [LGA], [Neighbourhood], [Any notes]\nExample: Apartment, Rent, 5000000, Lagos, Ikeja, Ikeja GRA, 2-bedroom, close to mall`
+    );
+    await setUserState(phone, "awaiting_request_details", { role });
+    return res.sendStatus(200);
+  }
+
   if (state === "awaiting_request_details") {
     // Parse request details
     const parts = body.split(",").map((s) => s.trim());
@@ -108,6 +176,8 @@ const whatsappWebhook = async (req, res) => {
       ...noteArr
     ] = parts;
     const note = noteArr.join(", ");
+    // Get user data from state
+    userData = await getUserData(phone);
     await PropertyRequest.create({
       propertyType,
       category,
@@ -119,12 +189,20 @@ const whatsappWebhook = async (req, res) => {
       phone,
       source: "whatsapp",
       status: "open",
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
     });
     await sendWhatsAppReply(
       from,
       `Thank you! Your request has been received. We'll share it with our large network of property developers, managers, and owners. You can follow up or see more properties at decatron.com.ng.`
     );
-    await setUserState(phone, "menu");
+    await setUserState(phone, "menu", {
+      name: "",
+      email: "",
+      role: "",
+      tempRequest: {},
+    });
     return res.sendStatus(200);
   }
 
@@ -133,7 +211,12 @@ const whatsappWebhook = async (req, res) => {
     from,
     `Sorry, I didn't understand that. Please type 'Hello' to start.`
   );
-  await setUserState(phone, "menu");
+  await setUserState(phone, "menu", {
+    name: "",
+    email: "",
+    role: "",
+    tempRequest: {},
+  });
   res.sendStatus(200);
 };
 
