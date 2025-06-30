@@ -21,36 +21,36 @@ agenda.define("inspection reminder", async (job) => {
   switch (reminderType) {
     case "24h":
       body = `Your inspection for ${propertyTitle} is in 24 hours.`;
-      agentRoute = `my-inspections/${agentId}`;
-      clientRoute = `my-inspections/${userId}`;
+      agentRoute = `/my-inspections/${agentId}`;
+      clientRoute = `/my-inspections/${userId}`;
       agentData = { route: agentRoute };
       clientData = { route: clientRoute };
       break;
     case "1h":
       body = `Your inspection for ${propertyTitle} is in 1 hour.`;
-      agentRoute = `my-inspections/${agentId}`;
-      clientRoute = `my-inspections/${userId}`;
+      agentRoute = `/my-inspections/${agentId}`;
+      clientRoute = `/my-inspections/${userId}`;
       agentData = { route: agentRoute };
       clientData = { route: clientRoute };
       break;
     case "10m":
       body = `Your inspection for ${propertyTitle} is in 10 minutes.`;
-      agentRoute = `my-inspections/${agentId}`;
-      clientRoute = `my-inspections/${userId}`;
+      agentRoute = `/my-inspections/${agentId}`;
+      clientRoute = `/my-inspections/${userId}`;
       agentData = { route: agentRoute };
       clientData = { route: clientRoute };
       break;
     case "now":
       body = `Your inspection for ${propertyTitle} starts now!`;
-      agentRoute = `tracking/${inspectionId}`;
-      clientRoute = `tracking/${inspectionId}`;
+      agentRoute = `/tracking/${inspectionId}`;
+      clientRoute = `/tracking/${inspectionId}`;
       agentData = { route: agentRoute };
       clientData = { route: clientRoute };
       break;
     default:
       body = `Your inspection for ${propertyTitle} is coming up.`;
-      agentRoute = `my-inspections/${agentId}`;
-      clientRoute = `my-inspections/${userId}`;
+      agentRoute = `/my-inspections/${agentId}`;
+      clientRoute = `/my-inspections/${userId}`;
       agentData = { route: agentRoute };
       clientData = { route: clientRoute };
   }
