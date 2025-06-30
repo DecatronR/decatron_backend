@@ -26,7 +26,7 @@ const sendPropertyRequestNotification = async (
   const mailOptions = {
     from: "Decatron <no-reply@decatron.com.ng>",
     to: email,
-    subject: "👀 New Property Request on Decatron - Don't Miss This Lead!",
+    subject: "New Property Request on Decatron - Don't Miss This Lead!",
     html: `
         <div style="font-family: Arial, sans-serif; color: #333;">
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
