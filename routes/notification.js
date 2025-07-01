@@ -4,8 +4,11 @@ const {
   sendNotificationController,
   getNotifications,
   markAsRead,
+  deleteNotification,
+  clearAllNotifications,
 } = require("../controllers/notificationController");
 const { unregisterFcmToken } = require("../controllers/notificationController");
+const { requireAuth } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -28,5 +31,11 @@ router.patch("/:id/read", markAsRead);
 
 // routes/notification.js
 router.post("/unregister-token", unregisterFcmToken);
+
+// DELETE /notifications/:id
+router.delete("/:id", requireAuth, deleteNotification);
+
+// DELETE /notifications/clear/:userId
+router.delete("/clear/:userId", requireAuth, clearAllNotifications);
 
 module.exports = router;

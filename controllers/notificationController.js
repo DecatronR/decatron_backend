@@ -86,9 +86,42 @@ const unregisterFcmToken = async (req, res) => {
   }
 };
 
+// DELETE /notifications/:id
+const deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await Notification.findByIdAndDelete(id);
+    if (!notification) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+    res.json({ message: "Notification deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// DELETE /notifications/clear/:userId
+const clearAllNotifications = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+    const result = await Notification.deleteMany({ userId });
+    res.json({
+      message: "All notifications cleared",
+      deletedCount: result.deletedCount,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   sendNotificationController,
   getNotifications,
   markAsRead,
   unregisterFcmToken,
+  deleteNotification,
+  clearAllNotifications,
 };
