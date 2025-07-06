@@ -2,7 +2,7 @@ require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const twilio = require("twilio");
+const axios = require("axios");
 
 function hashPassword(password) {
   const salt = bcrypt.genSaltSync();
@@ -48,22 +48,35 @@ const sendOTPEmail = async (email, otp) => {
 };
 
 const sendWhatsappOTP = async (phoneNo, otp) => {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const twiliowhatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER;
+  const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
+  const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const WHATSAPP_API_VERSION = "v18.0";
+  const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
-  const client = twilio(accountSid, authToken);
   try {
-    const message = await client.messages.create({
-      from: `whatsapp:${twiliowhatsappNumber}`,
-      to: `whatsapp:${phoneNo}`, // Example: whatsapp:+2348012345678
-      body: `Your verification code is: ${otp}. Do not share this code with anyone.`,
-    });
-    console.log(message.sid);
+    const response = await axios.post(
+      WHATSAPP_API_URL,
+      {
+        messaging_product: "whatsapp",
+        to: phoneNo,
+        type: "text",
+        text: {
+          body: `Your verification code is: ${otp}. Do not share this code with anyone.`,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("OTP sent successfully:", response.data);
     return true;
   } catch (error) {
+    console.error("Error sending OTP:", error.response?.data || error.message);
     return false;
-    // res.status(500).json({ error: error.message });
   }
 };
 
@@ -75,12 +88,12 @@ const sendWhatsAppNotification = async ({
   region,
   timestamp,
 }) => {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER;
+  const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
+  const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const WHATSAPP_API_VERSION = "v18.0";
+  const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
   const destinationWhatsapp = process.env.ADMIN_NOTIFICATION_DESTINATION;
 
-  const client = twilio(accountSid, authToken);
   try {
     const formattedTimestamp = new Date(timestamp).toLocaleString("en-US", {
       weekday: "long",
@@ -93,15 +106,28 @@ const sendWhatsAppNotification = async ({
     });
     const message = `You've got a new visitor on Decatron:\nBrowser: ${browser}\nDevice: ${device}\nOS: ${os}\nCountry: ${country}\nRegion: ${region}\nTimestamp: ${timestamp}`;
 
-    await client.messages.create({
-      from: `whatsapp:${whatsappNumber}`,
-      to: `whatsapp:${destinationWhatsapp}`,
-      body: message,
-    });
+    await axios.post(
+      WHATSAPP_API_URL,
+      {
+        messaging_product: "whatsapp",
+        to: destinationWhatsapp,
+        type: "text",
+        text: { body: message },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     console.log("WhatsApp notification sent!");
   } catch (error) {
-    console.error("Error sending WhatsApp notification:", error);
+    console.error(
+      "Error sending WhatsApp notification:",
+      error.response?.data || error.message
+    );
   }
 };
 
