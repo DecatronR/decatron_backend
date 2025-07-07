@@ -400,7 +400,7 @@ const whatsappWebhook = async (req, res) => {
               from,
               `Invalid LGA. Please reply with the number:\n${formatNumberedOptions(
                 lgaOptions
-              )}`
+              )}\n(If you want to start over, type 'restart')`
             );
             // Stay in the same state and let the user try again
             return res.sendStatus(200);
