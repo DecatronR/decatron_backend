@@ -123,6 +123,20 @@ const NEIGHBOURHOOD_EXAMPLES = {
   ],
 };
 
+// Helper to format numbered options
+function formatNumberedOptions(options) {
+  return options.map((opt, idx) => `${idx + 1}. ${opt}`).join("\n");
+}
+
+// Helper to get option by number
+function getOptionByNumber(options, input) {
+  const idx = Number(input) - 1;
+  if (!isNaN(idx) && idx >= 0 && idx < options.length) {
+    return options[idx];
+  }
+  return null;
+}
+
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
   // Log all incoming webhook requests for debugging
@@ -225,115 +239,96 @@ const whatsappWebhook = async (req, res) => {
         }
 
         if (state === "awaiting_role") {
-          let role = "";
-          switch (bodyText) {
-            case "1":
-              role = "agent";
-              break;
-            case "2":
-              role = "buyer";
-              break;
-            case "3":
-              role = "owner";
-              break;
-            case "4":
-              role = "property manager";
-              break;
-            default:
-              await sendWhatsAppReply(
-                from,
-                `Invalid option. Please reply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
-              );
-              return res.sendStatus(200);
-          }
-          await sendWhatsAppReply(
-            from,
-            `Awesome, ${userName}! Step 3 of ${TOTAL_STEPS}: What is the category of the property?\nOptions: ${PROPERTY_CATEGORIES.join(
-              ", "
-            )}`
-          );
-          await setUserState(from, "awaiting_category", { role });
-          return res.sendStatus(200);
-        }
-
-        if (state === "awaiting_category") {
-          if (
-            !PROPERTY_CATEGORIES.map((c) => c.toLowerCase()).includes(
-              bodyText.toLowerCase()
-            )
-          ) {
+          const roleOptions = ["agent", "buyer", "owner", "property manager"];
+          const roleInput = getOptionByNumber(roleOptions, bodyText);
+          if (!roleInput) {
             await sendWhatsAppReply(
               from,
-              `Invalid category. Please reply with one of: ${PROPERTY_CATEGORIES.join(
-                ", "
+              `Invalid option. Please reply with the number:\n${formatNumberedOptions(
+                ["Agent", "Buyer/Renter", "Owner", "Property Manager"]
               )}`
             );
             return res.sendStatus(200);
           }
           await sendWhatsAppReply(
             from,
-            `Great! Step 4 of ${TOTAL_STEPS}: What type of property are you interested in?\nOptions: ${PROPERTY_TYPES.join(
-              ", "
-            )}`
+            `Awesome, ${userName}! Step 3 of ${TOTAL_STEPS}: What is the category of the property?\n${formatNumberedOptions(
+              PROPERTY_CATEGORIES
+            )}\n(Reply with the number)`
+          );
+          await setUserState(from, "awaiting_category", { role: roleInput });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_category") {
+          const categoryInput = getOptionByNumber(
+            PROPERTY_CATEGORIES,
+            bodyText
+          );
+          if (!categoryInput) {
+            await sendWhatsAppReply(
+              from,
+              `Invalid category. Please reply with the number:\n${formatNumberedOptions(
+                PROPERTY_CATEGORIES
+              )}`
+            );
+            return res.sendStatus(200);
+          }
+          await sendWhatsAppReply(
+            from,
+            `Great! Step 4 of ${TOTAL_STEPS}: What type of property are you interested in?\n${formatNumberedOptions(
+              PROPERTY_TYPES
+            )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_property_type", {
-            category: bodyText,
+            category: categoryInput,
           });
           return res.sendStatus(200);
         }
 
         if (state === "awaiting_property_type") {
-          if (
-            !PROPERTY_TYPES.map((t) => t.toLowerCase()).includes(
-              bodyText.toLowerCase()
-            )
-          ) {
+          const propertyTypeInput = getOptionByNumber(PROPERTY_TYPES, bodyText);
+          if (!propertyTypeInput) {
             await sendWhatsAppReply(
               from,
-              `Invalid property type. Please reply with one of: ${PROPERTY_TYPES.join(
-                ", "
+              `Invalid property type. Please reply with the number:\n${formatNumberedOptions(
+                PROPERTY_TYPES
               )}`
             );
             return res.sendStatus(200);
           }
           await sendWhatsAppReply(
             from,
-            `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\nOptions: ${PROPERTY_USAGES.join(
-              ", "
-            )}`
+            `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
+              PROPERTY_USAGES
+            )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_property_usage", {
-            propertyType: bodyText,
+            propertyType: propertyTypeInput,
           });
           return res.sendStatus(200);
         }
 
         if (state === "awaiting_property_usage") {
-          if (
-            !PROPERTY_USAGES.map((u) => u.toLowerCase()).includes(
-              bodyText.toLowerCase()
-            )
-          ) {
+          const propertyUsageInput = getOptionByNumber(
+            PROPERTY_USAGES,
+            bodyText
+          );
+          if (!propertyUsageInput) {
             await sendWhatsAppReply(
               from,
-              `Invalid usage. Please reply with one of: ${PROPERTY_USAGES.join(
-                ", "
+              `Invalid usage. Please reply with the number:\n${formatNumberedOptions(
+                PROPERTY_USAGES
               )}`
             );
             return res.sendStatus(200);
           }
           await sendWhatsAppReply(
             from,
-            `Step 6 of ${TOTAL_STEPS}:
-            What is your budget for this property?
-
-            - If you have a maximum budget, just type the amount (e.g., 5000000).
-            - If you have a range, type both amounts separated by a dash (e.g., 3000000 - 5000000).
-
-            (Tip: If you enter one amount, we’ll use it as your maximum budget.)`
+            `Step 6 of ${TOTAL_STEPS}:§§\nWhat is your budget for this property?\n\n- If you have a maximum budget, just type the amount (e.g., 5000000).\n- If you have a range, type both amounts separated by a dash (e.g., 3000000 - 5000000).\n\n(Tip: If you enter one amount, we'll use it as your maximum budget.)`
           );
           await setUserState(from, "awaiting_budget_range", {
-            propertyUsage: bodyText,
+            propertyUsage: propertyUsageInput,
           });
           return res.sendStatus(200);
         }
@@ -372,25 +367,24 @@ const whatsappWebhook = async (req, res) => {
         }
 
         if (state === "awaiting_state") {
-          if (
-            !STATES.map((s) => s.toLowerCase()).includes(bodyText.toLowerCase())
-          ) {
+          const stateInput = getOptionByNumber(STATES, bodyText);
+          if (!stateInput) {
             await sendWhatsAppReply(
               from,
-              `Invalid state. Please reply with one of: ${STATES.join(", ")}`
+              `Invalid state. Please reply with the number:\n${formatNumberedOptions(
+                STATES
+              )}`
             );
             return res.sendStatus(200);
           }
           // Show LGAs for the selected state
-          const selectedState = STATES.find(
-            (s) => s.toLowerCase() === bodyText.toLowerCase()
-          );
+          const selectedState = stateInput;
           const lgaOptions = LGAS[selectedState] || [];
           await sendWhatsAppReply(
             from,
-            `Great! Step 8 of ${TOTAL_STEPS}: Which Local Government Area (LGA)?\nOptions for ${selectedState}: ${lgaOptions.join(
-              ", "
-            )}`
+            `Great! Step 8 of ${TOTAL_STEPS}: Which Local Government Area (LGA)?\n${formatNumberedOptions(
+              lgaOptions
+            )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_lga", { state: selectedState });
           return res.sendStatus(200);
@@ -400,13 +394,13 @@ const whatsappWebhook = async (req, res) => {
           const userState = await getUserData(from);
           const selectedState = userState.state;
           const lgaOptions = LGAS[selectedState] || [];
-          // Normalize input and options for comparison
-          const normalizedInput = bodyText.trim().toLowerCase();
-          const normalizedLgas = lgaOptions.map((l) => l.trim().toLowerCase());
-          if (!bodyText || !normalizedLgas.includes(normalizedInput)) {
+          const lgaInput = getOptionByNumber(lgaOptions, bodyText);
+          if (!lgaInput) {
             await sendWhatsAppReply(
               from,
-              `Invalid LGA. Please reply with one of: ${lgaOptions.join(", ")}`
+              `Invalid LGA. Please reply with the number:\n${formatNumberedOptions(
+                lgaOptions
+              )}`
             );
             // Stay in the same state and let the user try again
             return res.sendStatus(200);
@@ -420,7 +414,7 @@ const whatsappWebhook = async (req, res) => {
               ", "
             )}`
           );
-          await setUserState(from, "awaiting_neighbourhood", { lga: bodyText });
+          await setUserState(from, "awaiting_neighbourhood", { lga: lgaInput });
           return res.sendStatus(200);
         }
 
