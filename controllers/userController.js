@@ -208,7 +208,7 @@ const rateUser = async (req, res) => {
 
     await user.save();
 
-    res.status(404).json({
+    res.status(200).json({
       responseCode: 200,
       responseMessage: "Rating added successfully",
       ratings: user.ratings,
@@ -397,10 +397,9 @@ const getMyReferrals = async (req, res) => {
       return res.status(200).json({
         responseMessage: "Record Found",
         responseCode: 200,
-        data: userdb
+        data: userdb,
       });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ responseMessage: error.message, responseCode: 500 });
@@ -415,5 +414,5 @@ module.exports = {
   rateUser,
   fetchUserRating,
   userTree,
-  getMyReferrals
+  getMyReferrals,
 };
