@@ -160,6 +160,20 @@ const whatsappWebhook = async (req, res) => {
         let userData = await getUserData(from);
         const userName = userData.name || "there";
 
+        if (/^(restart|start over)$/i.test(bodyText)) {
+          await sendWhatsAppReply(
+            from,
+            `You've chosen to restart the property request process. Let's begin again!\nPlease enter your full name:`
+          );
+          await setUserState(from, "awaiting_name", {
+            name: "",
+            email: "",
+            role: "",
+            tempRequest: {},
+          });
+          return res.sendStatus(200);
+        }
+
         if (/^(hi|hello)$/i.test(bodyText)) {
           state = "menu";
         }
@@ -310,7 +324,13 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Thanks, ${userName}! Step 6 of ${TOTAL_STEPS}: What is your budget or budget range?\n(You can reply with a single number or a range, e.g., 3000000 - 5000000)\nIf you provide only one number, it will be regarded as your maximum budget.`
+            `Step 6 of ${TOTAL_STEPS}:
+            What is your budget for this property?
+
+            - If you have a maximum budget, just type the amount (e.g., 5000000).
+            - If you have a range, type both amounts separated by a dash (e.g., 3000000 - 5000000).
+
+            (Tip: If you enter one amount, we’ll use it as your maximum budget.)`
           );
           await setUserState(from, "awaiting_budget_range", {
             propertyUsage: bodyText,
@@ -380,16 +400,15 @@ const whatsappWebhook = async (req, res) => {
           const userState = await getUserData(from);
           const selectedState = userState.state;
           const lgaOptions = LGAS[selectedState] || [];
-          if (
-            !bodyText ||
-            !lgaOptions
-              .map((l) => l.toLowerCase())
-              .includes(bodyText.toLowerCase())
-          ) {
+          // Normalize input and options for comparison
+          const normalizedInput = bodyText.trim().toLowerCase();
+          const normalizedLgas = lgaOptions.map((l) => l.trim().toLowerCase());
+          if (!bodyText || !normalizedLgas.includes(normalizedInput)) {
             await sendWhatsAppReply(
               from,
               `Invalid LGA. Please reply with one of: ${lgaOptions.join(", ")}`
             );
+            // Stay in the same state and let the user try again
             return res.sendStatus(200);
           }
           // Show neighbourhood examples for the selected state
@@ -397,8 +416,9 @@ const whatsappWebhook = async (req, res) => {
             NEIGHBOURHOOD_EXAMPLES[selectedState] || [];
           await sendWhatsAppReply(
             from,
-            `Thanks! Which neighbourhood?
-Examples for ${selectedState}: ${neighbourhoodExamples.join(", ")}`
+            `Thanks! Which neighbourhood?\nExamples for ${selectedState}: ${neighbourhoodExamples.join(
+              ", "
+            )}`
           );
           await setUserState(from, "awaiting_neighbourhood", { lga: bodyText });
           return res.sendStatus(200);
@@ -470,9 +490,9 @@ Examples for ${selectedState}: ${neighbourhoodExamples.join(", ")}`
             from,
             `Thank you, ${userData.name}! Your request has been received. We'll share it with our network of property developers, managers, and owners.
 
-You can follow up or see more properties at https://decatron.com.ng
+            You can follow up or see more properties at https://decatron.com.ng
 
-If you need help, email us at contact@decatron.com.ng`
+            If you need help, email us at contact@decatron.com.ng`
           );
           await setUserState(from, "menu", {
             name: "",
