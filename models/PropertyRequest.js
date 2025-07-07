@@ -8,7 +8,8 @@ const PropertyRequestSchema = new mongoose.Schema({
   category: { type: String, required: true },
   propertyType: { type: String, required: true },
   propertyUsage: { type: String, required: true },
-  budget: { type: Number, required: true },
+  minBudget: { type: Number },
+  maxBudget: { type: Number },
   role: { type: String }, // e.g., buyer, agent, etc.
   state: { type: String, required: true },
   lga: { type: String, required: true },
