@@ -8,6 +8,17 @@ const {
 const createPropertyRequest = async (req, res) => {
   try {
     const data = req.body;
+    // Support budget range: accept minBudget and maxBudget, fallback to budget if only one value is provided
+    if (data.budget) {
+      // If a single budget is provided, set both minBudget and maxBudget to that value
+      data.minBudget = data.budget;
+      data.maxBudget = data.budget;
+      delete data.budget;
+    }
+    // If minBudget or maxBudget are provided as strings, convert to numbers
+    if (data.minBudget) data.minBudget = Number(data.minBudget);
+    if (data.maxBudget) data.maxBudget = Number(data.maxBudget);
+
     const request = await PropertyRequest.create(data);
 
     // Send email notifications to property managers, owners, and caretakers
@@ -41,6 +52,8 @@ const getAllPropertyRequests = async (req, res) => {
       limit = 20,
       sortBy = "createdAt",
       order = "desc",
+      minBudget,
+      maxBudget,
       ...filters
     } = req.query;
     const sort = { [sortBy]: order === "asc" ? 1 : -1 };
@@ -67,6 +80,17 @@ const getAllPropertyRequests = async (req, res) => {
           query[key] = filters[key];
         }
       }
+    }
+    // Add budget range filtering if provided
+    if (minBudget || maxBudget) {
+      query.$and = [];
+      if (minBudget) {
+        query.$and.push({ maxBudget: { $gte: Number(minBudget) } });
+      }
+      if (maxBudget) {
+        query.$and.push({ minBudget: { $lte: Number(maxBudget) } });
+      }
+      if (query.$and.length === 0) delete query.$and;
     }
     const requests = await PropertyRequest.find(query)
       .sort(sort)

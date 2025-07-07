@@ -61,6 +61,68 @@ async function getUserData(phone) {
   return record || {};
 }
 
+const PROPERTY_CATEGORIES = ["Rent", "Sale", "Shortlet"];
+const PROPERTY_TYPES = [
+  "Fully Detached Duplex",
+  "Semi Detached Duplex",
+  "Terrace Duplex",
+  "Fully Detached Bungalow",
+  "Semi Detached Bungalow",
+  "Apartment",
+  "Mall/Plaza",
+  "Villa",
+  "Estate Land",
+  "Non-Estate Land",
+];
+const PROPERTY_USAGES = ["Residential", "Office Space", "Warehouse", "Shop"];
+const STATES = ["Abuja", "Lagos"];
+const LGAS = {
+  Abuja: ["Abaji", "Abuja Municipal", "Bwari", "Gwagwalada", "Kuje", "Kwali"],
+  Lagos: [
+    "Agege",
+    "Ajeromi-Ifelodun",
+    "Alimosho",
+    "Amuwo-Odofin",
+    "Apapa",
+    "Badagry",
+    "Epe",
+    "Eti-Osa",
+    "Ibeju-Lekki",
+    "Ifako-Ijaiye",
+    "Ikeja",
+    "Ikorodu",
+    "Kosofe",
+    "Lagos Island",
+    "Lagos Mainland",
+    "Mushin",
+    "Ojo",
+    "Oshodi-Isolo",
+    "Shomolu",
+    "Surulere",
+  ],
+};
+// You can expand STATES, and optionally add LGA/Neighbourhood options per state
+
+const TOTAL_STEPS = 8;
+
+// Add neighbourhood examples for each state (more detailed)
+const NEIGHBOURHOOD_EXAMPLES = {
+  Abuja: [
+    "Gwarinpa (e.g., 6th Avenue, 7th Avenue)",
+    "Maitama (e.g., Mississippi St, Amazon St)",
+    "Wuse (e.g., Wuse 2, Wuse Zone 6)",
+    "Asokoro (e.g., Yakubu Gowon Crescent)",
+    "Garki (e.g., Area 11, Area 3)",
+  ],
+  Lagos: [
+    "Ikeja GRA (e.g., Isaac John St, Oduduwa Crescent)",
+    "Lekki Phase 1 (e.g., Admiralty Way, Fola Osibo Rd)",
+    "Victoria Island (e.g., Akin Adesola St, Ahmadu Bello Way)",
+    "Yaba (e.g., Alagomeji, Sabo)",
+    "Surulere (e.g., Bode Thomas St, Ogunlana Dr)",
+  ],
+};
+
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
   // Log all incoming webhook requests for debugging
@@ -96,6 +158,7 @@ const whatsappWebhook = async (req, res) => {
         // Get user state from MongoDB
         let state = await getUserState(from);
         let userData = await getUserData(from);
+        const userName = userData.name || "there";
 
         if (/^(hi|hello)$/i.test(bodyText)) {
           state = "menu";
@@ -104,53 +167,15 @@ const whatsappWebhook = async (req, res) => {
         if (state === "menu") {
           await sendWhatsAppReply(
             from,
-            `Hi! Welcome to Decatron.\nTo make a property request, type 1.\nTo see all recent property requests, type 2.`
+            `Hi! Welcome to Decatron.\nLet's help you make a property request.\nTo begin, please enter your full name:`
           );
-          await setUserState(from, "awaiting_menu_selection", {
+          await setUserState(from, "awaiting_name", {
             name: "",
             email: "",
             role: "",
             tempRequest: {},
           });
           return res.sendStatus(200);
-        }
-
-        if (state === "awaiting_menu_selection") {
-          if (bodyText === "1") {
-            await sendWhatsAppReply(from, `Please enter your full name:`);
-            await setUserState(from, "awaiting_name");
-            return res.sendStatus(200);
-          } else if (bodyText === "2") {
-            // Optionally, fetch and show recent requests (limit to 3 for brevity)
-            const recent = await PropertyRequest.find({ source: "whatsapp" })
-              .sort({ createdAt: -1 })
-              .limit(3);
-            if (recent.length === 0) {
-              await sendWhatsAppReply(
-                from,
-                "No recent property requests found."
-              );
-            } else {
-              const msg = recent
-                .map(
-                  (r) =>
-                    `${r.propertyType}, ${r.category}, ₦${r.budget}, ${r.state}, ${r.lga}, ${r.neighbourhood}`
-                )
-                .join("\n");
-              await sendWhatsAppReply(
-                from,
-                `Recent property requests:\n${msg}`
-              );
-            }
-            await setUserState(from, "menu");
-            return res.sendStatus(200);
-          } else {
-            await sendWhatsAppReply(
-              from,
-              "Invalid option. Please type 1 to make a request or 2 to see recent requests."
-            );
-            return res.sendStatus(200);
-          }
         }
 
         if (state === "awaiting_name") {
@@ -161,13 +186,15 @@ const whatsappWebhook = async (req, res) => {
             );
             return res.sendStatus(200);
           }
-          await sendWhatsAppReply(from, "Please enter your email address:");
+          await sendWhatsAppReply(
+            from,
+            `Thanks, ${bodyText}!\nStep 1 of ${TOTAL_STEPS}: What is your email address?`
+          );
           await setUserState(from, "awaiting_email", { name: bodyText });
           return res.sendStatus(200);
         }
 
         if (state === "awaiting_email") {
-          // Basic email validation
           if (!/^\S+@\S+\.\S+$/.test(bodyText)) {
             await sendWhatsAppReply(
               from,
@@ -177,7 +204,7 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `What best describes you? Reply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
+            `Great! Step 2 of ${TOTAL_STEPS}: What best describes you?\nReply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
           );
           await setUserState(from, "awaiting_role", { email: bodyText });
           return res.sendStatus(200);
@@ -190,7 +217,7 @@ const whatsappWebhook = async (req, res) => {
               role = "agent";
               break;
             case "2":
-              role = "buyer"; // Store as 'buyer' in DB
+              role = "buyer";
               break;
             case "3":
               role = "owner";
@@ -207,42 +234,207 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Please enter your property request in the following format:\n[Property Type], [Category], [Budget], [State], [LGA], [Neighbourhood], [Any notes]\nExample: Apartment, Rent, 5000000, Lagos, Ikeja, Ikeja GRA, 2-bedroom, close to mall`
+            `Awesome, ${userName}! Step 3 of ${TOTAL_STEPS}: What is the category of the property?\nOptions: ${PROPERTY_CATEGORIES.join(
+              ", "
+            )}`
           );
-          await setUserState(from, "awaiting_request_details", { role });
+          await setUserState(from, "awaiting_category", { role });
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_request_details") {
-          // Parse request details
-          const parts = bodyText.split(",").map((s) => s.trim());
-          if (parts.length < 6) {
+        if (state === "awaiting_category") {
+          if (
+            !PROPERTY_CATEGORIES.map((c) => c.toLowerCase()).includes(
+              bodyText.toLowerCase()
+            )
+          ) {
             await sendWhatsAppReply(
               from,
-              "Invalid format. Please use the format: [Property Type], [Category], [Budget], [State], [LGA], [Neighbourhood], [Any notes]"
+              `Invalid category. Please reply with one of: ${PROPERTY_CATEGORIES.join(
+                ", "
+              )}`
             );
             return res.sendStatus(200);
           }
+          await sendWhatsAppReply(
+            from,
+            `Great! Step 4 of ${TOTAL_STEPS}: What type of property are you interested in?\nOptions: ${PROPERTY_TYPES.join(
+              ", "
+            )}`
+          );
+          await setUserState(from, "awaiting_property_type", {
+            category: bodyText,
+          });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_property_type") {
+          if (
+            !PROPERTY_TYPES.map((t) => t.toLowerCase()).includes(
+              bodyText.toLowerCase()
+            )
+          ) {
+            await sendWhatsAppReply(
+              from,
+              `Invalid property type. Please reply with one of: ${PROPERTY_TYPES.join(
+                ", "
+              )}`
+            );
+            return res.sendStatus(200);
+          }
+          await sendWhatsAppReply(
+            from,
+            `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\nOptions: ${PROPERTY_USAGES.join(
+              ", "
+            )}`
+          );
+          await setUserState(from, "awaiting_property_usage", {
+            propertyType: bodyText,
+          });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_property_usage") {
+          if (
+            !PROPERTY_USAGES.map((u) => u.toLowerCase()).includes(
+              bodyText.toLowerCase()
+            )
+          ) {
+            await sendWhatsAppReply(
+              from,
+              `Invalid usage. Please reply with one of: ${PROPERTY_USAGES.join(
+                ", "
+              )}`
+            );
+            return res.sendStatus(200);
+          }
+          await sendWhatsAppReply(
+            from,
+            `Thanks, ${userName}! Step 6 of ${TOTAL_STEPS}: What is your budget or budget range?\n(You can reply with a single number or a range, e.g., 3000000 - 5000000)\nIf you provide only one number, it will be regarded as your maximum budget.`
+          );
+          await setUserState(from, "awaiting_budget_range", {
+            propertyUsage: bodyText,
+          });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_budget_range") {
+          // Parse budget or budget range
+          let minBudget = null;
+          let maxBudget = null;
+          const rangeMatch = bodyText.match(/(\d{3,})(?:\s*-\s*(\d{3,}))?/);
+          if (rangeMatch) {
+            if (rangeMatch[2]) {
+              minBudget = Number(rangeMatch[1]);
+              maxBudget = Number(rangeMatch[2]);
+              if (minBudget > maxBudget) {
+                [minBudget, maxBudget] = [maxBudget, minBudget];
+              }
+            } else {
+              maxBudget = Number(rangeMatch[1]);
+            }
+          }
+          if (!maxBudget) {
+            await sendWhatsAppReply(
+              from,
+              "Invalid budget format. Please reply with a single number (e.g., 5000000) or a range (e.g., 3000000 - 5000000)."
+            );
+            return res.sendStatus(200);
+          }
+          await sendWhatsAppReply(
+            from,
+            `Almost done! Step 7 of ${TOTAL_STEPS}: Which state is the property located in?\nOptions: ${STATES.join(
+              ", "
+            )}`
+          );
+          await setUserState(from, "awaiting_state", { minBudget, maxBudget });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_state") {
+          if (
+            !STATES.map((s) => s.toLowerCase()).includes(bodyText.toLowerCase())
+          ) {
+            await sendWhatsAppReply(
+              from,
+              `Invalid state. Please reply with one of: ${STATES.join(", ")}`
+            );
+            return res.sendStatus(200);
+          }
+          // Show LGAs for the selected state
+          const selectedState = STATES.find(
+            (s) => s.toLowerCase() === bodyText.toLowerCase()
+          );
+          const lgaOptions = LGAS[selectedState] || [];
+          await sendWhatsAppReply(
+            from,
+            `Great! Step 8 of ${TOTAL_STEPS}: Which Local Government Area (LGA)?\nOptions for ${selectedState}: ${lgaOptions.join(
+              ", "
+            )}`
+          );
+          await setUserState(from, "awaiting_lga", { state: selectedState });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_lga") {
+          const userState = await getUserData(from);
+          const selectedState = userState.state;
+          const lgaOptions = LGAS[selectedState] || [];
+          if (
+            !bodyText ||
+            !lgaOptions
+              .map((l) => l.toLowerCase())
+              .includes(bodyText.toLowerCase())
+          ) {
+            await sendWhatsAppReply(
+              from,
+              `Invalid LGA. Please reply with one of: ${lgaOptions.join(", ")}`
+            );
+            return res.sendStatus(200);
+          }
+          // Show neighbourhood examples for the selected state
+          const neighbourhoodExamples =
+            NEIGHBOURHOOD_EXAMPLES[selectedState] || [];
+          await sendWhatsAppReply(
+            from,
+            `Thanks! Which neighbourhood?
+Examples for ${selectedState}: ${neighbourhoodExamples.join(", ")}`
+          );
+          await setUserState(from, "awaiting_neighbourhood", { lga: bodyText });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_neighbourhood") {
+          if (!bodyText) {
+            await sendWhatsAppReply(
+              from,
+              "Neighbourhood cannot be empty. Please enter the neighbourhood:"
+            );
+            return res.sendStatus(200);
+          }
+          await sendWhatsAppReply(
+            from,
+            `Any additional notes or requirements? (You can reply 'none' if not)`
+          );
+          await setUserState(from, "awaiting_notes", {
+            neighbourhood: bodyText,
+          });
+          return res.sendStatus(200);
+        }
+
+        if (state === "awaiting_notes") {
           // Save to DB
-          const [
-            propertyType,
-            category,
-            budget,
-            stateVal,
-            lga,
-            neighbourhood,
-            ...noteArr
-          ] = parts;
-          const note = noteArr.join(", ");
-          // Get user data from state
           userData = await getUserData(from);
+          const note = bodyText.toLowerCase() === "none" ? "" : bodyText;
           const newRequest = await PropertyRequest.create({
-            propertyType,
-            category,
-            budget: Number(budget),
-            state: stateVal,
-            lga,
-            neighbourhood,
+            propertyType: userData.propertyType,
+            category: userData.category,
+            propertyUsage: userData.propertyUsage,
+            minBudget: userData.minBudget,
+            maxBudget: userData.maxBudget,
+            state: userData.state,
+            lga: userData.lga,
+            neighbourhood: userData.neighbourhood,
             note,
             phone: from,
             source: "whatsapp",
@@ -255,7 +447,9 @@ const whatsappWebhook = async (req, res) => {
           // Send email notifications to property managers, owners, and caretakers
           try {
             const eligibleUsers = await User.find({
-              role: { $in: ["property_manager", "owner", "caretaker"] },
+              role: {
+                $in: ["property_manager", "owner", "caretaker", "agent"],
+              },
             });
 
             for (const user of eligibleUsers) {
@@ -274,7 +468,11 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Thank you! Your request has been received. We'll share it with our large network of property developers, managers, and owners. You can follow up or see more properties at decatron.com.ng.`
+            `Thank you, ${userData.name}! Your request has been received. We'll share it with our network of property developers, managers, and owners.
+
+You can follow up or see more properties at https://decatron.com.ng
+
+If you need help, email us at contact@decatron.com.ng`
           );
           await setUserState(from, "menu", {
             name: "",
