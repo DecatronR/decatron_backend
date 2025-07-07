@@ -363,7 +363,7 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Almost done! Step 7 of ${TOTAL_STEPS}: Which state is the property located in?\nOptions: ${STATES.join(
+            `Almost done! Step 7 of ${TOTAL_STEPS}: Which state are you looking for a property in?\nOptions: ${STATES.join(
               ", "
             )}`
           );
