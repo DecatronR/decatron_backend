@@ -63,6 +63,8 @@ async function getUserData(phone) {
 
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
+  // Log all incoming webhook requests for debugging
+  console.log("Incoming webhook:", JSON.stringify(req.body, null, 2));
   // Handle webhook verification
   if (req.method === "GET") {
     const mode = req.query["hub.mode"];
