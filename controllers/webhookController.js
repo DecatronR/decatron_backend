@@ -325,7 +325,7 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Step 6 of ${TOTAL_STEPS}:§§\nWhat is your budget for this property?\n\n- If you have a maximum budget, just type the amount (e.g., 5000000).\n- If you have a range, type both amounts separated by a dash (e.g., 3000000 - 5000000).\n\n(Tip: If you enter one amount, we'll use it as your maximum budget.)`
+            `Step 6 of ${TOTAL_STEPS}:\nWhat is your budget for this property?\n\n- If you have a maximum budget, just type the amount (e.g., 5000000).\n- If you have a range, type both amounts separated by a dash (e.g., 3000000 - 5000000).\n\n(Tip: If you enter one amount, we'll use it as your maximum budget.)`
           );
           await setUserState(from, "awaiting_budget_range", {
             propertyUsage: propertyUsageInput,
@@ -352,15 +352,15 @@ const whatsappWebhook = async (req, res) => {
           if (!maxBudget) {
             await sendWhatsAppReply(
               from,
-              "Invalid budget format. Please reply with a single number (e.g., 5000000) or a range (e.g., 3000000 - 5000000)."
+              `Invalid budget format. Please reply with a single amount (e.g., 5000000) or a range (e.g., 3000000 - 5000000).`
             );
             return res.sendStatus(200);
           }
           await sendWhatsAppReply(
             from,
-            `Almost done! Step 7 of ${TOTAL_STEPS}: Which state are you looking for a property in?\nOptions: ${STATES.join(
-              ", "
-            )}`
+            `Almost done! Step 7 of ${TOTAL_STEPS}: Which state are you looking for a property in?\n${formatNumberedOptions(
+              STATES
+            )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_state", { minBudget, maxBudget });
           return res.sendStatus(200);
