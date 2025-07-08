@@ -18,6 +18,7 @@ const createPropertyRequest = async (req, res) => {
     // If minBudget or maxBudget are provided as strings, convert to numbers
     if (data.minBudget) data.minBudget = Number(data.minBudget);
     if (data.maxBudget) data.maxBudget = Number(data.maxBudget);
+    if (data.bedrooms) data.bedrooms = Number(data.bedrooms);
 
     const request = await PropertyRequest.create(data);
 

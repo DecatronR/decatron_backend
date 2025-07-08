@@ -300,6 +300,54 @@ const whatsappWebhook = async (req, res) => {
             );
             return res.sendStatus(200);
           }
+          // Determine if property type is residential
+          const residentialTypes = [
+            "Fully Detached Duplex",
+            "Semi Detached Duplex",
+            "Terrace Duplex",
+            "Fully Detached Bungalow",
+            "Semi Detached Bungalow",
+            "Apartment",
+            "Villa",
+          ];
+          if (residentialTypes.includes(propertyTypeInput)) {
+            await sendWhatsAppReply(
+              from,
+              `How many bedrooms do you want? (Reply with a number, or type 'skip' if not applicable)`
+            );
+            await setUserState(from, "awaiting_bedrooms", {
+              propertyType: propertyTypeInput,
+            });
+            return res.sendStatus(200);
+          } else {
+            // Non-residential, skip bedrooms
+            await sendWhatsAppReply(
+              from,
+              `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
+                PROPERTY_USAGES
+              )}\n(Reply with the number)`
+            );
+            await setUserState(from, "awaiting_property_usage", {
+              propertyType: propertyTypeInput,
+              bedrooms: null,
+            });
+            return res.sendStatus(200);
+          }
+        }
+
+        if (state === "awaiting_bedrooms") {
+          let bedrooms = null;
+          if (/^skip$/i.test(bodyText)) {
+            bedrooms = null;
+          } else if (/^\d+$/.test(bodyText)) {
+            bedrooms = Number(bodyText);
+          } else {
+            await sendWhatsAppReply(
+              from,
+              `Invalid input. Please reply with a number for bedrooms, or type 'skip' if not applicable.`
+            );
+            return res.sendStatus(200);
+          }
           await sendWhatsAppReply(
             from,
             `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
@@ -307,7 +355,7 @@ const whatsappWebhook = async (req, res) => {
             )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_property_usage", {
-            propertyType: propertyTypeInput,
+            bedrooms,
           });
           return res.sendStatus(200);
         }
@@ -456,6 +504,7 @@ const whatsappWebhook = async (req, res) => {
             state: userData.state,
             lga: userData.lga,
             neighbourhood: userData.neighbourhood,
+            bedrooms: userData.bedrooms,
             note,
             phone: from,
             source: "whatsapp",
