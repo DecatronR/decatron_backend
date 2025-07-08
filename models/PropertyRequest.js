@@ -14,6 +14,7 @@ const PropertyRequestSchema = new mongoose.Schema({
   state: { type: String, required: true },
   lga: { type: String, required: true },
   neighbourhood: { type: String, required: true },
+  bedrooms: { type: Number }, // optional
   note: { type: String },
   source: { type: String, default: "web" }, // e.g., 'web', 'whatsapp'
   status: { type: String, default: "open" }, //open, matched, closed

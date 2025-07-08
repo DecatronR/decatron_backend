@@ -48,12 +48,15 @@ async function getUserState(phone) {
   return record ? record.state : "menu";
 }
 
+// Updated setUserState to merge data
 async function setUserState(phone, state, data = {}) {
-  await WhatsAppUserState.findOneAndUpdate(
-    { phone },
-    { state, updatedAt: new Date(), ...data },
-    { upsert: true }
-  );
+  const existing = (await WhatsAppUserState.findOne({ phone })) || {};
+  // Use _doc to get plain object if Mongoose document
+  const previous = existing._doc || {};
+  const mergedData = { ...previous, ...data, state, updatedAt: new Date() };
+  await WhatsAppUserState.findOneAndUpdate({ phone }, mergedData, {
+    upsert: true,
+  });
 }
 
 async function getUserData(phone) {
@@ -108,18 +111,18 @@ const TOTAL_STEPS = 8;
 // Add neighbourhood examples for each state (more detailed)
 const NEIGHBOURHOOD_EXAMPLES = {
   Abuja: [
-    "Gwarinpa (e.g., 6th Avenue, 7th Avenue)",
-    "Maitama (e.g., Mississippi St, Amazon St)",
-    "Wuse (e.g., Wuse 2, Wuse Zone 6)",
-    "Asokoro (e.g., Yakubu Gowon Crescent)",
-    "Garki (e.g., Area 11, Area 3)",
+    "Gwarinpa, 5th Avenue)",
+    "Wuse 2",
+    "Asokoro",
+    "Garki Area 11, Area 3",
+    "Maitama Amazon St)",
   ],
   Lagos: [
-    "Ikeja GRA (e.g., Isaac John St, Oduduwa Crescent)",
-    "Lekki Phase 1 (e.g., Admiralty Way, Fola Osibo Rd)",
-    "Victoria Island (e.g., Akin Adesola St, Ahmadu Bello Way)",
-    "Yaba (e.g., Alagomeji, Sabo)",
-    "Surulere (e.g., Bode Thomas St, Ogunlana Dr)",
+    "Ikeja GRA, Oduduwa Crescent)",
+    "Lekki Phase 1, Admiralty Way, Fola Osibo Rd",
+    "Victoria Island, Akin Adesola St, Ahmadu Bello Way)",
+    "Yaba",
+    "Surulere, Bode Thomas St",
   ],
 };
 
@@ -297,6 +300,54 @@ const whatsappWebhook = async (req, res) => {
             );
             return res.sendStatus(200);
           }
+          // Determine if property type is residential
+          const residentialTypes = [
+            "Fully Detached Duplex",
+            "Semi Detached Duplex",
+            "Terrace Duplex",
+            "Fully Detached Bungalow",
+            "Semi Detached Bungalow",
+            "Apartment",
+            "Villa",
+          ];
+          if (residentialTypes.includes(propertyTypeInput)) {
+            await sendWhatsAppReply(
+              from,
+              `How many bedrooms do you want? (Reply with a number, or type 'skip' if not applicable)`
+            );
+            await setUserState(from, "awaiting_bedrooms", {
+              propertyType: propertyTypeInput,
+            });
+            return res.sendStatus(200);
+          } else {
+            // Non-residential, skip bedrooms
+            await sendWhatsAppReply(
+              from,
+              `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
+                PROPERTY_USAGES
+              )}\n(Reply with the number)`
+            );
+            await setUserState(from, "awaiting_property_usage", {
+              propertyType: propertyTypeInput,
+              bedrooms: null,
+            });
+            return res.sendStatus(200);
+          }
+        }
+
+        if (state === "awaiting_bedrooms") {
+          let bedrooms = null;
+          if (/^skip$/i.test(bodyText)) {
+            bedrooms = null;
+          } else if (/^\d+$/.test(bodyText)) {
+            bedrooms = Number(bodyText);
+          } else {
+            await sendWhatsAppReply(
+              from,
+              `Invalid input. Please reply with a number for bedrooms, or type 'skip' if not applicable.`
+            );
+            return res.sendStatus(200);
+          }
           await sendWhatsAppReply(
             from,
             `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
@@ -304,7 +355,7 @@ const whatsappWebhook = async (req, res) => {
             )}\n(Reply with the number)`
           );
           await setUserState(from, "awaiting_property_usage", {
-            propertyType: propertyTypeInput,
+            bedrooms,
           });
           return res.sendStatus(200);
         }
@@ -394,6 +445,10 @@ const whatsappWebhook = async (req, res) => {
           const userState = await getUserData(from);
           const selectedState = userState.state;
           const lgaOptions = LGAS[selectedState] || [];
+          // Debug logs for investigation
+          console.log("userState in LGA step:", userState);
+          console.log("selectedState in LGA step:", selectedState);
+          console.log("lgaOptions in LGA step:", lgaOptions);
           const lgaInput = getOptionByNumber(lgaOptions, bodyText);
           if (!lgaInput) {
             await sendWhatsAppReply(
@@ -449,6 +504,7 @@ const whatsappWebhook = async (req, res) => {
             state: userData.state,
             lga: userData.lga,
             neighbourhood: userData.neighbourhood,
+            bedrooms: userData.bedrooms,
             note,
             phone: from,
             source: "whatsapp",
