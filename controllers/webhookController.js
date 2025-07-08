@@ -4,6 +4,7 @@ const User = require("../models/User");
 const {
   sendPropertyRequestNotification,
 } = require("../utils/emails/propertyRequestNotification");
+const { normalizePhoneNumber } = require("../utils/phoneNumberUtils");
 const axios = require("axios");
 
 // WhatsApp Cloud API configuration
@@ -50,16 +51,20 @@ async function getUserStep(phone) {
 
 // Updated setUserState to merge data and use 'step' for flow
 async function setUserState(phone, step, data = {}) {
+  console.log("setUserState called with phone:", phone, "step:", step);
   const existing = (await WhatsAppUserState.findOne({ phone })) || {};
   const previous = existing._doc || {};
   const mergedData = { ...previous, ...data, step, updatedAt: new Date() };
+  console.log("setUserState: saving merged data for phone:", phone, mergedData);
   await WhatsAppUserState.findOneAndUpdate({ phone }, mergedData, {
     upsert: true,
   });
 }
 
 async function getUserData(phone) {
+  console.log("getUserData called with phone:", phone);
   const record = await WhatsAppUserState.findOne({ phone });
+  console.log("getUserData: found record for phone:", phone, record);
   return record || {};
 }
 
@@ -168,8 +173,17 @@ const whatsappWebhook = async (req, res) => {
 
       if (value.messages && value.messages.length > 0) {
         const message = value.messages[0];
-        const from = message.from; // Phone number without 'whatsapp:' prefix
+        const rawFrom = message.from; // Phone number without 'whatsapp:' prefix
+        const from = normalizePhoneNumber(rawFrom); // Normalize the phone number
         const bodyText = (message.text?.body || "").trim();
+
+        // Debug: Log phone number format
+        console.log("=== PHONE NUMBER DEBUG ===");
+        console.log("Raw phone number from WhatsApp:", rawFrom);
+        console.log("Normalized phone number:", from);
+        console.log("Phone number type:", typeof from);
+        console.log("Phone number length:", from.length);
+        console.log("==========================");
 
         // Get user step from MongoDB
         let step = await getUserStep(from);
@@ -185,6 +199,16 @@ const whatsappWebhook = async (req, res) => {
             name: "",
             email: "",
             role: "",
+            category: "",
+            propertyType: "",
+            bedrooms: null,
+            propertyUsage: "",
+            minBudget: null,
+            maxBudget: null,
+            state: "",
+            lga: "",
+            neighbourhood: "",
+            note: "",
             tempRequest: {},
           });
           return res.sendStatus(200);
@@ -203,6 +227,16 @@ const whatsappWebhook = async (req, res) => {
             name: "",
             email: "",
             role: "",
+            category: "",
+            propertyType: "",
+            bedrooms: null,
+            propertyUsage: "",
+            minBudget: null,
+            maxBudget: null,
+            state: "",
+            lga: "",
+            neighbourhood: "",
+            note: "",
             tempRequest: {},
           });
           return res.sendStatus(200);
@@ -505,7 +539,7 @@ const whatsappWebhook = async (req, res) => {
             neighbourhood: userData.neighbourhood,
             bedrooms: userData.bedrooms,
             note,
-            phone: from,
+            phone: from, // This is now the normalized phone number
             source: "whatsapp",
             status: "open",
             name: userData.name,
@@ -561,6 +595,16 @@ const whatsappWebhook = async (req, res) => {
           name: "",
           email: "",
           role: "",
+          category: "",
+          propertyType: "",
+          bedrooms: null,
+          propertyUsage: "",
+          minBudget: null,
+          maxBudget: null,
+          state: "",
+          lga: "",
+          neighbourhood: "",
+          note: "",
           tempRequest: {},
         });
       }
