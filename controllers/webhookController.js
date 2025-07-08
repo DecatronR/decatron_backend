@@ -43,17 +43,16 @@ async function sendWhatsAppReply(to, body) {
 }
 
 // Helper: Get/set user state in MongoDB
-async function getUserState(phone) {
+async function getUserStep(phone) {
   const record = await WhatsAppUserState.findOne({ phone });
-  return record ? record.state : "menu";
+  return record ? record.step : "menu";
 }
 
-// Updated setUserState to merge data
-async function setUserState(phone, state, data = {}) {
+// Updated setUserState to merge data and use 'step' for flow
+async function setUserState(phone, step, data = {}) {
   const existing = (await WhatsAppUserState.findOne({ phone })) || {};
-  // Use _doc to get plain object if Mongoose document
   const previous = existing._doc || {};
-  const mergedData = { ...previous, ...data, state, updatedAt: new Date() };
+  const mergedData = { ...previous, ...data, step, updatedAt: new Date() };
   await WhatsAppUserState.findOneAndUpdate({ phone }, mergedData, {
     upsert: true,
   });
@@ -172,8 +171,8 @@ const whatsappWebhook = async (req, res) => {
         const from = message.from; // Phone number without 'whatsapp:' prefix
         const bodyText = (message.text?.body || "").trim();
 
-        // Get user state from MongoDB
-        let state = await getUserState(from);
+        // Get user step from MongoDB
+        let step = await getUserStep(from);
         let userData = await getUserData(from);
         const userName = userData.name || "there";
 
@@ -192,10 +191,10 @@ const whatsappWebhook = async (req, res) => {
         }
 
         if (/^(hi|hello)$/i.test(bodyText)) {
-          state = "menu";
+          step = "menu";
         }
 
-        if (state === "menu") {
+        if (step === "menu") {
           await sendWhatsAppReply(
             from,
             `Hi! Welcome to Decatron.\nLet's help you make a property request.\nTo begin, please enter your full name:`
@@ -209,7 +208,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_name") {
+        if (step === "awaiting_name") {
           if (!bodyText) {
             await sendWhatsAppReply(
               from,
@@ -225,7 +224,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_email") {
+        if (step === "awaiting_email") {
           if (!/^\S+@\S+\.\S+$/.test(bodyText)) {
             await sendWhatsAppReply(
               from,
@@ -241,7 +240,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_role") {
+        if (step === "awaiting_role") {
           const roleOptions = ["agent", "buyer", "owner", "property manager"];
           const roleInput = getOptionByNumber(roleOptions, bodyText);
           if (!roleInput) {
@@ -263,7 +262,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_category") {
+        if (step === "awaiting_category") {
           const categoryInput = getOptionByNumber(
             PROPERTY_CATEGORIES,
             bodyText
@@ -289,7 +288,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_property_type") {
+        if (step === "awaiting_property_type") {
           const propertyTypeInput = getOptionByNumber(PROPERTY_TYPES, bodyText);
           if (!propertyTypeInput) {
             await sendWhatsAppReply(
@@ -335,7 +334,7 @@ const whatsappWebhook = async (req, res) => {
           }
         }
 
-        if (state === "awaiting_bedrooms") {
+        if (step === "awaiting_bedrooms") {
           let bedrooms = null;
           if (/^skip$/i.test(bodyText)) {
             bedrooms = null;
@@ -360,7 +359,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_property_usage") {
+        if (step === "awaiting_property_usage") {
           const propertyUsageInput = getOptionByNumber(
             PROPERTY_USAGES,
             bodyText
@@ -384,7 +383,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_budget_range") {
+        if (step === "awaiting_budget_range") {
           // Parse budget or budget range
           let minBudget = null;
           let maxBudget = null;
@@ -417,7 +416,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_state") {
+        if (step === "awaiting_state") {
           const stateInput = getOptionByNumber(STATES, bodyText);
           if (!stateInput) {
             await sendWhatsAppReply(
@@ -441,7 +440,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_lga") {
+        if (step === "awaiting_lga") {
           const userState = await getUserData(from);
           const selectedState = userState.state;
           const lgaOptions = LGAS[selectedState] || [];
@@ -473,7 +472,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_neighbourhood") {
+        if (step === "awaiting_neighbourhood") {
           if (!bodyText) {
             await sendWhatsAppReply(
               from,
@@ -491,7 +490,7 @@ const whatsappWebhook = async (req, res) => {
           return res.sendStatus(200);
         }
 
-        if (state === "awaiting_notes") {
+        if (step === "awaiting_notes") {
           // Save to DB
           userData = await getUserData(from);
           const note = bodyText.toLowerCase() === "none" ? "" : bodyText;
