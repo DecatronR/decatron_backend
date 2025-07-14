@@ -50,7 +50,7 @@ async function getUserStep(phone) {
 }
 
 // Updated setUserState to merge data and use 'step' for flow
-async function setUserState(phone, step, data = {}) {
+async function setUserState(phone, step, data = {}, previousStep = null) {
   console.log("setUserState called with phone:", phone, "step:", step);
   const existing = (await WhatsAppUserState.findOne({ phone })) || {};
   const previous = existing._doc || {};
@@ -59,6 +59,7 @@ async function setUserState(phone, step, data = {}) {
   await WhatsAppUserState.findOneAndUpdate({ phone }, mergedData, {
     upsert: true,
   });
+  return previousStep;
 }
 
 async function getUserData(phone) {
@@ -252,29 +253,42 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Thanks, ${bodyText}!\nStep 1 of ${TOTAL_STEPS}: What is your email address?`
+            `Thanks, ${bodyText}!\nStep 1 of ${TOTAL_STEPS}: What is your email address? (Type 0 to go back)`
           );
-          await setUserState(from, "awaiting_email", { name: bodyText });
+          await setUserState(from, "awaiting_email", { name: bodyText }, step);
           return res.sendStatus(200);
         }
 
         if (step === "awaiting_email") {
+          if (bodyText === "0") {
+            await setUserState(from, "awaiting_name", { email: "" }, null);
+            await sendWhatsAppReply(from, "Please enter your full name:");
+            return res.sendStatus(200);
+          }
           if (!/^\S+@\S+\.\S+$/.test(bodyText)) {
             await sendWhatsAppReply(
               from,
-              "Invalid email. Please enter a valid email address:"
+              "Invalid email. Please enter a valid email address: (Type 0 to go back)"
             );
             return res.sendStatus(200);
           }
           await sendWhatsAppReply(
             from,
-            `Great! Step 2 of ${TOTAL_STEPS}: What best describes you?\nReply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager`
+            `Great! Step 2 of ${TOTAL_STEPS}: What best describes you?\nReply with the number:\n1. Agent\n2. Buyer/Renter\n3. Owner\n4. Property Manager\n(Type 0 to go back)`
           );
-          await setUserState(from, "awaiting_role", { email: bodyText });
+          await setUserState(from, "awaiting_role", { email: bodyText }, step);
           return res.sendStatus(200);
         }
 
         if (step === "awaiting_role") {
+          if (bodyText === "0") {
+            await setUserState(from, "awaiting_email", { role: "" }, null);
+            await sendWhatsAppReply(
+              from,
+              `Step 1 of ${TOTAL_STEPS}: What is your email address? (Type 0 to go back)`
+            );
+            return res.sendStatus(200);
+          }
           const roleOptions = ["agent", "buyer", "owner", "property manager"];
           const roleInput = getOptionByNumber(roleOptions, bodyText);
           if (!roleInput) {
@@ -282,7 +296,7 @@ const whatsappWebhook = async (req, res) => {
               from,
               `Invalid option. Please reply with the number:\n${formatNumberedOptions(
                 ["Agent", "Buyer/Renter", "Owner", "Property Manager"]
-              )}`
+              )}\n(Type 0 to go back)`
             );
             return res.sendStatus(200);
           }
@@ -290,13 +304,28 @@ const whatsappWebhook = async (req, res) => {
             from,
             `Awesome, ${userName}! Step 3 of ${TOTAL_STEPS}: What is the category of the property?\n${formatNumberedOptions(
               PROPERTY_CATEGORIES
-            )}\n(Reply with the number)`
+            )}\n(Reply with the number)\n(Type 0 to go back)`
           );
-          await setUserState(from, "awaiting_category", { role: roleInput });
+          await setUserState(
+            from,
+            "awaiting_category",
+            { role: roleInput },
+            step
+          );
           return res.sendStatus(200);
         }
 
         if (step === "awaiting_category") {
+          if (bodyText === "0") {
+            await setUserState(from, "awaiting_role", { category: "" }, null);
+            await sendWhatsAppReply(
+              from,
+              `Step 2 of ${TOTAL_STEPS}: What best describes you?\n${formatNumberedOptions(
+                ["Agent", "Buyer/Renter", "Owner", "Property Manager"]
+              )}\n(Type 0 to go back)`
+            );
+            return res.sendStatus(200);
+          }
           const categoryInput = getOptionByNumber(
             PROPERTY_CATEGORIES,
             bodyText
@@ -306,7 +335,7 @@ const whatsappWebhook = async (req, res) => {
               from,
               `Invalid category. Please reply with the number:\n${formatNumberedOptions(
                 PROPERTY_CATEGORIES
-              )}`
+              )}\n(Type 0 to go back)`
             );
             return res.sendStatus(200);
           }
@@ -314,22 +343,42 @@ const whatsappWebhook = async (req, res) => {
             from,
             `Great! Step 4 of ${TOTAL_STEPS}: What type of property are you interested in?\n${formatNumberedOptions(
               PROPERTY_TYPES
-            )}\n(Reply with the number)`
+            )}\n(Reply with the number)\n(Type 0 to go back)`
           );
-          await setUserState(from, "awaiting_property_type", {
-            category: categoryInput,
-          });
+          await setUserState(
+            from,
+            "awaiting_property_type",
+            {
+              category: categoryInput,
+            },
+            step
+          );
           return res.sendStatus(200);
         }
 
         if (step === "awaiting_property_type") {
+          if (bodyText === "0") {
+            await setUserState(
+              from,
+              "awaiting_category",
+              { propertyType: "" },
+              null
+            );
+            await sendWhatsAppReply(
+              from,
+              `Step 3 of ${TOTAL_STEPS}: What is the category of the property?\n${formatNumberedOptions(
+                PROPERTY_CATEGORIES
+              )}\n(Type 0 to go back)`
+            );
+            return res.sendStatus(200);
+          }
           const propertyTypeInput = getOptionByNumber(PROPERTY_TYPES, bodyText);
           if (!propertyTypeInput) {
             await sendWhatsAppReply(
               from,
               `Invalid property type. Please reply with the number:\n${formatNumberedOptions(
                 PROPERTY_TYPES
-              )}`
+              )}\n(Type 0 to go back)`
             );
             return res.sendStatus(200);
           }
@@ -346,11 +395,16 @@ const whatsappWebhook = async (req, res) => {
           if (residentialTypes.includes(propertyTypeInput)) {
             await sendWhatsAppReply(
               from,
-              `How many bedrooms do you want? (Reply with a number, or type 'skip' if not applicable)`
+              `How many bedrooms do you want? (Reply with a number, or type 'skip' if not applicable)\n(Type 0 to go back)`
             );
-            await setUserState(from, "awaiting_bedrooms", {
-              propertyType: propertyTypeInput,
-            });
+            await setUserState(
+              from,
+              "awaiting_bedrooms",
+              {
+                propertyType: propertyTypeInput,
+              },
+              step
+            );
             return res.sendStatus(200);
           } else {
             // Non-residential, skip bedrooms
@@ -358,12 +412,17 @@ const whatsappWebhook = async (req, res) => {
               from,
               `Thanks! Step 5 of ${TOTAL_STEPS}: What is the intended usage?\n${formatNumberedOptions(
                 PROPERTY_USAGES
-              )}\n(Reply with the number)`
+              )}\n(Reply with the number)\n(Type 0 to go back)`
             );
-            await setUserState(from, "awaiting_property_usage", {
-              propertyType: propertyTypeInput,
-              bedrooms: null,
-            });
+            await setUserState(
+              from,
+              "awaiting_property_usage",
+              {
+                propertyType: propertyTypeInput,
+                bedrooms: null,
+              },
+              step
+            );
             return res.sendStatus(200);
           }
         }
