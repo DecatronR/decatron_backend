@@ -22,10 +22,10 @@ const createPropertyRequest = async (req, res) => {
 
     const request = await PropertyRequest.create(data);
 
-    // Send email notifications to property managers, owners, and caretakers
+    // Send email notifications to property managers, owners, agents, and caretakers
     try {
       const eligibleUsers = await User.find({
-        role: { $in: ["property-manager", "owner", "caretaker"] },
+        role: { $in: ["property-manager", "owner", "caretaker", "agent"] },
       });
 
       for (const user of eligibleUsers) {
