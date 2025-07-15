@@ -7,7 +7,7 @@ const sendPropertyRequestNotification = async (
   propertyRequest
 ) => {
   const frontendUrl = process.env.FRONTEND_URL;
-  const transporter = nodemailer.createTransporter({
+  const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.EMAIL_USER,
@@ -48,7 +48,13 @@ const sendPropertyRequestNotification = async (
               <p><strong>Location:</strong> ${propertyRequest.neighbourhood}, ${
       propertyRequest.lga
     }, ${propertyRequest.state}</p>
-              <p><strong>Budget:</strong> ₦${propertyRequest.budget.toLocaleString()}</p>
+              <p><strong>Budget:</strong> ₦${
+                propertyRequest.minBudget
+                  ? propertyRequest.minBudget.toLocaleString() +
+                    " - ₦" +
+                    propertyRequest.maxBudget.toLocaleString()
+                  : propertyRequest.maxBudget.toLocaleString()
+              }</p>
               ${
                 propertyRequest.note
                   ? `<p><strong>Additional Notes:</strong> ${propertyRequest.note}</p>`
@@ -96,7 +102,11 @@ const sendPropertyRequestNotification = async (
     ],
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("Error sending property request notification email:", err);
+  }
 };
 
 module.exports = {
