@@ -145,6 +145,24 @@ function getOptionByNumber(options, input) {
   return null;
 }
 
+// Helper: Convert number words to numbers (supports one to ten, can be expanded)
+function wordToNumber(word) {
+  const map = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+  };
+  const normalized = word.trim().toLowerCase();
+  return map[normalized] !== undefined ? map[normalized] : null;
+}
+
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
   // Log all incoming webhook requests for debugging
@@ -444,8 +462,16 @@ const whatsappWebhook = async (req, res) => {
             return res.sendStatus(200);
           }
           let bedrooms = null;
-          if (/^\d+$/.test(bodyText)) {
-            bedrooms = Number(bodyText);
+          // Try to convert number word to number if not a digit
+          let input = bodyText;
+          if (!/^\d+$/.test(input)) {
+            const wordNum = wordToNumber(input);
+            if (wordNum !== null) {
+              input = String(wordNum);
+            }
+          }
+          if (/^\d+$/.test(input)) {
+            bedrooms = Number(input);
           } else {
             await sendWhatsAppReply(
               from,
