@@ -395,7 +395,7 @@ const whatsappWebhook = async (req, res) => {
           if (residentialTypes.includes(propertyTypeInput)) {
             await sendWhatsAppReply(
               from,
-              `How many bedrooms do you want? (Reply with a number, or type 'skip' if not applicable)\n(Type 0 to go back)`
+              `How many bedrooms do you want? (Type a number, e.g., 2. This is required.)\n(Type 0 to go back)`
             );
             await setUserState(
               from,
@@ -444,14 +444,12 @@ const whatsappWebhook = async (req, res) => {
             return res.sendStatus(200);
           }
           let bedrooms = null;
-          if (/^skip$/i.test(bodyText)) {
-            bedrooms = null;
-          } else if (/^\d+$/.test(bodyText)) {
+          if (/^\d+$/.test(bodyText)) {
             bedrooms = Number(bodyText);
           } else {
             await sendWhatsAppReply(
               from,
-              `Invalid input. Please reply with a number for bedrooms, or type 'skip' if not applicable. (Type 0 to go back)`
+              `Invalid input. Please reply with a number for bedrooms. (Type 0 to go back)`
             );
             return res.sendStatus(200);
           }
