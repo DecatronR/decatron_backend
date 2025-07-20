@@ -29,8 +29,8 @@ const changePassword = async (req, res) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
   const { password, confirmPassword, email } = req.body;
- 
-  try{
+
+  try {
     if (password !== confirmPassword) {
       return res.status(400).json({
         responseCode: 400,
@@ -41,7 +41,7 @@ const changePassword = async (req, res) => {
     const email_verified_at = new Date();
     const otp = null;
     const updateData = { password: hashedPassword, email_verified_at, otp };
-    
+
     const updatedUser = await User.findOneAndUpdate(
       { email: email },
       updateData,
@@ -55,7 +55,7 @@ const changePassword = async (req, res) => {
         responseMessage: "Password Changed Successfully",
         data: updatedUser,
       });
-    }else{
+    } else {
       return res.status(401).json({
         responseMessage: "An error occurred changing password",
         responseCode: 401,
@@ -359,7 +359,6 @@ const confirmPhoneNo = async (req, res) => {
     });
   }
 
-
   // OTP is correct, proceed with verification
   const phone_no_verified_at = new Date();
   const updatedUser = await User.findOneAndUpdate(
@@ -382,6 +381,87 @@ const confirmPhoneNo = async (req, res) => {
   });
 };
 
+const registerAgent = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+
+  const {
+    name,
+    phone,
+    email,
+    password,
+    role,
+    state,
+    lga,
+    neighborhood,
+    listingType,
+  } = req.body;
+  const hashedPassword = hashPassword(password);
+  try {
+    const existing = await User.findOne({ phone });
+
+    if (existing) {
+      return res.status(409).json({
+        responseCode: 409,
+        responseMessage:
+          "Phone number already exists. kindly provide a different phone number",
+      });
+    }
+    const slug = role.toLowerCase().replace(/\s+/g, "-");
+    const roledb = await Role.findOne({ slug });
+    if (!roledb) {
+      return res.status(404).json({
+        responseMessage: "Role doesnt exist",
+        responseCode: 404,
+      });
+    }
+
+    const otp = generateOTP();
+    // const agentReferralCode = generateReferralCode();
+    // const referralCode = generateReferralCode();
+
+    const newUser = await User.create({
+      name,
+      phone,
+      email,
+      role: slug,
+      phoneOTP,
+      state,
+      lga,
+      neighborhood,
+      listingType,
+      phone_no_verified_at: null,
+      password: hashedPassword,
+    });
+
+    await sendOTPEmail(email, otp);
+
+    const token = createToken(newUser._id);
+    res.cookie("auth_jwt", token, {
+      maxAge: maxAge * 1000,
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: true,
+    });
+    return res.status(201).json({
+      responseMessage:
+        "User created successfully. OTP has been sent to your email for verification.",
+      responseCode: 201,
+      user: newUser._id,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(401).json({
+      responseMessage: "Failed to register user",
+      responseCode: 401,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -390,5 +470,5 @@ module.exports = {
   resendOTP,
   sendWPOTP,
   confirmPhoneNo,
-  changePassword
+  changePassword,
 };

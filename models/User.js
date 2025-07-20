@@ -73,6 +73,22 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  state: {
+    type: String,
+    required: false,
+  },
+  lga: {
+    type: String,
+    required: false,
+  },
+  neighborhood: {
+    type: String,
+    required: false,
+  },
+  listingType: {
+    type: String,
+    required: false,
+  },
   phoneOTP: {
     type: String,
     required: false,
