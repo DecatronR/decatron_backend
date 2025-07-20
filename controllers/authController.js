@@ -69,6 +69,7 @@ const changePassword = async (req, res) => {
     });
   }
 };
+
 const registerUser = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -77,7 +78,7 @@ const registerUser = async (req, res, next) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { name, phone, email, password, role } = req.body;
+  const { name, phone, email, password, role, referrer } = req.body;
   const hashedPassword = hashPassword(password);
   try {
     const existing = await User.findOne({ email });
@@ -99,6 +100,7 @@ const registerUser = async (req, res, next) => {
     }
 
     const otp = generateOTP();
+    const agentReferralCode = generateReferralCode();
     const referralCode = generateReferralCode();
 
     const newUser = await User.create({
@@ -107,7 +109,9 @@ const registerUser = async (req, res, next) => {
       email,
       role: slug,
       otp,
+      agentReferralCode,
       referralCode,
+      referrer,
       email_verified_at: null,
       password: hashedPassword,
     });
@@ -256,7 +260,7 @@ const loginUser = async (req, res) => {
       responseCode: 200,
       user: userdb._id,
       token,
-      referralCode: userdb.referralCode,
+      referralCode: userdb.agentReferralCode,
     });
     //   res.sendStatus(200);
   } else {
@@ -377,6 +381,87 @@ const confirmPhoneNo = async (req, res) => {
   });
 };
 
+const registerAgent = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+
+  const {
+    name,
+    phone,
+    email,
+    password,
+    role,
+    state,
+    lga,
+    neighborhood,
+    listingType,
+  } = req.body;
+  const hashedPassword = hashPassword(password);
+  try {
+    const existing = await User.findOne({ phone });
+
+    if (existing) {
+      return res.status(409).json({
+        responseCode: 409,
+        responseMessage:
+          "Phone number already exists. kindly provide a different phone number",
+      });
+    }
+    const slug = role.toLowerCase().replace(/\s+/g, "-");
+    const roledb = await Role.findOne({ slug });
+    if (!roledb) {
+      return res.status(404).json({
+        responseMessage: "Role doesnt exist",
+        responseCode: 404,
+      });
+    }
+
+    const otp = generateOTP();
+    // const agentReferralCode = generateReferralCode();
+    // const referralCode = generateReferralCode();
+
+    const newUser = await User.create({
+      name,
+      phone,
+      email,
+      role: slug,
+      phoneOTP,
+      state,
+      lga,
+      neighborhood,
+      listingType,
+      phone_no_verified_at: null,
+      password: hashedPassword,
+    });
+
+    await sendOTPEmail(email, otp);
+
+    const token = createToken(newUser._id);
+    res.cookie("auth_jwt", token, {
+      maxAge: maxAge * 1000,
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: true,
+    });
+    return res.status(201).json({
+      responseMessage:
+        "User created successfully. OTP has been sent to your email for verification.",
+      responseCode: 201,
+      user: newUser._id,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(401).json({
+      responseMessage: "Failed to register user",
+      responseCode: 401,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -385,6 +470,5 @@ module.exports = {
   resendOTP,
   sendWPOTP,
   confirmPhoneNo,
-  changePassword,
   changePassword,
 };

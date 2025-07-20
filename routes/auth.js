@@ -1,15 +1,6 @@
 const express = require("express");
 const { body } = require("express-validator");
-const {
-  registerUser,
-  loginUser,
-  logoutUser,
-  confirmOTP,
-  resendOTP,
-  sendWPOTP,
-  changePassword,
-  confirmPhoneNo,
-} = require("../controllers/authController");
+const { registerUser, loginUser, logoutUser,confirmOTP, resendOTP, sendWPOTP, changePassword, confirmPhoneNo } = require("../controllers/authController");
 const router = express.Router();
 
 /* GET home page. */
@@ -33,19 +24,25 @@ router.post(
 );
 router.post(
   "/resendOTP",
-  [body("email").isEmail().withMessage("Invalid email address")],
+  [
+    body("email").isEmail().withMessage("Invalid email address")
+  ],
   resendOTP
 );
 
 router.post(
   "/confirmPhoneNo",
-  [body("id").notEmpty().withMessage("ID field is required")],
+  [
+    body("id").notEmpty().withMessage("ID field is required")
+  ],
   confirmPhoneNo
 );
 
 router.post(
   "/sendWPOTP",
-  [body("phoneNo").notEmpty().withMessage("Phone Number Fields is required")],
+  [
+    body("phoneNo").notEmpty().withMessage("Phone Number Fields is required")
+  ],
   sendWPOTP
 );
 
@@ -53,9 +50,7 @@ router.post(
   "/changePassword",
   [
     body("password").notEmpty().withMessage("Password Fields is required"),
-    body("confirmPassword")
-      .notEmpty()
-      .withMessage("Confirm Password Fields is required"),
+    body("confirmPassword").notEmpty().withMessage("Confirm Password Fields is required"),
     body("email").notEmpty().withMessage("Email Fields is required"),
   ],
   changePassword

@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { verifyNIN } = require("../controllers/apiController");
+const {
+    verifyNIN
+} = require("../controllers/apiController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -13,5 +15,13 @@ router.post(
   [body("lastname").notEmpty().withMessage("Lastname field is required")],
   verifyNIN
 );
+
+// router.post(
+//   "/getMyFavorites",
+//   requireAuth,
+//   [body("userId").notEmpty().withMessage("User ID field is required")],
+//   getMyFavorites
+// );
+
 
 module.exports = router;

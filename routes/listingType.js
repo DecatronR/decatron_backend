@@ -5,19 +5,16 @@ const {
   editListingType,
   updateListingType,
   fetchListingType,
-  deleteListingType,
+  deleteListingType
 } = require("../controllers/listingTypeController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
 
+
 router.post(
   "/createListingType",
   requireAuth,
-  [
-    body("listingType")
-      .notEmpty()
-      .withMessage("Listing Type Name field is required"),
-  ],
+  [body("listingType").notEmpty().withMessage("Listing Type Name field is required")],
   createListingType
 );
 
@@ -40,12 +37,13 @@ router.post(
   updateListingType
 );
 
-router.get("/fetchListingType", fetchListingType);
+router.get("/fetchListingType", requireAuth, fetchListingType);
 router.post(
   "/deleteListingType",
   requireAuth,
   [body("id").notEmpty().withMessage("Listing Type ID field is required")],
   deleteListingType
 );
+
 
 module.exports = router;

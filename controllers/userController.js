@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Role = require("../models/Role");
-const AgencyRequest = require("../models/AgencyRequest");
+const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 const { ObjectId } = require("mongodb");
 const cloudinary = require("cloudinary").v2;
@@ -47,7 +47,7 @@ const editUsers = async (req, res) => {
           email: userdb.email,
           phone: userdb.phone,
           passport: userdb.passport || null,
-          referralCode: userdb.referralCode || null,
+          referralCode: userdb.agentReferralCode || null,
           id: id,
         },
       });
@@ -208,7 +208,7 @@ const rateUser = async (req, res) => {
 
     await user.save();
 
-    res.status(404).json({
+    res.status(200).json({
       responseCode: 200,
       responseMessage: "Rating added successfully",
       ratings: user.ratings,
@@ -368,31 +368,41 @@ const userTree = async (req, res) => {
   }
 };
 
-const updateFcmToken = async (req, res) => {
-  const { userId, fcmToken } = req.body;
-
-  if (!userId || !fcmToken) {
-    return res
-      .status(400)
-      .json({ message: "User ID and FCM token are required" });
-  }
-
+const getMyReferrals = async (req, res) => {
   try {
-    // Find the user and update the FCM token
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { fcmToken },
-      { new: true }
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
     }
 
-    res.status(200).json({ message: "FCM token updated successfully", user });
+    const { referralCode } = req.body;
+
+    // Get the main user
+    const request = await User.findOne({ referralCode });
+    if (!request) {
+      return res.status(404).json({
+        responseMessage: "Referral Code not found",
+        responseCode: 404,
+      });
+    }
+    const userdb = await User.findOne({ referrer: referralCode });
+    if (!userdb) {
+      return res.status(404).json({
+        responseMessage: "Record not found",
+        responseCode: 404,
+      });
+    } else {
+      return res.status(200).json({
+        responseMessage: "Record Found",
+        responseCode: 200,
+        data: userdb,
+      });
+    }
   } catch (error) {
-    console.error("Error updating FCM token:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message, responseCode: 500 });
   }
 };
 
@@ -404,5 +414,5 @@ module.exports = {
   rateUser,
   fetchUserRating,
   userTree,
-  updateFcmToken,
+  getMyReferrals,
 };
