@@ -49,7 +49,7 @@ const PropertyListingSchema = new mongoose.Schema({
   },
   houseNoStreet: {
     type: String,
-    required: true,
+    required: false,
   },
   size: {
     type: String,
@@ -57,23 +57,23 @@ const PropertyListingSchema = new mongoose.Schema({
   },
   propertyDetails: {
     type: String,
-    required: true,
+    required: false,
   },
   livingrooms: {
     type: String,
-    required: true,
+    required: false,
   },
   bedrooms: {
     type: String,
-    required: true,
+    required: false,
   },
   bathrooms: {
     type: String,
-    required: true,
+    required: false,
   },
   parkingSpace: {
     type: String,
-    required: true,
+    required: false,
   },
   price: {
     type: String,
