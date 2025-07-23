@@ -91,25 +91,17 @@ router.post(
     body("neighbourhood")
       .notEmpty()
       .withMessage("neighbourhood field is required"),
-    body("houseNoStreet")
-      .notEmpty()
-      .withMessage("house number and street field is required"),
+    body("houseNoStreet").optional(),
     body("size").optional(),
-    body("propertyDetails")
-      .notEmpty()
-      .withMessage("propertyDetails field is required"),
-    // body("livingrooms")
-    //   .notEmpty()
-    //   .withMessage("NoOfLivingRooms field is required"),
-    body("bedrooms").notEmpty().withMessage("NoOfBedRooms field is required"),
-    body("bathrooms").notEmpty().withMessage("NoOfBathrooms field is required"),
-    // body("parkingSpace")
-    //   .notEmpty()
-    //   .withMessage("NoOfParkingSpace field is required"),
+    body("propertyDetails").optional(),
+    body("livingrooms").optional(),
+    body("bedrooms").optional(),
+    body("bathrooms").optional(),
+    body("parkingSpace").optional(),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("cautionFee").optional(),
-    body("agencyFee").notEmpty().withMessage("please add agency fee"),
+    body("agencyFee").optional(),
     body("latePaymentFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
@@ -177,25 +169,17 @@ router.post(
     body("neighbourhood")
       .notEmpty()
       .withMessage("neighbourhood field is required"),
-    body("houseNoStreet")
-      .notEmpty()
-      .withMessage("house number and street field is required"),
+    body("houseNoStreet").optional(),
     body("size").optional(),
-    body("propertyDetails")
-      .notEmpty()
-      .withMessage("propertyDetails field is required"),
-    body("livingrooms")
-      .notEmpty()
-      .withMessage("NoOfLivingRooms field is required"),
-    body("bedRooms").notEmpty().withMessage("NoOfBedRooms field is required"),
-    body("bathrooms").notEmpty().withMessage("NoOfBathrooms field is required"),
-    body("parkingSpace")
-      .notEmpty()
-      .withMessage("NoOfParkingSpace field is required"),
+    body("propertyDetails").optional(),
+    body("livingrooms").optional(),
+    body("bedRooms").optional(),
+    body("bathrooms").optional(),
+    body("parkingSpace").optional(),
     body("price").notEmpty().withMessage("Price field is required"),
     body("inspectionFee").optional(),
     body("cautionFee").optional(),
-    body("agencyFee").notEmpty().withMessage("please add agency fee"),
+    body("agencyFee").optional(),
     body("latePaymentFee").optional(),
     body("virtualTour").optional(),
     body("video").optional(),
