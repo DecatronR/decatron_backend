@@ -3,16 +3,15 @@
 /**
  * Module dependencies.
  */
-var app = require("../app");
-var debug = require("debug")("my-express-app:server");
-var http = require("http");
+const app = require("../app");
+// import app from "../app.js";
+
+const debug = require("debug")("my-express-app:server");
+const http = require("http");
 const { Server } = require("socket.io");
-<<<<<<< HEAD
 const socket = require("../utils/socket");
 const { instrument } = require("@socket.io/admin-ui");
 const Message = require("../models/Message");
-=======
->>>>>>> referral-system
 
 /**
  * Get port from environment and store in Express.
@@ -29,18 +28,13 @@ var server = http.createServer(app);
 /**
  * Integrate Socket.io with the server.
  */
-<<<<<<< HEAD
 const io = socket.setIO(server, {
-=======
-const io = new Server(server, {
->>>>>>> referral-system
   cors: {
     origin: "*", // Allow all origins, adjust in production
     methods: ["GET", "POST"],
   },
 });
 
-<<<<<<< HEAD
 // instrument(io, {
 //   auth: false,
 //   mode: "development",
@@ -49,10 +43,6 @@ const io = new Server(server, {
 let agentLocation = null;
 let buyerLocation = null;
 const users = {};
-=======
-let agentLocation = null;
-let buyerLocation = null;
->>>>>>> referral-system
 
 // Handle WebSocket connections
 io.on("connection", (socket) => {
@@ -80,7 +70,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
   });
-<<<<<<< HEAD
 
   // Join both paymentId + contractId rooms
   console.log("New client for payment room:", socket.id);
@@ -146,8 +135,6 @@ io.on("connection", (socket) => {
       console.log(`User ${disconnectedUser} disconnected.`);
     }
   });
-=======
->>>>>>> referral-system
 });
 
 /**

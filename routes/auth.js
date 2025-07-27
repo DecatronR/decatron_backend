@@ -1,6 +1,16 @@
 const express = require("express");
 const { body } = require("express-validator");
-const { registerUser, loginUser, logoutUser,confirmOTP, resendOTP, sendWPOTP, changePassword, confirmPhoneNo } = require("../controllers/authController");
+const {
+  registerUser,
+  loginUser,
+  logoutUser,
+  confirmOTP,
+  resendOTP,
+  sendWPOTP,
+  changePassword,
+  confirmPhoneNo,
+  registerAgent,
+} = require("../controllers/authController");
 const router = express.Router();
 
 /* GET home page. */
@@ -24,25 +34,19 @@ router.post(
 );
 router.post(
   "/resendOTP",
-  [
-    body("email").isEmail().withMessage("Invalid email address")
-  ],
+  [body("email").isEmail().withMessage("Invalid email address")],
   resendOTP
 );
 
 router.post(
   "/confirmPhoneNo",
-  [
-    body("id").notEmpty().withMessage("ID field is required")
-  ],
+  [body("id").notEmpty().withMessage("ID field is required")],
   confirmPhoneNo
 );
 
 router.post(
   "/sendWPOTP",
-  [
-    body("phoneNo").notEmpty().withMessage("Phone Number Fields is required")
-  ],
+  [body("phoneNo").notEmpty().withMessage("Phone Number Fields is required")],
   sendWPOTP
 );
 
@@ -50,7 +54,9 @@ router.post(
   "/changePassword",
   [
     body("password").notEmpty().withMessage("Password Fields is required"),
-    body("confirmPassword").notEmpty().withMessage("Confirm Password Fields is required"),
+    body("confirmPassword")
+      .notEmpty()
+      .withMessage("Confirm Password Fields is required"),
     body("email").notEmpty().withMessage("Email Fields is required"),
   ],
   changePassword
@@ -74,6 +80,33 @@ router.post(
     }),
   ],
   registerUser
+);
+router.post(
+  "/registerAgent",
+  [
+    body("name").notEmpty().withMessage("Name field is required"),
+    body("email").isEmail().withMessage("Invalid email address"),
+    body("role").notEmpty().withMessage("Role field is required"),
+    body("phone").isMobilePhone().withMessage("Invalid phone number"),
+    body("state").notEmpty().withMessage("State field is required"),
+    body("lga").notEmpty().withMessage("LGA Field is required"),
+    body("neighborhood")
+      .notEmpty()
+      .withMessage("Neighbourhood field is required"),
+    body("listingType")
+      .notEmpty()
+      .withMessage("Listing Type field is required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+    body("confirmpassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+  ],
+  registerAgent
 );
 
 router.get("/logout", logoutUser);

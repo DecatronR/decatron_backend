@@ -4,12 +4,12 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
-const createError = require("http-errors");
-const express = require("express");
-const path = require("path");
-const cookieParser = require("cookie-parser");
-const logger = require("morgan");
-const cors = require("cors");
+// const createError = require("http-errors");
+// const express = require("express");
+// const path = require("path");
+// const cookieParser = require("cookie-parser");
+// const logger = require("morgan");
+// const cors = require("cors");
 require("./utils/db");
 const agenda = require("./services/agenda");
 require("./jobs/inspectionReminder");
@@ -149,13 +149,13 @@ app.use(function (req, res) {
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-  // Set locals, only providing error in development
+// app.use(function (err, req, res, next) {
+// Set locals, only providing error in development
 app.use(function (err, req, res, next) {
   // Set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
-  res.locals.error = req.app.get("env") === "development" ? err : {};
+  // res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // Send the error response
   res.status(err.status || 500).json({
@@ -170,4 +170,3 @@ agenda.on("ready", () => {
 });
 
 module.exports = app;
-

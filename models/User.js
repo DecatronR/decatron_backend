@@ -74,11 +74,11 @@ const UserSchema = new mongoose.Schema({
     required: false,
   },
   state: {
-    type: String,
+    type: [String],
     required: false,
   },
   lga: {
-    type: String,
+    type: [String],
     required: false,
   },
   neighborhood: {
