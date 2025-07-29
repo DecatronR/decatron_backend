@@ -1,4 +1,5 @@
 const PropertyRequest = require("../models/PropertyRequest");
+
 const WhatsAppUserState = require("../models/WhatsAppUserState");
 const User = require("../models/User");
 const {
@@ -847,4 +848,4 @@ const whatsappWebhook = async (req, res) => {
   }
 };
 
-module.exports = { whatsappWebhook };
+module.exports = { whatsappWebhook, sendWhatsAppReply };

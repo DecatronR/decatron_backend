@@ -9,6 +9,7 @@ const {
   sendWPOTP,
   changePassword,
   confirmPhoneNo,
+  registerAgent,
 } = require("../controllers/authController");
 const router = express.Router();
 
@@ -79,6 +80,33 @@ router.post(
     }),
   ],
   registerUser
+);
+router.post(
+  "/registerAgent",
+  [
+    body("name").notEmpty().withMessage("Name field is required"),
+    body("email").isEmail().withMessage("Invalid email address"),
+    body("role").notEmpty().withMessage("Role field is required"),
+    body("phone").isMobilePhone().withMessage("Invalid phone number"),
+    body("state").notEmpty().withMessage("State field is required"),
+    body("lga").notEmpty().withMessage("LGA Field is required"),
+    body("neighborhood")
+      .notEmpty()
+      .withMessage("Neighbourhood field is required"),
+    body("listingType")
+      .notEmpty()
+      .withMessage("Listing Type field is required"),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+    body("confirmpassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Passwords do not match");
+      }
+      return true;
+    }),
+  ],
+  registerAgent
 );
 
 router.get("/logout", logoutUser);

@@ -1,4 +1,4 @@
-const AgencyRequest = require("../models/AgencyRequest");
+const AgencyRequest = require("../models/agencyRequest");
 const { validationResult } = require("express-validator");
 const User = require("../models/User");
 const Photos = require("../models/Photos");
@@ -73,7 +73,7 @@ const deleteRequest = async (req, res) => {
   }
 };
 
-const agentRequest = async (req, res) => {
+const agentRequest = async (req, res) => { 
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -84,7 +84,7 @@ const agentRequest = async (req, res) => {
 
     const { requestAgentId } = req.body;
     // const id = new ObjectId(requestAgentId);
-    const check = await AgencyRequest.find({ agentId: requestAgentId });
+    const check = await AgencyRequest.find({ agentId:requestAgentId });
     if (!check) {
       return res
         .status(404)
@@ -92,40 +92,37 @@ const agentRequest = async (req, res) => {
     }
 
     const results = await Promise.all(
-      (
-        await AgencyRequest.find({ agentId: requestAgentId })
-      ).map(async (request) => {
-        const getProperty = await PropertyListing.findOne({
-          _id: request.propertyListingId,
-        });
+        (
+          await AgencyRequest.find({ agentId: requestAgentId })
+        ).map(async (request) => {
 
-        const response = {
-          id: request._id,
-          agentId: request.agentId,
-          agentProp: {
-            propertyName: getProperty.title,
-            location: getProperty.neighbourhood,
-          },
-          propertyListingId: request.propertyListingId,
-          status: request.status,
-          ownerId: request.ownerId,
-          createdAt: request.createdAt,
-        };
+            const getProperty = await PropertyListing.findOne({ _id: request.propertyListingId});
+            
+            const response = {
+                id: request._id,
+                agentId: request.agentId,
+                agentProp: { propertyName: getProperty.title, location: getProperty.neighbourhood },
+                propertyListingId: request.propertyListingId,
+                status: request.status,
+                ownerId: request.ownerId,
+                createdAt: request.createdAt,
+            };
+        
 
-        return response;
-      })
-    );
-
+          return response;
+        })
+      );
+      
     return res.status(200).json({
-      responseMessage: "Record Found",
-      responseCode: 200,
-      data: results,
-    });
+        responseMessage: "Record Found",
+        responseCode: 200,
+        data: results
+      });
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
   }
-};
-const ownerRequest = async (req, res) => {
+}
+const ownerRequest = async (req, res) => { 
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -136,122 +133,121 @@ const ownerRequest = async (req, res) => {
 
     const { ownerId } = req.body;
     // const id = new ObjectId(ownerId);
-    const check = await AgencyRequest.find({ ownerId: ownerId });
+    const check = await AgencyRequest.find({ ownerId:ownerId });
     if (!check) {
       return res
         .status(404)
         .json({ responseCode: 404, responseMessage: "No Record found" });
     }
 
-    const results = await Promise.all(
-      (
-        await AgencyRequest.find({ ownerId: ownerId })
-      ).map(async (request) => {
-        const getUser = await User.findOne({ _id: request.agentId });
-        const ratings = getUser.ratings;
-        const totalRatings = ratings.length;
-        const sumOfRatings = ratings.reduce(
-          (acc, curr) => acc + curr.rating,
-          0
-        );
-        const averageRating =
-          totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
-        const getProperty = await PropertyListing.findOne({
-          _id: request.propertyListingId,
-        });
-        const response = {
-          id: request._id,
-          agentId: request.agentId,
-          agentProp: {
-            agentName: getUser.name,
-            rating: parseFloat(averageRating),
-          },
-          propertyListingId: request.propertyListingId,
-          propertyName: getProperty.title,
-          status: request.status,
-          ownerId: request.ownerId,
-          createdAt: request.createdAt,
-        };
+    const results = await Promise.all( 
+        (
+          await AgencyRequest.find({ ownerId:ownerId })
+        ).map(async (request) => {
 
-        return response;
-      })
-    );
+            const getUser = await User.findOne({ _id: request.agentId});
+            const ratings = getUser.ratings;
+            const totalRatings = ratings.length;
+            const sumOfRatings = ratings.reduce((acc, curr) => acc + curr.rating, 0);
+            const averageRating = totalRatings > 0 ? (sumOfRatings / totalRatings).toFixed(1) : 0;
+            const getProperty = await PropertyListing.findOne({ _id: request.propertyListingId});
+            const response = {
+                id: request._id,
+                agentId: request.agentId,
+                agentProp: { agentName: getUser.name, rating: parseFloat(averageRating) },
+                propertyListingId: request.propertyListingId,
+                propertyName: getProperty.title,
+                status: request.status,
+                ownerId: request.ownerId,
+                createdAt: request.createdAt,
+            };
 
+          return response;
+        })
+      );
+      
     return res.status(200).json({
-      responseMessage: "Record Found",
-      responseCode: 200,
-      data: results,
-    });
-  } catch (error) {
-    res.status(500).json({ responseMessage: error.message });
-  }
-};
-const updateStatus = async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res
-        .status(400)
-        .json({ responseCode: 400, responseMessage: errors.array() });
-    }
-
-    const { id, status } = req.body;
-    const objId = new ObjectId(id);
-    const check = await AgencyRequest.find({ _id: objId });
-    if (!check) {
-      return res
-        .status(404)
-        .json({ responseCode: 404, responseMessage: "No Record found" });
-    }
-    const Data = { status };
-    const updated = await AgencyRequest.findOneAndUpdate({ _id: id }, Data, {
-      new: true,
-    });
-    if (!updated) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "Recoed with ID not found",
+        responseMessage: "Record Found",
+        responseCode: 200,
+        data: results
       });
-    }
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Status updated successfully",
-    });
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
   }
-};
+}
+const updateStatus = async (req, res) => {
+  try{
+    const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({ responseCode: 400, responseMessage: errors.array() });
+      }
+
+      const { id,status } = req.body;
+      const objId = new ObjectId(id);
+      const check = await AgencyRequest.find({ _id:objId });
+      if (!check) {
+        return res
+          .status(404)
+          .json({ responseCode: 404, responseMessage: "No Record found" });
+      }
+          const Data = { status };
+          const updated = await AgencyRequest.findOneAndUpdate({ _id: id }, Data, {
+            new: true,
+          });
+          if (!updated) {
+            return res
+              .status(404)
+              .json({
+                responseCode: 404,
+                responseMessage: "Recoed with ID not found",
+              });
+          }
+          return res.status(200).json({
+            responseCode: 200,
+            responseMessage: "Status updated successfully",
+           
+          });
+
+    } catch (error) {
+      res.status(500).json({ responseMessage: error.message });
+    }
+}
 
 const agencyPropertyStatus = async (req, res) => {
-  try {
+  try{
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res
-        .status(400)
-        .json({ responseCode: 400, responseMessage: errors.array() });
-    }
+      if (!errors.isEmpty()) {
+        return res
+          .status(400)
+          .json({ responseCode: 400, responseMessage: errors.array() });
+      }
 
-    const { propertyListingId, agentId } = req.body;
+      const { propertyListingId, agentId } = req.body;
 
-    const getRecord = await AgencyRequest.find({ propertyListingId, agentId });
-    if (!getRecord) {
-      return res.status(404).json({
-        responseCode: 404,
-        responseMessage: "Recoed with ID not found",
-      });
-    }
-    return res.status(200).json({
-      responseCode: 200,
-      responseMessage: "Record found",
-      data: getRecord.status,
-    });
+      const getRecord = await AgencyRequest.find({ propertyListingId,  agentId});
+          if (!getRecord) {
+            return res
+              .status(404)
+              .json({
+                responseCode: 404,
+                responseMessage: "Recoed with ID not found",
+              });
+          }
+          return res.status(200).json({
+            responseCode: 200,
+            responseMessage: "Record found",
+            data:getRecord.status
+          });
+
   } catch (error) {
     res.status(500).json({ responseMessage: error.message });
   }
-};
+}
 
 const getAcceptedProperties = async (req, res) => {
-  try {
+  try{
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res
@@ -259,31 +255,27 @@ const getAcceptedProperties = async (req, res) => {
         .json({ responseCode: 400, responseMessage: errors.array() });
     }
     const { agentId } = req.body;
-    const records = await Promise.all(
-      (
-        await AgencyRequest.find({ agentId })
-      ).map(async (req) => {
-        const property = await PropertyListing.findOne({
-          _id: req.propertyListingId,
+      const records = await Promise.all(
+        (
+          await AgencyRequest.find({ agentId})
+        ).map(async (req) => {
+
+          const property = await PropertyListing.findOne({ _id: req.propertyListingId });
+          const photo = await Photos.find({ propertyListingId: req.propertyListingId });
+          return {
+            property: property,
+            photo
+          }
+        }));
+        return res.status(200).json({
+          responseMessage: "Record Found",
+          responseCode: 200,
+          data: records, // Now returning a single object instead of an array
         });
-        const photo = await Photos.find({
-          propertyListingId: req.propertyListingId,
-        });
-        return {
-          property: property,
-          photo,
-        };
-      })
-    );
-    return res.status(200).json({
-      responseMessage: "Record Found",
-      responseCode: 200,
-      data: records, // Now returning a single object instead of an array
-    });
   } catch (error) {
     res.status(400).json({ responseCode: 400, responseMessage: error.message });
   }
-};
+}
 
 module.exports = {
   create,
@@ -292,5 +284,5 @@ module.exports = {
   ownerRequest,
   updateStatus,
   agencyPropertyStatus,
-  getAcceptedProperties,
+  getAcceptedProperties
 };

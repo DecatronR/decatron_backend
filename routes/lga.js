@@ -36,7 +36,7 @@ router.post(
   updateLGA
 );
 
-router.get("/fetchLGA", fetchLGA);
+router.get("/fetchLGA", requireAuth, fetchLGA);
 router.post(
   "/deleteLGA",
   requireAuth,

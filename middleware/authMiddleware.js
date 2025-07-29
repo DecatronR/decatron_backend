@@ -19,8 +19,6 @@ const requireAuth = (req, res, next) => {
         });
       } else {
         console.log(decodedToken);
-        req.user = decodedToken;
-        console.log("User: ", req.user);
         next(); // Proceed to the next middleware or route handler
       }
     });
@@ -29,30 +27,6 @@ const requireAuth = (req, res, next) => {
       responseMessage: "Kindly Login to access this application's facilities",
       responseCode: 403,
     });
-  }
-};
-
-// optional auth middleware
-const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-  console.log(token);
-
-  if (token) {
-    jwt.verify(token, secretKey, (err, decodedToken) => {
-      if (err) {
-        console.log(err.message);
-        req.user = null;
-        return next();
-      } else {
-        req.user = decodedToken;
-        console.log("User: ", req.user);
-        next();
-      }
-    });
-  } else {
-    req.user = null;
-    return next();
   }
 };
 
@@ -77,8 +51,31 @@ const checkUser = (req, res, next) => {
   }
 };
 
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  console.log(token);
+
+  if (token) {
+    jwt.verify(token, secretKey, (err, decodedToken) => {
+      if (err) {
+        console.log(err.message);
+        req.user = null;
+        return next();
+      } else {
+        req.user = decodedToken;
+        console.log("User: ", req.user);
+        next();
+      }
+    });
+  } else {
+    req.user = null;
+    return next();
+  }
+};
+
 function generateReferralCode(userId) {
   return Buffer.from(userId.toString()).toString("hex").toUpperCase();
 }
 
-module.exports = { requireAuth, optionalAuth, checkUser };
+module.exports = { requireAuth, checkUser, optionalAuth };

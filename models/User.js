@@ -17,7 +17,7 @@ const ninSchema = new mongoose.Schema({
   address: { type: String, required: true },
   lga: { type: String, required: true },
   state: { type: String, required: true },
-  photo: { type: String, required: true }
+  photo: { type: String, required: true },
 });
 
 const UserSchema = new mongoose.Schema({
@@ -46,6 +46,13 @@ const UserSchema = new mongoose.Schema({
   referrer: {
     type: String,
   },
+  agentReferralCode: {
+    type: String,
+    unique: true,
+  },
+  agentReferrer: {
+    type: String,
+  },
   role: {
     type: String,
     required: true,
@@ -66,6 +73,22 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  state: {
+    type: [String],
+    required: false,
+  },
+  lga: {
+    type: [String],
+    required: false,
+  },
+  neighborhood: {
+    type: String,
+    required: false,
+  },
+  listingType: {
+    type: String,
+    required: false,
+  },
   phoneOTP: {
     type: String,
     required: false,
@@ -82,13 +105,16 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+
+  nin_verified: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+
   password: {
     type: String,
     required: true,
-  },
-  fcmToken: {
-    type: String,
-    required: false,
   },
   createdAt: {
     type: Date,
@@ -96,7 +122,7 @@ const UserSchema = new mongoose.Schema({
     default: new Date(),
   },
   ratings: [RatingSchema], // Array of individual ratings
-  nin:[ninSchema],
+  nin: [ninSchema],
   createdAt: {
     type: Date,
     required: true,

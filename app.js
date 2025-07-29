@@ -4,6 +4,12 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
+// const createError = require("http-errors");
+// const express = require("express");
+// const path = require("path");
+// const cookieParser = require("cookie-parser");
+// const logger = require("morgan");
+// const cors = require("cors");
 require("./utils/db");
 const agenda = require("./services/agenda");
 require("./jobs/inspectionReminder");
@@ -38,7 +44,24 @@ const webhookRouter = require("./routes/webhook");
 const app = express();
 
 // CORS options
+// CORS options
 const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://decatron-dashboard.vercel.app",
+      "https://decatron360.vercel.app",
+      "https://www.decatron.com.ng",
+    ];
+    // Allow requests from Postman (without an origin)
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS"));
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+  credentials: true,
   origin: (origin, callback) => {
     const allowedOrigins = [
       "http://localhost:3000",
@@ -59,7 +82,14 @@ const corsOptions = {
 
 // Enable CORS for all routes
 app.use(cors(corsOptions));
+// Enable CORS for all routes
+app.use(cors(corsOptions));
 
+// Serve static files from the uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// View engine setup
+app.set("views", path.join(__dirname, "views"));
 // Serve static files from the uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
@@ -68,11 +98,15 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 app.use(logger("dev"));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
+app.use("/", indexRouter);
+app.use("/users", usersRouter);
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
@@ -115,10 +149,13 @@ app.use(function (req, res) {
 });
 
 // error handler
+// app.use(function (err, req, res, next) {
+// Set locals, only providing error in development
 app.use(function (err, req, res, next) {
   // Set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
+  // res.locals.error = req.app.get("env") === "development" ? err : {};
 
   // Send the error response
   res.status(err.status || 500).json({

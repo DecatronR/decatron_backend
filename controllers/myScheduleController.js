@@ -194,7 +194,7 @@ const fetchReferralSchedule = async (req, res) => {
         .json({ responseCode: 400, responseMessage: errors.array() });
     }
     const { referralCode } = req.body;
-    const existingAgent = await User.findOne({ referralCode: referralCode });
+    const existingAgent = await User.findOne({ agentReferralCode: referralCode });
         if (!existingAgent) {
           return res.status(404).json({
             responseMessage: "Agent doesn't exist",

@@ -29,6 +29,8 @@ Thumbs.db
 
 /uploads/
 
+/uploads/
+
 # Ignore any other files or directories specific to your project
 .qodo
 
@@ -36,3 +38,4 @@ Thumbs.db
 /config/firebase-config.json
 /config/serviceAccountKey.json
 
+.qodo
