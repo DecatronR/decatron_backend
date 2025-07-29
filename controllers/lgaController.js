@@ -26,7 +26,7 @@ const createLGA = async (req, res) => {
     const createNew = await LGA.create({
       stateId,
       slug,
-      lga
+      lga,
     });
     // return res.send(propertyType);
     if (createNew) {
@@ -77,7 +77,7 @@ const editLGA = async (req, res) => {
           id: checkDb._id,
           slug: checkDb.slug,
           lga: checkDb.lga,
-          stateId: checkDb.stateId
+          stateId: checkDb.stateId,
         },
       });
     }
@@ -115,7 +115,7 @@ const updateLGA = async (req, res) => {
         id: updated.id,
         lga: updated.lga,
         stateId: updated.stateId,
-        slug: updated.slug
+        slug: updated.slug,
       },
     });
   } catch (error) {
@@ -169,10 +169,37 @@ const deleteLGA = async (req, res) => {
   }
 };
 
+const fetchLGAsByStateId = async (req, res) => {
+  try {
+    const { stateId } = req.query;
+
+    if (!stateId) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "stateId query parameter is required",
+      });
+    }
+
+    const lgas = await LGA.find({ stateId }).select("lga slug stateId");
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: "LGAs fetched successfully",
+      data: lgas,
+    });
+  } catch (error) {
+    res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
+  }
+};
+
 module.exports = {
   createLGA,
   editLGA,
   updateLGA,
   fetchLGA,
-  deleteLGA
+  deleteLGA,
+  fetchLGAsByStateId,
 };
