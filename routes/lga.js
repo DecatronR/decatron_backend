@@ -6,6 +6,7 @@ const {
   updateLGA,
   fetchLGA,
   deleteLGA,
+  fetchLGAsByStateId,
 } = require("../controllers/lgaController");
 const { body } = require("express-validator");
 const { requireAuth } = require("../middleware/authMiddleware");
@@ -37,6 +38,9 @@ router.post(
 );
 
 router.get("/fetchLGA", fetchLGA);
+
+router.get("/getLGAsByStateId", fetchLGAsByStateId);
+
 router.post(
   "/deleteLGA",
   requireAuth,

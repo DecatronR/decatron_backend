@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
@@ -50,34 +51,31 @@ const sendOTPEmail = async (email, otp) => {
 const sendWhatsappOTP = async (phoneNo, otp) => {
   const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
   const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const WHATSAPP_API_VERSION = "v18.0";
-  const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
-  try {
-    const response = await axios.post(
-      WHATSAPP_API_URL,
-      {
-        messaging_product: "whatsapp",
-        to: phoneNo,
-        type: "text",
-        text: {
-          body: `Your verification code is: ${otp}. Do not share this code with anyone.`,
-        },
+  await axios.post(
+    `https://graph.facebook.com/v18.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+    {
+      messaging_product: "whatsapp",
+      to: phoneNo,
+      type: "template",
+      template: {
+        name: "otp_verification",
+        language: { code: "en_US" },
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: otp }],
+          },
+        ],
       },
-      {
-        headers: {
-          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("OTP sent successfully:", response.data);
-    return true;
-  } catch (error) {
-    console.error("Error sending OTP:", error.response?.data || error.message);
-    return false;
-  }
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 };
 
 const sendWhatsAppNotification = async ({

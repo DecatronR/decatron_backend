@@ -40,7 +40,7 @@ router.post(
   updatePropertyCondition
 );
 
-router.get("/fetchPropertyCondition", fetchPropertyCondition);
+router.get("/fetchPropertyCondition", requireAuth, fetchPropertyCondition);
 router.post(
   "/deletePropertyCondition",
   requireAuth,

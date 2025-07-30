@@ -4,7 +4,6 @@ const fs = require("fs");
 const { body } = require("express-validator");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
-const { updateFcmToken } = require("../controllers/userController");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -34,6 +33,7 @@ const {
   rateUser,
   fetchUserRating,
   userTree,
+  getMyReferrals,
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -72,12 +72,22 @@ router.get("/", function (req, res, next) {
   res.send("respond with a resource");
 });
 
-router.get("/getusers", requireAuth, getUsers);
+router.get(
+  "/getusers",
+  // requireAuth,
+  getUsers
+);
 
 router.post(
   "/editusers",
   [body("id").notEmpty().withMessage("Id is required")],
   editUsers
+);
+
+router.post(
+  "/getMyReferrals",
+  [body("referralCode").notEmpty().withMessage("Referral Code is required")],
+  getMyReferrals
 );
 
 router.post(
@@ -132,7 +142,5 @@ router.post(
   ],
   rateUser
 );
-
-router.post("/update-fcm-token", requireAuth, updateFcmToken);
 
 module.exports = router;

@@ -35,10 +35,10 @@ const createPropertyListing = async (req, res) => {
     houseNoStreet,
     size,
     propertyDetails,
-    livingrooms,
+    // livingrooms,
     bedrooms,
     bathrooms,
-    parkingSpace,
+    // parkingSpace,
     price,
     inspectionFee,
     cautionFee,
@@ -270,11 +270,60 @@ const updatePropertyListing = async (req, res) => {
 
 const fetchPropertyListing = async (req, res) => {
   try {
-    // const users = await User.find();
-    // const fetchRcords = await PropertyListing.find().select(
-    //   "title slug listingType usageType propertyType propertySubType propertyCondition state neighbourhood size propertyDetails livingRooms bedrooms NoOfKitchens parkingSpace price virtualTour video photo createdAt"
-    // );
-    const fetchRecords = await PropertyListing.aggregate([
+    // Extract search parameters and pagination from query string
+    const {
+      state,
+      lga,
+      title,
+      livingrooms,
+      bedrooms,
+      bathrooms,
+      page = 1,
+      limit = 2,
+    } = req.query;
+
+    // Convert pagination params to numbers
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Build match conditions based on provided filters
+    const matchConditions = {};
+
+    if (state) {
+      matchConditions.state = { $regex: state, $options: "i" }; // Case-insensitive search
+    }
+
+    if (lga) {
+      matchConditions.lga = { $regex: lga, $options: "i" }; // Case-insensitive search
+    }
+
+    if (title) {
+      matchConditions.title = { $regex: title, $options: "i" }; // Case-insensitive search
+    }
+
+    if (livingrooms) {
+      matchConditions.livingrooms = parseInt(livingrooms);
+    }
+
+    if (bedrooms) {
+      matchConditions.bedrooms = parseInt(bedrooms);
+    }
+
+    if (bathrooms) {
+      matchConditions.bathrooms = parseInt(bathrooms);
+    }
+
+    // Build the aggregation pipeline
+    const pipeline = [];
+
+    // Add match stage only if there are conditions to match
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({ $match: matchConditions });
+    }
+
+    // Add the remaining stages
+    pipeline.push(
       {
         $addFields: {
           _idString: { $toString: "$_id" },
@@ -333,12 +382,48 @@ const fetchPropertyListing = async (req, res) => {
           createdAt: 1,
           userRole: "$user.role", // Add the user's role
         },
-      },
+      }
+    );
+
+    // Create a separate pipeline for counting total documents (before pagination)
+    const countPipeline = [...pipeline];
+    countPipeline.push({ $count: "total" });
+
+    // Add pagination to the main pipeline
+    pipeline.push({ $skip: skip }, { $limit: limitNumber });
+
+    // Execute both pipelines
+    const [fetchRecords, countResult] = await Promise.all([
+      PropertyListing.aggregate(pipeline),
+      PropertyListing.aggregate(countPipeline),
     ]);
 
-    res.json(fetchRecords);
+    const totalRecords = countResult.length > 0 ? countResult[0].total : 0;
+    const totalPages = Math.ceil(totalRecords / limitNumber);
+    const hasNextPage = pageNumber < totalPages;
+    const hasPrevPage = pageNumber > 1;
+
+    res.json({
+      responseCode: 200,
+      responseMessage: "Properties fetched successfully",
+      data: fetchRecords,
+      pagination: {
+        currentPage: pageNumber,
+        totalPages: totalPages,
+        totalRecords: totalRecords,
+        recordsPerPage: limitNumber,
+        hasNextPage: hasNextPage,
+        hasPrevPage: hasPrevPage,
+        nextPage: hasNextPage ? pageNumber + 1 : null,
+        prevPage: hasPrevPage ? pageNumber - 1 : null,
+      },
+      filters: matchConditions, // Optional: return applied filters
+    });
   } catch (error) {
-    res.status(500).json({ responseCode: 500, responseMessage: error.message });
+    res.status(500).json({
+      responseCode: 500,
+      responseMessage: error.message,
+    });
   }
 };
 
