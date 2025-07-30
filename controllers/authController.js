@@ -8,6 +8,7 @@ const {
   sendWhatsappOTP,
 } = require("../utils/helpers");
 const { sendWhatsAppReply } = require("./webhookController");
+const { normalizePhoneNumber } = require("../utils/phoneNumberUtils");
 const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
@@ -81,6 +82,16 @@ const registerUser = async (req, res, next) => {
   }
 
   const { name, phone, email, password, role, referrer } = req.body;
+
+  // Normalize phone number
+  const normalizedPhone = normalizePhoneNumber(phone);
+  if (!normalizedPhone) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: "Invalid phone number format",
+    });
+  }
+
   const hashedPassword = hashPassword(password);
   try {
     const existing = await User.findOne({ email });
@@ -92,6 +103,17 @@ const registerUser = async (req, res, next) => {
           "Email already exists. kindly provide a different email",
       });
     }
+
+    // Check for existing phone number with normalized format
+    const existingPhone = await User.findOne({ phone: normalizedPhone });
+    if (existingPhone) {
+      return res.status(409).json({
+        responseCode: 409,
+        responseMessage:
+          "Phone number already exists. kindly provide a different phone number",
+      });
+    }
+
     const slug = role.toLowerCase().replace(/\s+/g, "-");
     const roledb = await Role.findOne({ slug });
     if (!roledb) {
@@ -107,7 +129,7 @@ const registerUser = async (req, res, next) => {
 
     const newUser = await User.create({
       name,
-      phone,
+      phone: normalizedPhone,
       email,
       role: slug,
       otp,
@@ -393,6 +415,16 @@ const propertyRequestRegistration = async (req, res, next) => {
 
   const { name, phone, email, password, role, state, lga, listingType } =
     req.body;
+
+  // Normalize phone number
+  const normalizedPhone = normalizePhoneNumber(phone);
+  if (!normalizedPhone) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: "Invalid phone number format",
+    });
+  }
+
   // console.log(req.body);
   const hashedPassword = hashPassword(password);
 
@@ -403,7 +435,7 @@ const propertyRequestRegistration = async (req, res, next) => {
     });
   }
   try {
-    const existing = await User.findOne({ phone });
+    const existing = await User.findOne({ phone: normalizedPhone });
     if (existing) {
       return res.status(409).json({
         responseCode: 409,
@@ -434,7 +466,7 @@ const propertyRequestRegistration = async (req, res, next) => {
 
     const newUser = await User.create({
       name,
-      phone,
+      phone: normalizedPhone,
       email,
       role: slug,
       phoneOTP,
