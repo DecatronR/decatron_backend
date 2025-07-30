@@ -37,9 +37,9 @@ router.post(
   updateLGA
 );
 
-router.get("/fetchLGA", requireAuth, fetchLGA);
+router.get("/fetchLGA", fetchLGA);
 
-router.get("/getLGAsByStateId", requireAuth, fetchLGAsByStateId);
+router.get("/getLGAsByStateId", fetchLGAsByStateId);
 
 router.post(
   "/deleteLGA",

@@ -383,7 +383,7 @@ const confirmPhoneNo = async (req, res) => {
   });
 };
 
-const registerAgent = async (req, res, next) => {
+const propertyRequestRegistration = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res
@@ -391,17 +391,8 @@ const registerAgent = async (req, res, next) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const {
-    name,
-    phone,
-    email,
-    password,
-    role,
-    state,
-    lga,
-    neighborhood,
-    listingType,
-  } = req.body;
+  const { name, phone, email, password, role, state, lga, listingType } =
+    req.body;
   // console.log(req.body);
   const hashedPassword = hashPassword(password);
 
@@ -451,7 +442,6 @@ const registerAgent = async (req, res, next) => {
       referrer: null, // Assuming no referrer for agents
       state,
       lga,
-      neighborhood,
       listingType,
       email_verified_at: null,
       password: hashedPassword,
@@ -532,5 +522,5 @@ module.exports = {
   sendWPOTP,
   confirmPhoneNo,
   changePassword,
-  registerAgent,
+  propertyRequestRegistration,
 };
