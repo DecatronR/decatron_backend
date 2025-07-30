@@ -82,7 +82,7 @@ const UserSchema = new mongoose.Schema({
     required: false,
   },
   listingType: {
-    type: String,
+    type: [String],
     required: false,
   },
   phoneOTP: {
