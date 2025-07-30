@@ -548,6 +548,8 @@ const whatsappWebhook = async (req, res) => {
               "Semi Detached Bungalow",
               "Apartment",
               "Villa",
+              "Self Contain",
+              "Flat",
             ];
             let prevStep = "awaiting_property_type";
             if (
