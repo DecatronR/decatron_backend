@@ -8,8 +8,7 @@ const { migrateStatesAndLGAs } = require("./state_lga");
 const MONGODB_URI =
   process.env.MONGO_DB_URI ||
   process.env.MONGO_DB_URI ||
-  "mongodb+srv://koladeolukoya:0MhzthGQfAcbxky3@cluster0.lw4z1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-// "mongodb://localhost:27017/decatron";
+  "mongodb://localhost:27017/decatron";
 
 async function runMigration() {
   try {

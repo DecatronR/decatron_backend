@@ -844,7 +844,7 @@ const whatsappWebhook = async (req, res) => {
           }
           await sendWhatsAppReply(
             from,
-            `Thank you, ${userData.name}! Your request has been received. We'll share it with our network of property developers, managers, and owners.\n\n            You can follow up or see more properties at https://decatron.com.ng\n\n            If you need help, email us at contact@decatron.com.ng`
+            `Thank you, ${userData.name}! Your request has been received. We'll share it with our network of property developers, managers, agents, and owners.\n\n            You can follow up or see more properties at https://decatron.com.ng\n\n            If you need help, email us at contact@decatron.com.ng`
           );
           await setUserState(
             from,
