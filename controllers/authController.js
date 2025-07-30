@@ -470,8 +470,9 @@ const propertyRequestRegistration = async (req, res, next) => {
       email,
       role: slug,
       phoneOTP,
+      otp,
       referralCode,
-      referrer: null, // Assuming no referrer for agents
+      referrer: null,
       state,
       lga,
       listingType,
