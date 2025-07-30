@@ -81,10 +81,6 @@ const UserSchema = new mongoose.Schema({
     type: [String],
     required: false,
   },
-  neighborhood: {
-    type: String,
-    required: false,
-  },
   listingType: {
     type: String,
     required: false,

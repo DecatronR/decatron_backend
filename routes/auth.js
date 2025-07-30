@@ -9,7 +9,7 @@ const {
   sendWPOTP,
   changePassword,
   confirmPhoneNo,
-  registerAgent,
+  propertyRequestRegistration,
 } = require("../controllers/authController");
 const router = express.Router();
 
@@ -82,7 +82,7 @@ router.post(
   registerUser
 );
 router.post(
-  "/registerAgent",
+  "/propertyRequestRegistration",
   [
     body("name").notEmpty().withMessage("Name field is required"),
     body("email").isEmail().withMessage("Invalid email address"),
@@ -90,9 +90,6 @@ router.post(
     body("phone").isMobilePhone().withMessage("Invalid phone number"),
     body("state").notEmpty().withMessage("State field is required"),
     body("lga").notEmpty().withMessage("LGA Field is required"),
-    body("neighborhood")
-      .notEmpty()
-      .withMessage("Neighbourhood field is required"),
     body("listingType")
       .notEmpty()
       .withMessage("Listing Type field is required"),
@@ -106,7 +103,7 @@ router.post(
       return true;
     }),
   ],
-  registerAgent
+  propertyRequestRegistration
 );
 
 router.get("/logout", logoutUser);
