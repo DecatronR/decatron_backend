@@ -88,17 +88,30 @@ async function getStates() {
 
 async function getLGAsByState(stateName) {
   try {
-    // First find the state to get its slug/ID
+    // First find the state to get its ObjectId
     const state = await State.findOne({ state: stateName });
     if (!state) {
       console.error(`State not found: ${stateName}`);
       return [];
     }
 
-    // Find LGAs for this state
-    const lgas = await LGA.find({ stateId: state.slug })
-      .select("lga slug")
+    console.log(
+      `Found state: ${stateName}, ID: ${state._id}, Slug: ${state.slug}`
+    );
+
+    // Find LGAs for this state using the state's ObjectId
+    // Try both ObjectId and string representation
+    const lgas = await LGA.find({
+      $or: [{ stateId: state._id.toString() }, { stateId: state._id }],
+    })
+      .select("lga slug stateId")
       .sort("lga");
+
+    console.log(
+      `Found ${lgas.length} LGAs for state ${stateName}:`,
+      lgas.map((l) => ({ lga: l.lga, stateId: l.stateId }))
+    );
+
     return lgas.map((lga) => lga.lga);
   } catch (error) {
     console.error("Error fetching LGAs:", error);
