@@ -81,6 +81,7 @@ router.post(
   ],
   registerUser
 );
+
 router.post(
   "/propertyRequestRegistration",
   [
@@ -88,11 +89,15 @@ router.post(
     body("email").isEmail().withMessage("Invalid email address"),
     body("role").notEmpty().withMessage("Role field is required"),
     body("phone").isMobilePhone().withMessage("Invalid phone number"),
-    body("state").notEmpty().withMessage("State field is required"),
-    body("lga").notEmpty().withMessage("LGA Field is required"),
+    body("state")
+      .isArray({ min: 1 })
+      .withMessage("State field is required and must be an array"),
+    body("lga")
+      .isArray({ min: 1 })
+      .withMessage("LGA field is required and must be an array"),
     body("listingType")
-      .notEmpty()
-      .withMessage("Listing Type field is required"),
+      .isArray({ min: 1 })
+      .withMessage("Listing Type field is required and must be an array"),
     body("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
