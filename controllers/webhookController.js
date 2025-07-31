@@ -1,204 +1,32 @@
 const PropertyRequest = require("../models/PropertyRequest");
 
-const WhatsAppUserState = require("../models/WhatsAppUserState");
 const User = require("../models/User");
-const State = require("../models/State");
-const LGA = require("../models/LGA");
-const PropertyUsage = require("../models/PropertyUsage");
-const PropertyType = require("../models/PropertyType");
-const ListingType = require("../models/ListingType");
 const {
   sendPropertyRequestNotification,
 } = require("../utils/emails/propertyRequestNotification");
 const { normalizePhoneNumber } = require("../utils/phoneNumberUtils");
-const axios = require("axios");
 
-// WhatsApp Cloud API configuration
-const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const WHATSAPP_API_VERSION = "v18.0"; // Update to latest version
-const WHATSAPP_API_URL = `https://graph.facebook.com/${WHATSAPP_API_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
-
-// Helper: Send WhatsApp Cloud API reply
-async function sendWhatsAppReply(to, body) {
-  try {
-    const response = await axios.post(
-      WHATSAPP_API_URL,
-      {
-        messaging_product: "whatsapp",
-        to: to,
-        type: "text",
-        text: { body: body },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("WhatsApp message sent successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error(
-      "Error sending WhatsApp message:",
-      error.response?.data || error.message
-    );
-    throw error;
-  }
-}
-
-// Helper: Get/set user state in MongoDB
-async function getUserStep(phone) {
-  const record = await WhatsAppUserState.findOne({ phone });
-  return record ? record.step : "menu";
-}
-
-// Updated setUserState to merge data and use 'step' for flow
-async function setUserState(phone, step, data = {}, previousStep = null) {
-  console.log("setUserState called with phone:", phone, "step:", step);
-  const existing = (await WhatsAppUserState.findOne({ phone })) || {};
-  const previous = existing._doc || {};
-  const mergedData = { ...previous, ...data, step, updatedAt: new Date() };
-  console.log("setUserState: saving merged data for phone:", phone, mergedData);
-  await WhatsAppUserState.findOneAndUpdate({ phone }, mergedData, {
-    upsert: true,
-  });
-  return previousStep;
-}
-
-async function getUserData(phone) {
-  console.log("getUserData called with phone:", phone);
-  const record = await WhatsAppUserState.findOne({ phone });
-  console.log("getUserData: found record for phone:", phone, record);
-  return record || {};
-}
-
-// Dynamic data fetching functions
-async function getStates() {
-  try {
-    const states = await State.find().select("state slug").sort("state");
-    return states.map((state) => state.state);
-  } catch (error) {
-    console.error("Error fetching states:", error);
-    return ["Abuja", "Lagos"]; // Fallback to hardcoded values
-  }
-}
-
-async function getLGAsByState(stateName) {
-  try {
-    // First find the state to get its ObjectId
-    const state = await State.findOne({ state: stateName });
-    if (!state) {
-      console.error(`State not found: ${stateName}`);
-      return [];
-    }
-
-    console.log(
-      `Found state: ${stateName}, ID: ${state._id}, Slug: ${state.slug}`
-    );
-
-    // Find LGAs for this state using the state's ObjectId
-    // Try both ObjectId and string representation
-    const lgas = await LGA.find({
-      $or: [{ stateId: state._id.toString() }, { stateId: state._id }],
-    })
-      .select("lga slug stateId")
-      .sort("lga");
-
-    console.log(
-      `Found ${lgas.length} LGAs for state ${stateName}:`,
-      lgas.map((l) => ({ lga: l.lga, stateId: l.stateId }))
-    );
-
-    return lgas.map((lga) => lga.lga);
-  } catch (error) {
-    console.error("Error fetching LGAs:", error);
-    return []; // Return empty array as fallback
-  }
-}
-
-async function getPropertyUsages() {
-  try {
-    const usages = await PropertyUsage.find()
-      .select("propertyUsage slug")
-      .sort("propertyUsage");
-    return usages.map((usage) => usage.propertyUsage);
-  } catch (error) {
-    console.error("Error fetching property usages:", error);
-    return ["Residential", "Office Space", "Warehouse", "Shop"]; // Fallback
-  }
-}
-
-async function getPropertyTypes() {
-  try {
-    const types = await PropertyType.find()
-      .select("propertyType slug")
-      .sort("propertyType");
-    return types.map((type) => type.propertyType);
-  } catch (error) {
-    console.error("Error fetching property types:", error);
-    return [
-      "Fully Detached Duplex",
-      "Semi Detached Duplex",
-      "Terrace Duplex",
-      "Fully Detached Bungalow",
-      "Semi Detached Bungalow",
-      "Apartment",
-      "Mall/Plaza",
-      "Villa",
-      "Estate Land",
-      "Non-Estate Land",
-    ]; // Fallback
-  }
-}
-
-async function getPropertyCategories() {
-  try {
-    const categories = await ListingType.find()
-      .select("listingType slug")
-      .sort("listingType");
-    return categories.map((category) => category.listingType);
-  } catch (error) {
-    console.error("Error fetching property categories:", error);
-    return ["Rent", "Sale", "Shortlet"]; // Fallback
-  }
-}
+// Import extracted utilities
+const { sendWhatsAppReply } = require("../utils/whatsapp/whatsappUtils");
+const {
+  getUserStep,
+  setUserState,
+  getUserData,
+} = require("../utils/webhook/userStateUtils");
+const {
+  getStates,
+  getLGAsByState,
+  getPropertyUsages,
+  getPropertyTypes,
+  getPropertyCategories,
+} = require("../utils/webhook/dataFetchers");
+const {
+  formatNumberedOptions,
+  getOptionByNumber,
+  wordToNumber,
+} = require("../utils/webhook/inputProcessors");
 
 const TOTAL_STEPS = 8;
-
-// Helper to format numbered options
-function formatNumberedOptions(options) {
-  return options.map((opt, idx) => `${idx + 1}. ${opt}`).join("\n");
-}
-
-// Helper to get option by number
-function getOptionByNumber(options, input) {
-  const idx = Number(input) - 1;
-  if (!isNaN(idx) && idx >= 0 && idx < options.length) {
-    return options[idx];
-  }
-  return null;
-}
-
-// Helper: Convert number words to numbers (supports one to ten, can be expanded)
-function wordToNumber(word) {
-  const map = {
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    six: 6,
-    seven: 7,
-    eight: 8,
-    nine: 9,
-    ten: 10,
-  };
-  const normalized = word.trim().toLowerCase();
-  return map[normalized] !== undefined ? map[normalized] : null;
-}
 
 // Main webhook handler
 const whatsappWebhook = async (req, res) => {
@@ -447,6 +275,8 @@ const whatsappWebhook = async (req, res) => {
             "Semi Detached Bungalow",
             "Apartment",
             "Villa",
+            "Self Contain",
+            "Flat",
           ];
           if (residentialTypes.includes(propertyTypeInput)) {
             await sendWhatsAppReply(
