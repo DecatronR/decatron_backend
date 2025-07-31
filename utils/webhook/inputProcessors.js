@@ -30,8 +30,51 @@ function wordToNumber(word) {
   return map[normalized] !== undefined ? map[normalized] : null;
 }
 
+// Helper: Check if property request is relevant to a user based on their interests
+function isPropertyRequestRelevantToUser(user, propertyRequest) {
+  // Check if user has the required arrays
+  if (!user.state || !user.lga || !user.listingType) {
+    console.log(`User ${user.email} missing interest arrays, skipping`);
+    return false;
+  }
+
+  // Check state match
+  const stateMatch = user.state.includes(propertyRequest.state);
+  if (!stateMatch) {
+    console.log(
+      `State mismatch: User has ${user.state}, request is for ${propertyRequest.state}`
+    );
+    return false;
+  }
+
+  // Check LGA match
+  const lgaMatch = user.lga.includes(propertyRequest.lga);
+  if (!lgaMatch) {
+    console.log(
+      `LGA mismatch: User has ${user.lga}, request is for ${propertyRequest.lga}`
+    );
+    return false;
+  }
+
+  // Check listing type match
+  const listingTypeMatch = user.listingType.includes(propertyRequest.category);
+  if (!listingTypeMatch) {
+    console.log(
+      `Listing type mismatch: User has ${user.listingType}, request is for ${propertyRequest.category}`
+    );
+    return false;
+  }
+
+  // All conditions met
+  console.log(
+    `Perfect match for ${user.email}: State=${propertyRequest.state}, LGA=${propertyRequest.lga}, Category=${propertyRequest.category}`
+  );
+  return true;
+}
+
 module.exports = {
   formatNumberedOptions,
   getOptionByNumber,
   wordToNumber,
+  isPropertyRequestRelevantToUser,
 };
