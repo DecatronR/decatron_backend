@@ -24,6 +24,7 @@ const {
   formatNumberedOptions,
   getOptionByNumber,
   wordToNumber,
+  isPropertyRequestRelevantToUser,
 } = require("../utils/webhook/inputProcessors");
 
 const TOTAL_STEPS = 8;
@@ -659,11 +660,26 @@ const whatsappWebhook = async (req, res) => {
             });
 
             for (const user of eligibleUsers) {
-              await sendPropertyRequestNotification(
-                user.email,
-                user.name,
+              // Check if user's interests match the property request
+              const isRelevant = isPropertyRequestRelevantToUser(
+                user,
                 newRequest
               );
+
+              if (isRelevant) {
+                await sendPropertyRequestNotification(
+                  user.email,
+                  user.name,
+                  newRequest
+                );
+                console.log(
+                  `Sent notification to ${user.email} - Request matches their interests`
+                );
+              } else {
+                console.log(
+                  `Skipped ${user.email} - Request doesn't match their interests`
+                );
+              }
             }
           } catch (emailError) {
             console.error(
