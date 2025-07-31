@@ -428,12 +428,25 @@ const propertyRequestRegistration = async (req, res, next) => {
   // console.log(req.body);
   const hashedPassword = hashPassword(password);
 
-  if (!Array.isArray(state) || !Array.isArray(lga)) {
+  if (
+    !Array.isArray(state) ||
+    !Array.isArray(lga) ||
+    !Array.isArray(listingType)
+  ) {
     return res.status(400).json({
       responseCode: 400,
-      responseMessage: "State and LGA must be arrays.",
+      responseMessage: "State, LGA, and Listing Type must be arrays.",
     });
   }
+
+  // Validate that arrays are not empty
+  if (state.length === 0 || lga.length === 0 || listingType.length === 0) {
+    return res.status(400).json({
+      responseCode: 400,
+      responseMessage: "State, LGA, and Listing Type arrays cannot be empty.",
+    });
+  }
+
   try {
     const existing = await User.findOne({ phone: normalizedPhone });
     if (existing) {
@@ -463,6 +476,7 @@ const propertyRequestRegistration = async (req, res, next) => {
     const phoneOTP = generateOTP();
     // const agentReferralCode = generateReferralCode();
     const referralCode = generateReferralCode();
+    const otp = generateOTP();
 
     const newUser = await User.create({
       name,
@@ -470,8 +484,9 @@ const propertyRequestRegistration = async (req, res, next) => {
       email,
       role: slug,
       phoneOTP,
+      otp,
       referralCode,
-      referrer: null, // Assuming no referrer for agents
+      referrer: null,
       state,
       lga,
       listingType,
@@ -487,7 +502,6 @@ const propertyRequestRegistration = async (req, res, next) => {
     //   secure: true,
     // });
     // await sendOTP(phone, phoneOTP);
-    const otp = generateOTP();
     await sendOTPEmail(email, otp);
     return res.status(201).json({
       responseMessage:

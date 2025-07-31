@@ -40,7 +40,7 @@ router.post(
   updatePropertyUsage
 );
 
-router.get("/fetchPropertyUsage", requireAuth, fetchPropertyUsage);
+router.get("/fetchPropertyUsage", fetchPropertyUsage);
 router.post(
   "/deletePropertyUsage",
   requireAuth,
