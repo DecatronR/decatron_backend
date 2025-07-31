@@ -55,6 +55,16 @@ const sendPropertyRequestNotification = async (
                     propertyRequest.maxBudget.toLocaleString()
                   : propertyRequest.maxBudget.toLocaleString()
               }</p>
+              <p><strong>Request Date:</strong> ${new Date(
+                propertyRequest.createdAt
+              ).toLocaleDateString("en-NG", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}</p>
               ${
                 propertyRequest.note
                   ? `<p><strong>Additional Notes:</strong> ${propertyRequest.note}</p>`
@@ -80,10 +90,16 @@ const sendPropertyRequestNotification = async (
             </p>
   
             <div style="text-align: center; margin-top: 30px;">
-              <a href=${frontendUrl}
-                 style="background-color: #5a47fb; color: white; text-decoration: none; 
+              <a href="https://wa.me/${
+                propertyRequest.phone
+              }?text=Hi! I saw your property request for ${
+      propertyRequest.propertyType
+    } in ${propertyRequest.neighbourhood}, ${
+      propertyRequest.lga
+    }. I have a property that might interest you. Would you like to discuss?"
+                 style="background-color: #25D366; color: white; text-decoration: none; 
                  padding: 12px 30px; border-radius: 20px; font-size: 16px; font-weight: bold;">
-                 List My Property Now
+                 Chat on WhatsApp
               </a>
             </div>
   
