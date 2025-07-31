@@ -62,7 +62,13 @@ const sendPropertyRequestNotification = async (
               }
               <p><strong>Requester Type:</strong> ${
                 propertyRequest.role === "buyer"
-                  ? "buyer/renter"
+                  ? "Buyer/Renter"
+                  : propertyRequest.role === "agent"
+                  ? "Agent"
+                  : propertyRequest.role === "owner"
+                  ? "Owner"
+                  : propertyRequest.role === "property-manager"
+                  ? "Property Manager"
                   : propertyRequest.role
               }</p>
             </div>
