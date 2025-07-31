@@ -11,7 +11,7 @@ const AgencyRequestSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    default: '0'
+    default: "0",
   },
   ownerId: {
     type: String,
