@@ -1,19 +1,15 @@
 const mongoose = require("mongoose");
-const AgencyRequestSchema = new mongoose.Schema({
-  agentId: {
+
+const Subscription = new mongoose.Schema({
+  userId: {
     type: String,
     required: true,
   },
-  propertyListingId: {
+  SubscriptionPlanId: {
     type: String,
     required: true,
   },
-  status: {
-    type: String,
-    required: true,
-    default: "0",
-  },
-  ownerId: {
+  expiring: {
     type: String,
     required: true,
   },
@@ -23,4 +19,5 @@ const AgencyRequestSchema = new mongoose.Schema({
     default: new Date(),
   },
 });
-module.exports = mongoose.model("AgencyRequest", AgencyRequestSchema);
+
+module.exports = mongoose.model("Subscription", Subscription);

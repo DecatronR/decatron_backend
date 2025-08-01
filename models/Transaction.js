@@ -34,6 +34,10 @@ const TransactionSchema = new mongoose.Schema(
       enum: ["PENDING", "PAID", "FAILED"],
       default: "PENDING",
     },
+    subscriptionPlanID: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt
 );

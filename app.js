@@ -40,6 +40,8 @@ const eSignatureRouter = require("./routes/eSignature");
 const manualPaymentRouter = require("./routes/manualPayment");
 const propertyRequestRouter = require("./routes/propertyRequest");
 const webhookRouter = require("./routes/webhook");
+const subscriptionPlanRouter = require("./routes/subscriptionPlan");
+const paystack = require("./routes/paystack");
 
 const app = express();
 
@@ -133,6 +135,8 @@ app.use("/eSignature", eSignatureRouter);
 app.use("/manualPayment", manualPaymentRouter);
 app.use("/propertyRequest", propertyRequestRouter);
 app.use("/webhook", webhookRouter);
+app.use("/subscriptionPlan", subscriptionPlanRouter);
+app.use("/paystack", paystack);
 
 // catch 404 and send response directly (Option 1)
 

@@ -21,10 +21,6 @@ const ninSchema = new mongoose.Schema({
 });
 
 const UserSchema = new mongoose.Schema({
-  // userID: {
-  //   type: String,
-  //   required: true
-  // },
   name: {
     type: String,
     required: true,
