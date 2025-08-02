@@ -126,6 +126,13 @@ const UserSchema = new mongoose.Schema({
     required: false,
   },
 
+  // Payment intent tracking
+  pendingPaymentIntent: {
+    type: String,
+    default: "free trial",
+    // This will store lowercase plan names like "special agent", "premium plus", "free trial", etc.
+  },
+
   password: {
     type: String,
     required: true,

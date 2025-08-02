@@ -16,6 +16,7 @@ const { sendWelcomeEmail } = require("../utils/emails/welcome");
 const {
   sendPropertyRequestWelcomeEmail,
 } = require("../utils/emails/propertyRequestWelcome");
+const { initializeSubscriptionPayment } = require("../utils/paymentUtils");
 const { ObjectId } = require("mongodb");
 const axios = require("axios");
 const { handleNewUserWithReferral } = require("../utils/referralRewardService");
@@ -406,6 +407,57 @@ const confirmOTP = async (req, res) => {
     });
   }
 
+  // Check if user has pending payment intent for any subscription plan
+  if (
+    updatedUser.pendingPaymentIntent &&
+    updatedUser.pendingPaymentIntent !== "free trial"
+  ) {
+    try {
+      // Initialize payment for the specific subscription plan
+      const paymentData = await initializeSubscriptionPayment(
+        updatedUser.email,
+        updatedUser.pendingPaymentIntent
+      );
+
+      // Clear pending payment intent
+      await User.findByIdAndUpdate(updatedUser._id, {
+        pendingPaymentIntent: "free trial",
+      });
+
+      // Send welcome email
+      await sendWelcomeEmail(email, updatedUser.name);
+
+      // Generate JWT Token
+      const token = createToken(updatedUser._id, updatedUser.role);
+
+      // Set auth cookie for automatic login
+      res.cookie("auth_jwt", token, {
+        maxAge: maxAge * 1000,
+        httpOnly: true,
+        sameSite: "Lax",
+        secure: true,
+      });
+
+      return res.status(200).json({
+        responseCode: 200,
+        responseMessage: `Email verified successfully. Payment initialized for ${paymentData.planName}.`,
+        token,
+        user: updatedUser._id,
+        paymentIntent: paymentData.planName,
+        paymentData: paymentData.data,
+        planDetails: {
+          name: paymentData.planName,
+          amount: paymentData.amount,
+          period: paymentData.period,
+        },
+      });
+    } catch (paymentError) {
+      console.error("Error initializing payment:", paymentError);
+      // Continue with regular flow if payment initialization fails
+    }
+  }
+
+  // Handle free tier or failed payment initialization
   // Send welcome email
   await sendWelcomeEmail(email, updatedUser.name);
 
@@ -425,6 +477,7 @@ const confirmOTP = async (req, res) => {
     responseMessage: "OTP Confirmed Successfully. You are now logged in.",
     token, // Send token in response if frontend needs it
     user: updatedUser._id,
+    paymentIntent: "free trial",
   });
 };
 
@@ -487,6 +540,7 @@ const propertyRequestRegistration = async (req, res, next) => {
     lga,
     listingType,
     referrer,
+    paymentIntent = "free trial",
   } = req.body;
 
   // Normalize phone number
@@ -505,6 +559,24 @@ const propertyRequestRegistration = async (req, res, next) => {
       return res.status(400).json({
         responseCode: 400,
         responseMessage: "Invalid referral code",
+      });
+    }
+  }
+
+  // Normalize payment intent to lowercase for consistency
+  const normalizedPaymentIntent = paymentIntent.toLowerCase();
+
+  // Validate payment intent if it's not free trial
+  if (normalizedPaymentIntent !== "free trial") {
+    const { validateSubscriptionPlan } = require("../utils/paymentUtils");
+    const planValidation = await validateSubscriptionPlan(
+      normalizedPaymentIntent
+    );
+
+    if (!planValidation.exists) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: `Subscription plan "${paymentIntent}" not found. Please choose a valid plan.`,
       });
     }
   }
@@ -577,6 +649,7 @@ const propertyRequestRegistration = async (req, res, next) => {
       listingType,
       email_verified_at: null,
       password: hashedPassword,
+      pendingPaymentIntent: normalizedPaymentIntent,
     });
 
     // Grant free trial and handle referral rewards

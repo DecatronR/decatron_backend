@@ -115,6 +115,12 @@ router.post(
       .optional()
       .isString()
       .withMessage("Referrer must be a string"),
+    body("paymentIntent")
+      .optional()
+      .isString()
+      .withMessage(
+        "Payment intent must be a string (plan name or 'free trial')"
+      ),
   ],
   propertyRequestRegistration
 );
