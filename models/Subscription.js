@@ -13,6 +13,22 @@ const Subscription = new mongoose.Schema({
     type: String,
     required: true,
   },
+  // Subscription type tracking
+  isReferralReward: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  isFreeTrial: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  referralRewardId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ReferralReward",
+    required: false,
+  },
   createdAt: {
     type: Date,
     required: true,

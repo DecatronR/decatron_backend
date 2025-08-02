@@ -36,6 +36,7 @@ const {
   getMyReferrals,
   getReferralCount,
   getAllMyReferrals,
+  getUserSubscriptionStatus,
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -102,6 +103,12 @@ router.post(
   "/getAllMyReferrals",
   [body("referralCode").notEmpty().withMessage("Referral Code is required")],
   getAllMyReferrals
+);
+
+router.post(
+  "/getUserSubscriptionStatus",
+  [body("userId").notEmpty().withMessage("User ID is required")],
+  getUserSubscriptionStatus
 );
 
 router.post(

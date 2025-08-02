@@ -501,6 +501,33 @@ const getAllMyReferrals = async (req, res) => {
   }
 };
 
+const getUserSubscriptionStatus = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+
+    const { userId } = req.body;
+
+    const {
+      getUserSubscriptionStatus: getStatus,
+    } = require("../utils/referralRewardService");
+    const subscriptionStatus = await getStatus(userId);
+
+    return res.status(200).json({
+      responseMessage: "Subscription status retrieved successfully",
+      responseCode: 200,
+      data: subscriptionStatus,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message, responseCode: 500 });
+  }
+};
+
 module.exports = {
   getUsers,
   editUsers,
@@ -512,4 +539,5 @@ module.exports = {
   getMyReferrals,
   getReferralCount,
   getAllMyReferrals,
+  getUserSubscriptionStatus,
 };

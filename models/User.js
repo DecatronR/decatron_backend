@@ -104,6 +104,28 @@ const UserSchema = new mongoose.Schema({
     default: false,
   },
 
+  // Free trial tracking
+  hasUsedFreeTrial: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  freeTrialStartedAt: {
+    type: Date,
+    required: false,
+  },
+
+  // Referral reward tracking
+  referralRewardsEarned: {
+    type: Number,
+    required: false,
+    default: 0,
+  },
+  lastReferralRewardAt: {
+    type: Date,
+    required: false,
+  },
+
   password: {
     type: String,
     required: true,

@@ -4,6 +4,7 @@ const Transaction = require("../models/Transaction");
 const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const { validationResult } = require("express-validator");
+const { getUserSubscriptionStatus } = require("../utils/referralRewardService");
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const initializePayment = async (req, res, next) => {
@@ -87,18 +88,44 @@ const verifyPayment = async (req, res, next) => {
     console.log(getSubscriptionLifeSpan);
 
     if (status == "success") {
-      //get successful transaction and insert subscription into Subscription Table
+      // Get user details to check free trial status
+      const user = await User.findById(userdb.userId);
+      if (!user) {
+        return res.status(404).json({
+          responseCode: 404,
+          responseMessage: "User not found",
+        });
+      }
+
+      // Calculate subscription duration
+      let subscriptionDays = getSubscriptionLifeSpan.period;
+
+      // If user hasn't used free trial, give them 30 extra days
+      if (!user.hasUsedFreeTrial) {
+        subscriptionDays += 30;
+        // Mark user as having used free trial
+        await User.findByIdAndUpdate(userdb.userId, {
+          hasUsedFreeTrial: true,
+          freeTrialStartedAt: new Date(),
+        });
+      }
+
+      // Create subscription with calculated duration
       await Subscription.create({
         userId: userdb.userId,
         SubscriptionPlanId: userdb.subscriptionPlanID,
-        expiring: new Date(
-          Date.now() + getSubscriptionLifeSpan.period * 24 * 60 * 60 * 1000
-        ), // Assuming a 30-day subscription
+        expiring: new Date(Date.now() + subscriptionDays * 24 * 60 * 60 * 1000),
+        isFreeTrial: false, // This is a paid subscription
       });
+
       return res.status(200).json({
         responseCode: 200,
         responseMessage: "Payment verified successfully",
-        data: response.data.data,
+        data: {
+          ...response.data.data,
+          subscriptionDays: subscriptionDays,
+          includesFreeTrial: !user.hasUsedFreeTrial,
+        },
       });
     } else {
       return res.status(200).json({

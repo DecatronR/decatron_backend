@@ -15,6 +15,7 @@ const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail } = require("../utils/emails/welcome");
 const { ObjectId } = require("mongodb");
 const axios = require("axios");
+const { handleNewUserWithReferral } = require("../utils/referralRewardService");
 
 const secretKey = process.env.JWT_SECURITY_KEY;
 
@@ -139,6 +140,14 @@ const registerUser = async (req, res, next) => {
       email_verified_at: null,
       password: hashedPassword,
     });
+
+    // Grant free trial and handle referral rewards
+    try {
+      await handleNewUserWithReferral(newUser._id, referrer);
+    } catch (referralError) {
+      console.error("Error handling referral rewards:", referralError);
+      // Don't fail the registration if referral processing fails
+    }
 
     await sendOTPEmail(email, otp);
 
@@ -503,6 +512,14 @@ const propertyRequestRegistration = async (req, res, next) => {
       email_verified_at: null,
       password: hashedPassword,
     });
+
+    // Grant free trial and handle referral rewards
+    try {
+      await handleNewUserWithReferral(newUser._id, referrer);
+    } catch (referralError) {
+      console.error("Error handling referral rewards:", referralError);
+      // Don't fail the registration if referral processing fails
+    }
 
     // const token = createToken(newUser._id);
     // res.cookie("auth_jwt", token, {
