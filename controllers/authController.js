@@ -93,6 +93,17 @@ const registerUser = async (req, res, next) => {
     });
   }
 
+  // Validate referrer code if provided
+  if (referrer) {
+    const referrerExists = await User.findOne({ referralCode: referrer });
+    if (!referrerExists) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Invalid referral code",
+      });
+    }
+  }
+
   const hashedPassword = hashPassword(password);
   try {
     const existing = await User.findOne({ email });
@@ -441,6 +452,17 @@ const propertyRequestRegistration = async (req, res, next) => {
       responseCode: 400,
       responseMessage: "Invalid phone number format",
     });
+  }
+
+  // Validate referrer code if provided
+  if (referrer) {
+    const referrerExists = await User.findOne({ referralCode: referrer });
+    if (!referrerExists) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Invalid referral code",
+      });
+    }
   }
 
   // console.log(req.body);

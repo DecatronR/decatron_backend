@@ -78,6 +78,10 @@ router.post(
       }
       return true;
     }),
+    body("referrer")
+      .optional()
+      .isString()
+      .withMessage("Referrer must be a string"),
   ],
   registerUser
 );
@@ -107,6 +111,10 @@ router.post(
       }
       return true;
     }),
+    body("referrer")
+      .optional()
+      .isString()
+      .withMessage("Referrer must be a string"),
   ],
   propertyRequestRegistration
 );
