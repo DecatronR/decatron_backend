@@ -13,6 +13,9 @@ const User = require("../models/User");
 const Role = require("../models/Role");
 const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail } = require("../utils/emails/welcome");
+const {
+  sendPropertyRequestWelcomeEmail,
+} = require("../utils/emails/propertyRequestWelcome");
 const { ObjectId } = require("mongodb");
 const axios = require("axios");
 const { handleNewUserWithReferral } = require("../utils/referralRewardService");
@@ -178,11 +181,52 @@ const registerUser = async (req, res, next) => {
   } catch (error) {
     console.error(error);
     return res.status(401).json({
-      responseMessage: "Failed to register user",
+      responseMessage: `Failed to register user. ${error.message}`,
       responseCode: 401,
     });
   }
 };
+
+async function sendOTP(phone, otp) {
+  try {
+    const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
+    const TEMPLATE_NAME = process.env.WHATSAPP_OTP_TEMPLATE_NAME;
+    const LANGUAGE_CODE = "en_US"; // Adjust as needed
+    const response = await axios.post(
+      `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+          name: TEMPLATE_NAME,
+          language: { code: LANGUAGE_CODE },
+          components: [
+            {
+              type: "body",
+              parameters: [
+                {
+                  type: "text",
+                  text: otp,
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("OTP sent successfully:", response.data);
+  } catch (error) {
+    console.error("Failed to send OTP:", error.response?.data || error.message);
+  }
+}
 
 const resendOTP = async (req, res) => {
   const errors = validationResult(req);
@@ -552,6 +596,18 @@ const propertyRequestRegistration = async (req, res, next) => {
     // });
     // await sendOTP(phone, phoneOTP);
     await sendOTPEmail(email, otp);
+
+    // Send property request welcome email with referral information
+    try {
+      await sendPropertyRequestWelcomeEmail(email, name, referralCode);
+    } catch (emailError) {
+      console.error(
+        "Error sending property request welcome email:",
+        emailError
+      );
+      // Don't fail the registration if welcome email fails
+    }
+
     return res.status(201).json({
       responseMessage:
         "User created successfully. OTP has been sent to your email for verification.",
@@ -566,47 +622,6 @@ const propertyRequestRegistration = async (req, res, next) => {
     });
   }
 };
-
-async function sendOTP(phone, otp) {
-  try {
-    const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
-    const TEMPLATE_NAME = process.env.WHATSAPP_OTP_TEMPLATE_NAME;
-    const LANGUAGE_CODE = "en_US"; // Adjust as needed
-    const response = await axios.post(
-      `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: phone,
-        type: "template",
-        template: {
-          name: TEMPLATE_NAME,
-          language: { code: LANGUAGE_CODE },
-          components: [
-            {
-              type: "body",
-              parameters: [
-                {
-                  type: "text",
-                  text: otp,
-                },
-              ],
-            },
-          ],
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    console.log("OTP sent successfully:", response.data);
-  } catch (error) {
-    console.error("Failed to send OTP:", error.response?.data || error.message);
-  }
-}
 
 module.exports = {
   registerUser,

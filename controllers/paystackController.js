@@ -5,6 +5,9 @@ const User = require("../models/User");
 const Subscription = require("../models/Subscription");
 const { validationResult } = require("express-validator");
 const { getUserSubscriptionStatus } = require("../utils/referralRewardService");
+const {
+  sendSpecialAgentWelcomeEmail,
+} = require("../utils/emails/specialAgentWelcome");
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
 const initializePayment = async (req, res, next) => {
@@ -117,6 +120,19 @@ const verifyPayment = async (req, res, next) => {
         expiring: new Date(Date.now() + subscriptionDays * 24 * 60 * 60 * 1000),
         isFreeTrial: false, // This is a paid subscription
       });
+
+      // Send Special Agent welcome email
+      try {
+        await sendSpecialAgentWelcomeEmail(
+          user.email,
+          user.name,
+          subscriptionDays,
+          !user.hasUsedFreeTrial
+        );
+      } catch (emailError) {
+        console.error("Error sending Special Agent welcome email:", emailError);
+        // Don't fail the payment verification if email fails
+      }
 
       return res.status(200).json({
         responseCode: 200,
