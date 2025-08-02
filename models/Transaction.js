@@ -38,6 +38,10 @@ const TransactionSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    isUpgrade: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt
 );

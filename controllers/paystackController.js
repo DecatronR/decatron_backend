@@ -8,8 +8,10 @@ const { getUserSubscriptionStatus } = require("../utils/referralRewardService");
 const {
   sendSpecialAgentWelcomeEmail,
 } = require("../utils/emails/specialAgentWelcome");
+const { initializeSubscriptionPayment } = require("../utils/paymentUtils");
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+
 const initializePayment = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -19,7 +21,16 @@ const initializePayment = async (req, res, next) => {
   }
 
   const { email, amount, subscriptionPlanID } = req.body;
+
   try {
+    const userdb = await User.findOne({ email });
+    if (!userdb) {
+      return res.status(404).json({
+        responseMessage: `User with email ${email} not found on our system`,
+        responseCode: 404,
+      });
+    }
+
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
@@ -33,13 +44,7 @@ const initializePayment = async (req, res, next) => {
         },
       }
     );
-    const userdb = await User.findOne({ email });
-    if (!userdb) {
-      return res.status(404).json({
-        responseMessage: `User with email ${email} not found on our system`,
-        responseCode: 404,
-      });
-    }
+
     const transaction = await Transaction.create({
       userId: userdb._id,
       subscriptionPlanID: subscriptionPlanID,
@@ -50,7 +55,7 @@ const initializePayment = async (req, res, next) => {
       status: "PENDING",
       paymentDescription: "Payment for subscription plan",
     });
-    // console.log(subscriptionPlanID);
+
     return res.status(200).json({
       responseCode: 200,
       responseMessage: "Transaction initialized successfully",
@@ -62,6 +67,91 @@ const initializePayment = async (req, res, next) => {
       responseCode: 500,
       responseMessage: "Payment initialization failed",
       data: error.response?.data || error.message,
+    });
+  }
+};
+
+// Separate function for existing user upgrades
+const initializeUpgradePayment = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ responseCode: 400, responseMessage: errors.array() });
+  }
+
+  const { userId, planName } = req.body;
+
+  try {
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        responseCode: 404,
+        responseMessage: "User not found",
+      });
+    }
+
+    // Validate the subscription plan
+    const { validateSubscriptionPlan } = require("../utils/paymentUtils");
+    const planValidation = await validateSubscriptionPlan(
+      planName.toLowerCase()
+    );
+
+    if (!planValidation.exists) {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: `Subscription plan "${planName}" not found. Please choose a valid plan.`,
+      });
+    }
+
+    // Check if user is trying to upgrade to free trial (not allowed for existing users)
+    if (planName.toLowerCase() === "free trial") {
+      return res.status(400).json({
+        responseCode: 400,
+        responseMessage: "Free trial is only available for new registrations.",
+      });
+    }
+
+    // Initialize payment for the subscription plan
+    const paymentData = await initializeSubscriptionPayment(
+      user.email,
+      planName.toLowerCase()
+    );
+
+    // Create transaction record
+    const transaction = await Transaction.create({
+      userId: user._id,
+      subscriptionPlanID: paymentData.subscriptionPlanID,
+      paymentReference: paymentData.data.reference,
+      amount: paymentData.amount,
+      customerName: user.name,
+      customerEmail: user.email,
+      status: "PENDING",
+      paymentDescription: `Upgrade to ${planName}`,
+      isUpgrade: true, // Flag to indicate this is an upgrade
+    });
+
+    return res.status(200).json({
+      responseCode: 200,
+      responseMessage: `Payment initialized for ${planName} upgrade`,
+      data: {
+        ...paymentData.data,
+        planDetails: {
+          name: paymentData.planName,
+          displayName: planValidation.plan.displayName,
+          amount: paymentData.amount,
+          period: paymentData.period,
+        },
+        transactionId: transaction._id,
+      },
+    });
+  } catch (error) {
+    console.error("Error initializing upgrade payment:", error);
+    return res.status(500).json({
+      responseCode: 500,
+      responseMessage: "Failed to initialize upgrade payment",
+      error: error.message,
     });
   }
 };
@@ -100,11 +190,14 @@ const verifyPayment = async (req, res, next) => {
         });
       }
 
+      // Check if this is an upgrade transaction
+      const isUpgrade = userdb.isUpgrade || false;
+
       // Calculate subscription duration
       let subscriptionDays = getSubscriptionLifeSpan.period;
 
-      // If user hasn't used free trial, give them 30 extra days
-      if (!user.hasUsedFreeTrial) {
+      // If user hasn't used free trial and this is NOT an upgrade, give them 30 extra days
+      if (!user.hasUsedFreeTrial && !isUpgrade) {
         subscriptionDays += 30;
         // Mark user as having used free trial
         await User.findByIdAndUpdate(userdb.userId, {
@@ -121,26 +214,46 @@ const verifyPayment = async (req, res, next) => {
         isFreeTrial: false, // This is a paid subscription
       });
 
-      // Send Special Agent welcome email
-      try {
-        await sendSpecialAgentWelcomeEmail(
-          user.email,
-          user.name,
-          subscriptionDays,
-          !user.hasUsedFreeTrial
-        );
-      } catch (emailError) {
-        console.error("Error sending Special Agent welcome email:", emailError);
-        // Don't fail the payment verification if email fails
+      // Send appropriate email based on whether it's an upgrade or new subscription
+      if (isUpgrade) {
+        // Send upgrade confirmation email
+        try {
+          await sendSpecialAgentWelcomeEmail(
+            user.email,
+            user.name,
+            subscriptionDays,
+            false // No free trial bonus for upgrades
+          );
+        } catch (emailError) {
+          console.error("Error sending upgrade welcome email:", emailError);
+        }
+      } else {
+        // Send new subscription welcome email
+        try {
+          await sendSpecialAgentWelcomeEmail(
+            user.email,
+            user.name,
+            subscriptionDays,
+            !user.hasUsedFreeTrial
+          );
+        } catch (emailError) {
+          console.error(
+            "Error sending Special Agent welcome email:",
+            emailError
+          );
+        }
       }
 
       return res.status(200).json({
         responseCode: 200,
-        responseMessage: "Payment verified successfully",
+        responseMessage: isUpgrade
+          ? "Payment verified successfully. Your subscription has been upgraded!"
+          : "Payment verified successfully",
         data: {
           ...response.data.data,
           subscriptionDays: subscriptionDays,
-          includesFreeTrial: !user.hasUsedFreeTrial,
+          includesFreeTrial: !user.hasUsedFreeTrial && !isUpgrade,
+          isUpgrade: isUpgrade,
         },
       });
     } else {
