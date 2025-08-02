@@ -413,8 +413,17 @@ const propertyRequestRegistration = async (req, res, next) => {
       .json({ responseCode: 400, responseMessage: errors.array() });
   }
 
-  const { name, phone, email, password, role, state, lga, listingType } =
-    req.body;
+  const {
+    name,
+    phone,
+    email,
+    password,
+    role,
+    state,
+    lga,
+    listingType,
+    referrer,
+  } = req.body;
 
   // Normalize phone number
   const normalizedPhone = normalizePhoneNumber(phone);
@@ -474,7 +483,7 @@ const propertyRequestRegistration = async (req, res, next) => {
     }
 
     const phoneOTP = generateOTP();
-    // const agentReferralCode = generateReferralCode();
+    const agentReferralCode = generateReferralCode();
     const referralCode = generateReferralCode();
     const otp = generateOTP();
 
@@ -485,8 +494,9 @@ const propertyRequestRegistration = async (req, res, next) => {
       role: slug,
       phoneOTP,
       otp,
+      agentReferralCode,
       referralCode,
-      referrer: null,
+      referrer,
       state,
       lga,
       listingType,

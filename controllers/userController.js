@@ -406,6 +406,101 @@ const getMyReferrals = async (req, res) => {
   }
 };
 
+const getReferralCount = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+
+    const { referralCode } = req.body;
+
+    // Get the main user
+    const user = await User.findOne({ referralCode });
+    if (!user) {
+      return res.status(404).json({
+        responseMessage: "Referral Code not found",
+        responseCode: 404,
+      });
+    }
+
+    // Count all users who have this user as their referrer
+    const referralCount = await User.countDocuments({ referrer: referralCode });
+
+    return res.status(200).json({
+      responseMessage: "Referral count retrieved successfully",
+      responseCode: 200,
+      data: {
+        userId: user._id,
+        userName: user.name,
+        referralCode: user.referralCode,
+        referralCount: referralCount,
+        // For incentive system: check if they qualify for 1 month free
+        qualifiesForIncentive: referralCount >= 5,
+        usersNeededForIncentive: Math.max(0, 5 - referralCount),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message, responseCode: 500 });
+  }
+};
+
+const getAllMyReferrals = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res
+        .status(400)
+        .json({ responseCode: 400, responseMessage: errors.array() });
+    }
+
+    const { referralCode } = req.body;
+
+    // Get the main user
+    const user = await User.findOne({ referralCode });
+    if (!user) {
+      return res.status(404).json({
+        responseMessage: "Referral Code not found",
+        responseCode: 404,
+      });
+    }
+
+    // Get all users who have this user as their referrer
+    const referrals = await User.find({ referrer: referralCode })
+      .select("name email role createdAt phone_verified_at email_verified_at")
+      .sort({ createdAt: -1 });
+
+    const referralCount = referrals.length;
+
+    return res.status(200).json({
+      responseMessage: "Referrals retrieved successfully",
+      responseCode: 200,
+      data: {
+        userId: user._id,
+        userName: user.name,
+        referralCode: user.referralCode,
+        referralCount: referralCount,
+        qualifiesForIncentive: referralCount >= 5,
+        usersNeededForIncentive: Math.max(0, 5 - referralCount),
+        referrals: referrals.map((referral) => ({
+          name: referral.name,
+          email: referral.email,
+          role: referral.role,
+          joinedDate: referral.createdAt,
+          isPhoneVerified: !!referral.phone_verified_at,
+          isEmailVerified: !!referral.email_verified_at,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ responseMessage: error.message, responseCode: 500 });
+  }
+};
+
 module.exports = {
   getUsers,
   editUsers,
@@ -415,4 +510,6 @@ module.exports = {
   fetchUserRating,
   userTree,
   getMyReferrals,
+  getReferralCount,
+  getAllMyReferrals,
 };
