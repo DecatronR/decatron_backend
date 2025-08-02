@@ -34,6 +34,8 @@ const {
   fetchUserRating,
   userTree,
   getMyReferrals,
+  getReferralCount,
+  getAllMyReferrals,
 } = require("../controllers/userController");
 const { requireAuth } = require("../middleware/authMiddleware");
 
@@ -88,6 +90,18 @@ router.post(
   "/getMyReferrals",
   [body("referralCode").notEmpty().withMessage("Referral Code is required")],
   getMyReferrals
+);
+
+router.post(
+  "/getReferralCount",
+  [body("referralCode").notEmpty().withMessage("Referral Code is required")],
+  getReferralCount
+);
+
+router.post(
+  "/getAllMyReferrals",
+  [body("referralCode").notEmpty().withMessage("Referral Code is required")],
+  getAllMyReferrals
 );
 
 router.post(
